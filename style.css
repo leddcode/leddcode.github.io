@@ -1,0 +1,60 @@
+body {
+	background: #0e0e1b;
+	color: #00FF00;
+	font-family: monospace;
+	font-size: 18px;
+}
+
+#head {
+	font-size: 10px;
+	margin: 0 auto;
+	padding: 20px;
+}
+
+#terminal {
+	width: 700px;
+	margin: 0 auto;
+	padding: 20px;
+	background-color: #17172b;
+	border-radius: 5px;
+}
+
+#prompt {
+	float: left;
+	display: none;
+}
+
+#command-line {
+	float: left;
+	border: none;
+	background-color: transparent;
+	color: #00FF00;
+	font-family: monospace;
+	font-size: 18px;
+	outline: none;
+	margin-left: 8px;
+	height: 20px;
+	display: none;
+}
+
+.user {
+  	color: #ff00d4;
+}
+
+.output {
+	color: rgb(255, 255, 255);
+	text-decoration: none;
+}
+
+.link {
+	color: rgb(255, 255, 255);
+	text-decoration: none;
+}
+
+.link:hover {
+	color: #ffff66;
+}
+
+.command {
+  	color: #ffff66;
+}
