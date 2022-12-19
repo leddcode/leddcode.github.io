@@ -6,7 +6,7 @@ body {
 }
 
 #head {
-	font-size: 10px;
+	font-size: 12px;
 	margin: 0 auto;
 	padding: 20px;
 }
@@ -53,6 +53,10 @@ body {
 
 .link:hover {
 	color: #ffff66;
+}
+
+.blink:hover {
+	color: #ff00d4;
 }
 
 .command {
