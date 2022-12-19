@@ -12,7 +12,7 @@ body {
 }
 
 #terminal {
-	width: 700px;
+	max-width: 700px;
 	margin: 0 auto;
 	padding: 20px;
 	background-color: #17172b;
@@ -22,6 +22,7 @@ body {
 #prompt {
 	float: left;
 	display: none;
+	margin-right: 8px;
 }
 
 #command-line {
@@ -32,7 +33,6 @@ body {
 	font-family: monospace;
 	font-size: 18px;
 	outline: none;
-	margin-left: 8px;
 	height: 20px;
 	display: none;
 }
