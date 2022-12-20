@@ -17,15 +17,22 @@ body {
 	padding: 20px;
 	background-color: #17172b;
 	border-radius: 5px;
+    overflow: hidden;
+}
+
+#line {
+	display: flex;
 }
 
 #prompt {
 	float: left;
 	display: none;
 	margin-right: 8px;
+    flex: 1;
 }
 
 #command-line {
+	flex: 3;
 	float: left;
 	border: none;
 	background-color: transparent;
@@ -62,3 +69,13 @@ body {
 .command {
   	color: #ffff66;
 }
+
+@media (max-width: 700px) {
+	#line {
+	  flex-direction: column;
+	}
+	#prompt,
+	#command-line {
+	  flex: 1;
+	}
+  }
