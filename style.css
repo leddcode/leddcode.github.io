@@ -58,8 +58,8 @@ body {
 	text-decoration: none;
 }
 
-.link:hover {
-	color: #ffff66;
+.link:hover {	
+	text-shadow: 0 0 2px #001716, 0 0 3px #03edf975, 0 0 5px #03edf975, 0 0 8px #03edf975;
 }
 
 .blink:hover {
