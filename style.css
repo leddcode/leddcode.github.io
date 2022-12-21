@@ -59,7 +59,7 @@ body {
 }
 
 .link:hover {	
-	text-shadow: 0 0 2px #001716, 0 0 3px #03edf975, 0 0 5px #03edf975, 0 0 8px #03edf975;
+	text-shadow: 0 0 2px #001716, 0 0 3px #9696ff, 0 0 5px #9696ff, 0 0 8px #9696ff;
 }
 
 .blink:hover {
