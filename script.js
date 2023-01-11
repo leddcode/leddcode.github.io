@@ -97,7 +97,7 @@ commandLine.addEventListener('keydown', function(e) {
 	  } else if (command === './glazgo.exe') {
       window.open("https://github.com/leddcode/GlazGo/releases", "_blank");
       output = document.createElement('div');
-	  	output.innerHTML = xsstrike;
+	  	output.innerHTML = glazgo;
 	  } else if (command === 'open trophy.html') {
       window.open("https://trophy.onrender.com/", "_blank");
       output = document.createElement('div');
