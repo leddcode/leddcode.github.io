@@ -13,9 +13,15 @@ const aranea = `Aranea may be used as an additional OSINT tool for web applicati
 by crawling the links of the webapp or by examining the JavaScript files for likely useful data.
  <a href="https://github.com/leddcode/Aranea" class="link" target="_blank">https://github.com/leddcode/Aranea</a>`
  
-const oculus = `Oculus is a Domain OSINT Tool used to discover environments, directories, and subdomains of a particular domain. 
-Additionally, it is useful for searching S3 Buckets, Azure Blob Containers, Firebase DBs, 
-leaked email addresses and MX records of a domain. <a href="https://github.com/leddcode/Oculus" class="link" target="_blank">https://github.com/leddcode/Oculus</a>`
+ const oculus = `Oculus is a Domain OSINT Tool used to discover environments, directories, and subdomains of a particular domain. 
+ Additionally, it is useful for searching S3 Buckets, Azure Blob Containers, Firebase DBs, 
+ leaked email addresses and MX records of a domain. <a href="https://github.com/leddcode/Oculus" class="link" target="_blank">https://github.com/leddcode/Oculus</a>`
+ 
+ const glazgo = `GlazGo is a powerful fuzzing tool for pentesters and security researchers to investigate web applications and APIs.
+  This tool is a compiled executable file that can be used when other tools are unavailable,
+ such as when testing a web application in a black-box environment on a corporate machine. 
+ It helps to invetigate web apps and APIs by automating the process of providing expected and unexpected inputs in order to uncover application resources or to cause any unexpected behavior or crashes.
+  <a href="https://github.com/leddcode/GlazGo" class="link" target="_blank">https://github.com/leddcode/GlazGo</a>`
 
 const xsstrike = `This tool is an upgraded version of a well-known Cross-Site Scripting detection suite: 
 <a href="https://github.com/leddcode/XSStrike" class="link" target="_blank">https://github.com/leddcode/XSStrike</a>.
@@ -59,7 +65,7 @@ type(greeting, results);
 
 commandLine.addEventListener('keydown', function(e) {
 	if (e.key === 'Enter') {
-	  const command = commandLine.value.trim();
+	  const command = commandLine.value.trim().toLowerCase();
 	  commandLine.value = '';
 	  const prompt = document.createElement('div');
 	  prompt.innerHTML = '<span class="user">leddcode</span>@localhost:~$ ' + command;
@@ -74,6 +80,7 @@ commandLine.addEventListener('keydown', function(e) {
       <a href="https://github.com/leddcode/Oculus" class="link" target="_blank">oculus.py</a>
       <a href="https://trophy.onrender.com/" class="link" target="_blank">trophy.html</a>
       <a href="https://github.com/leddcode/XSStrike" class="link" target="_blank">xsstrike.py</a>
+      <a href="https://github.com/leddcode/GlazGo" class="link" target="_blank">GlazGo.exe</a>
       `;
 	  } else if (command === 'python oculus.py') {
       window.open("https://github.com/leddcode/Oculus", "_blank");
@@ -85,6 +92,10 @@ commandLine.addEventListener('keydown', function(e) {
 	  	output.innerHTML = aranea;
 	  } else if (command === 'python xsstrike.py') {
       window.open("https://github.com/leddcode/XSStrike", "_blank");
+      output = document.createElement('div');
+	  	output.innerHTML = xsstrike;
+	  } else if (command === './glazgo.exe') {
+      window.open("https://github.com/leddcode/GlazGo/releases", "_blank");
       output = document.createElement('div');
 	  	output.innerHTML = xsstrike;
 	  } else if (command === 'open trophy.html') {
@@ -119,6 +130,9 @@ commandLine.addEventListener('keydown', function(e) {
     } else if (command === 'cat xsstrike.py') {
       output = document.createElement('div');
       output.innerHTML = `print('${xsstrike}')`;
+    } else if (command === 'cat glazgo.exe') {
+      output = document.createElement('div');
+      output.innerHTML = `fmt.Println("${glazgo}")`;
     } else if (command === 'cat trophy.html') {
       output = document.createElement('div');
       output.innerHTML = `
