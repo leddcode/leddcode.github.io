@@ -116,7 +116,7 @@ commandLine.addEventListener('keydown', function(e) {
       output.innerHTML = `
       <ol>
         <li><span class="command">whoami</span></li>
-        <li><span class="command">cat</span> path/to/sh_file</li>
+        <li><span class="command">cat</span> path/to/file</li>
         <li><span class="command">open</span> path/to/html_file</li>
         <li><span class="command">python</span> path/to/python_file</li>
         <li><span class="command">sh</span> path/to/sh_file or ./path/to/sh_file</li>
