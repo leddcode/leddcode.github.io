@@ -12,16 +12,19 @@ I am dedicated to helping organizations secure their systems and protect their d
 const aranea = `Aranea may be used as an additional OSINT tool for web application investigations, 
 by crawling the links of the webapp or by examining the JavaScript files for likely useful data.
  <a href="https://github.com/leddcode/Aranea" class="link" target="_blank">https://github.com/leddcode/Aranea</a>`
+
+const diablob = `Scrape all the blobs URLs from an open Azure Blob Container.
+ <a href="https://github.com/leddcode/Diablob" class="link" target="_blank">https://github.com/leddcode/Diablob</a>`
  
- const oculus = `Oculus is a Domain OSINT Tool used to discover environments, directories, and subdomains of a particular domain. 
- Additionally, it is useful for searching S3 Buckets, Azure Blob Containers, Firebase DBs, 
- leaked email addresses and MX records of a domain. <a href="https://github.com/leddcode/Oculus" class="link" target="_blank">https://github.com/leddcode/Oculus</a>`
+const oculus = `Oculus is a Domain OSINT Tool used to discover environments, directories, and subdomains of a particular domain. 
+Additionally, it is useful for searching S3 Buckets, Azure Blob Containers, Firebase DBs, 
+leaked email addresses and MX records of a domain. <a href="https://github.com/leddcode/Oculus" class="link" target="_blank">https://github.com/leddcode/Oculus</a>`
  
- const glazgo = `GlazGo is a powerful fuzzing tool for pentesters and security researchers to investigate web applications and APIs.
-  This tool is a compiled executable file that can be used when other tools are unavailable,
- such as when testing a web application in a black-box environment on a corporate machine. 
- It helps to invetigate web apps and APIs by automating the process of providing expected and unexpected inputs in order to uncover application resources or to cause any unexpected behavior or crashes.
-  <a href="https://github.com/leddcode/GlazGo" class="link" target="_blank">https://github.com/leddcode/GlazGo</a>`
+const glazgo = `GlazGo is a powerful fuzzing tool for pentesters and security researchers to investigate web applications and APIs.
+This tool is a compiled executable file that can be used when other tools are unavailable,
+such as when testing a web application in a black-box environment on a corporate machine. 
+It helps to invetigate web apps and APIs by automating the process of providing expected and unexpected inputs in order to uncover application resources or to cause any unexpected behavior or crashes.
+ <a href="https://github.com/leddcode/GlazGo" class="link" target="_blank">https://github.com/leddcode/GlazGo</a>`
 
 const xsstrike = `This tool is an upgraded version of a well-known Cross-Site Scripting detection suite: 
 <a href="https://github.com/leddcode/XSStrike" class="link" target="_blank">https://github.com/leddcode/XSStrike</a>.
@@ -77,10 +80,11 @@ commandLine.addEventListener('keydown', function(e) {
       about.sh
       <a href="https://github.com/leddcode/Aranea" class="link" target="_blank">aranea.py</a>
       commands.txt
+      <a href="https://github.com/leddcode/Diablob" class="link" target="_blank">diablob.py</a>
+      <a href="https://github.com/leddcode/GlazGo" class="link" target="_blank">glazgo.exe</a>
       <a href="https://github.com/leddcode/Oculus" class="link" target="_blank">oculus.py</a>
       <a href="https://trophy.onrender.com/" class="link" target="_blank">trophy.html</a>
       <a href="https://github.com/leddcode/XSStrike" class="link" target="_blank">xsstrike.py</a>
-      <a href="https://github.com/leddcode/GlazGo" class="link" target="_blank">GlazGo.exe</a>
       `;
 	  } else if (command === 'python oculus.py') {
       window.open("https://github.com/leddcode/Oculus", "_blank");
@@ -90,6 +94,10 @@ commandLine.addEventListener('keydown', function(e) {
       window.open("https://github.com/leddcode/Aranea", "_blank");
       output = document.createElement('div');
 	  	output.innerHTML = aranea;
+	  } else if (command === 'python diablob.py') {
+      window.open("https://github.com/leddcode/Diablob", "_blank");
+      output = document.createElement('div');
+	  	output.innerHTML = diablob;
 	  } else if (command === 'python xsstrike.py') {
       window.open("https://github.com/leddcode/XSStrike", "_blank");
       output = document.createElement('div');
@@ -127,6 +135,9 @@ commandLine.addEventListener('keydown', function(e) {
     } else if (command === 'cat aranea.py') {
       output = document.createElement('div');
       output.innerHTML = `print('${aranea}')`;
+    } else if (command === 'cat diablob.py') {
+      output = document.createElement('div');
+      output.innerHTML = `print('${diablob}')`;
     } else if (command === 'cat xsstrike.py') {
       output = document.createElement('div');
       output.innerHTML = `print('${xsstrike}')`;
