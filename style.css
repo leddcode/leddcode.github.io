@@ -1,8 +1,10 @@
 body {
-	background: #0e0e1b;
+	background: #000000;
 	color: #00FF00;
-	font-family: monospace;
+	font-family: "Courier New", Courier, monospace;
 	font-size: 18px;
+	margin: 0;
+	text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
 }
 
 #head {
@@ -12,12 +14,14 @@ body {
 }
 
 #terminal {
-	max-width: 700px;
-	margin: 0 auto;
-	padding: 20px;
-	background-color: #17172b;
-	border-radius: 5px;
+	max-width: none;
+	min-height: 100vh;
+	margin: 0;
+	padding: 10px;
+	background-color: transparent;
+	border-radius: 0;
     overflow: hidden;
+	box-sizing: border-box;
 }
 
 #line {
@@ -37,7 +41,7 @@ body {
 	border: none;
 	background-color: transparent;
 	color: #00FF00;
-	font-family: monospace;
+	font-family: "Courier New", Courier, monospace;
 	font-size: 18px;
 	outline: none;
 	height: 20px;

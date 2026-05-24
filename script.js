@@ -2,7 +2,15 @@ const terminal = document.getElementById('terminal');
 const results = document.getElementById('results');
 const commandLine = document.getElementById('command-line');
 
-const greeting = `Hello, Universe! Welcome to the @leddcode machine. 
+const commandHistory = [];
+let historyIndex = -1;
+
+const fileList = ['about.sh', 'aranea.py', 'commands.txt', 'diablob.py', 'glazgo.exe', 'oculus.py', 'trophy.html', 'xsstrike.py'];
+const cmdList = ['ls', 'whoami', 'cat', 'open', 'python', 'sh', 'clear', 'pwd', 'date', 'help', 'sudo'];
+
+const greeting = `Portfolio Terminal
+&copy;2023, <span class="blink">⠓⠁⠝⠕⠉⠓ ⠗⠊⠵⠵</span><br><br>
+Hello, Universe! Welcome to the @leddcode machine.
 Here you can find information about me and some of my projects...                   `;
 
 const about = `I'm a cybersecurity specialist with a passion for coding and a love for chocolate. 
@@ -67,8 +75,69 @@ function type(text, element) {
 type(greeting, results);
 
 commandLine.addEventListener('keydown', function(e) {
-	if (e.key === 'Enter') {
+	if (e.key === 'ArrowUp') {
+		e.preventDefault();
+		if (commandHistory.length > 0) {
+			if (historyIndex === -1) {
+				historyIndex = commandHistory.length - 1;
+			} else if (historyIndex > 0) {
+				historyIndex--;
+			}
+			commandLine.value = commandHistory[historyIndex];
+		}
+	} else if (e.key === 'ArrowDown') {
+		e.preventDefault();
+		if (commandHistory.length > 0 && historyIndex !== -1) {
+			if (historyIndex < commandHistory.length - 1) {
+				historyIndex++;
+				commandLine.value = commandHistory[historyIndex];
+			} else {
+				historyIndex = -1;
+				commandLine.value = '';
+			}
+		}
+	} else if (e.key === 'Tab') {
+		e.preventDefault();
+		const currentInput = commandLine.value.toLowerCase();
+		const parts = currentInput.split(' ');
+
+		if (parts.length === 1) {
+			const matches = cmdList.filter(cmd => cmd.startsWith(parts[0]));
+			if (matches.length === 1) {
+				commandLine.value = matches[0] + ' ';
+			} else if (matches.length > 1) {
+				const commonPrefix = matches.reduce((acc, curr) => {
+					let i = 0;
+					while (acc[i] === curr[i] && i < acc.length) {
+						i++;
+					}
+					return acc.slice(0, i);
+				});
+				commandLine.value = commonPrefix;
+			}
+		} else if (parts.length === 2) {
+			const matches = fileList.filter(file => file.startsWith(parts[1]));
+			if (matches.length === 1) {
+				commandLine.value = parts[0] + ' ' + matches[0];
+			} else if (matches.length > 1) {
+				const commonPrefix = matches.reduce((acc, curr) => {
+					let i = 0;
+					while (acc[i] === curr[i] && i < acc.length) {
+						i++;
+					}
+					return acc.slice(0, i);
+				});
+				commandLine.value = parts[0] + ' ' + commonPrefix;
+			}
+		}
+	} else if (e.key === 'Enter') {
 	  const command = commandLine.value.trim().toLowerCase();
+
+	  if (command !== '') {
+		commandHistory.push(command);
+	  }
+	  historyIndex = -1;
+
 	  commandLine.value = '';
 	  const prompt = document.createElement('div');
 	  prompt.innerHTML = '<span class="user">leddcode</span>@localhost:~$ ' + command;
@@ -174,6 +243,18 @@ commandLine.addEventListener('keydown', function(e) {
       output.innerHTML = `Choose an HTML file to open.`;
     } else if (command === 'clear') {
       results.innerHTML = '';
+    } else if (command === 'pwd') {
+      output = document.createElement('div');
+      output.innerHTML = `/home/leddcode`;
+    } else if (command === 'date') {
+      output = document.createElement('div');
+      output.innerHTML = new Date().toString();
+    } else if (command === 'sudo') {
+      output = document.createElement('div');
+      output.innerHTML = `Permission denied`;
+    } else if (command === 'help') {
+      output = document.createElement('div');
+      output.innerHTML = `ls, pwd, whoami, clear, date, sudo`;
     } else {
       output = document.createElement('div');
 			output.innerHTML = 'Command not found';
@@ -183,5 +264,6 @@ commandLine.addEventListener('keydown', function(e) {
     results.appendChild(output);
 
 		output.insertAdjacentHTML('afterend', '<div><br></div>');
+		window.scrollTo(0, document.body.scrollHeight);
 	}
 });
