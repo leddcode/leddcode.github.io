@@ -1,6 +1,47 @@
+
+:root {
+	--bg-color: #000000;
+	--text-color: #00FF00;
+	--user-color: #ff00d4;
+	--link-color: #ffffff;
+	--command-color: #ffff66;
+}
+
+body.theme-dracula {
+	--bg-color: #282a36;
+	--text-color: #f8f8f2;
+	--user-color: #ff79c6;
+	--link-color: #8be9fd;
+	--command-color: #50fa7b;
+}
+
+body.theme-light {
+	--bg-color: #ffffff;
+	--text-color: #333333;
+	--user-color: #d33682;
+	--link-color: #268bd2;
+	--command-color: #859900;
+}
+
+body.theme-matrix {
+	--bg-color: #000000;
+	--text-color: #00ff41;
+	--user-color: #00ff41;
+	--link-color: #008f11;
+	--command-color: #00ff41;
+}
+
+body.theme-ocean {
+	--bg-color: #0f1c2e;
+	--text-color: #8be9fd;
+	--user-color: #ff79c6;
+	--link-color: #50fa7b;
+	--command-color: #f1fa8c;
+}
+
 body {
-	background: #000000;
-	color: #00FF00;
+	background: var(--bg-color);
+	color: var(--text-color);
 	font-family: "Courier New", Courier, monospace;
 	font-size: 18px;
 	margin: 0;
@@ -26,21 +67,20 @@ body {
 
 #line {
 	display: flex;
+	align-items: center;
 }
 
 #prompt {
-	float: left;
 	display: none;
 	margin-right: 8px;
-    flex: 1;
+	white-space: nowrap;
 }
 
 #command-line {
-	flex: 3;
-	float: left;
+	flex: 1;
 	border: none;
 	background-color: transparent;
-	color: #00FF00;
+	color: var(--text-color);
 	font-family: "Courier New", Courier, monospace;
 	font-size: 18px;
 	outline: none;
@@ -49,16 +89,16 @@ body {
 }
 
 .user {
-  	color: #ff00d4;
+	color: var(--user-color);
 }
 
 .output {
-	color: rgb(255, 255, 255);
+	color: var(--link-color);
 	text-decoration: none;
 }
 
 .link {
-	color: rgb(255, 255, 255);
+	color: var(--link-color);
 	text-decoration: none;
 }
 
@@ -67,11 +107,11 @@ body {
 }
 
 .blink:hover {
-	color: #ff00d4;
+	color: var(--user-color);
 }
 
 .command {
-  	color: #ffff66;
+	color: var(--command-color);
 }
 
 @media (max-width: 700px) {
@@ -83,3 +123,14 @@ body {
 	  flex: 1;
 	}
   }
+#matrix-canvas {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 9999;
+	background: black;
+	display: none;
+	pointer-events: none;
+}
