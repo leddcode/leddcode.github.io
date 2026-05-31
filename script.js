@@ -336,3 +336,7 @@ commandLine.addEventListener('keydown', function(e) {
 	  window.scrollTo(0, document.body.scrollHeight);
 	}
 });
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { type };
+}
