@@ -134,3 +134,65 @@ body {
 	display: none;
 	pointer-events: none;
 }
+
+body.theme-bttf {
+	--bg-color: #1a0b2e;
+	--text-color: #00ffff;
+	--user-color: #ff00ff;
+	--link-color: #fce205;
+	--command-color: #ff00ff;
+}
+
+body.theme-bttf {
+	background: var(--bg-color);
+	background-image:
+		linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+		linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+	background-size: 100% 2px, 3px 100%;
+	color: var(--text-color);
+	text-shadow: 0 0 8px rgba(0, 255, 255, 0.8), 0 0 15px rgba(255, 0, 255, 0.5);
+	font-family: "Courier New", Courier, monospace;
+}
+
+body.theme-bttf::after {
+	content: " ";
+	display: block;
+	position: fixed;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	background: linear-gradient(
+		rgba(18, 16, 16, 0) 50%,
+		rgba(0, 0, 0, 0.25) 50%
+	);
+	background-size: 100% 2px;
+	z-index: 2;
+	pointer-events: none;
+	animation: bttf-flicker 0.15s infinite;
+}
+
+@keyframes bttf-flicker {
+	0% { opacity: 0.95; }
+	100% { opacity: 1; }
+}
+
+body.theme-bttf .bttf-title {
+	background: linear-gradient(to bottom, #ff9900, #ff00ff);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	font-weight: bold;
+	font-size: 24px;
+	text-shadow: none;
+}
+#starfield-canvas {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 9998;
+	background: black;
+	display: none;
+	pointer-events: none;
+}
