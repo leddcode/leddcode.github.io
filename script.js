@@ -6,7 +6,6 @@ const commandHistory = [];
 let historyIndex = -1;
 
 const fileList = ['about.sh', 'aranea.py', 'commands.txt', 'diablob.py', 'glazgo.exe', 'oculus.py', 'trophy.html', 'xsstrike.py'];
-const cmdList = ['ls', 'whoami', 'cat', 'open', 'python', 'sh', 'clear', 'pwd', 'date', 'help', 'sudo'];
 
 const greeting = `Portfolio Terminal
 &copy;2023, <span class="blink">⠓⠁⠝⠕⠉⠓ ⠗⠊⠵⠵</span><br><br>
@@ -132,8 +131,9 @@ const commandRegistry = {
   'help': () => `ls, pwd, whoami, clear, date, sudo, theme, matrix, neofetch, echo, calc`,
 };
 
-// Add new command aliases
-cmdList.push('theme', 'matrix', 'neofetch', 'echo', 'calc');
+// Generate cmdList dynamically
+const customCommands = ['theme', 'matrix', 'neofetch', 'echo', 'calc'];
+const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 commandLine.addEventListener('keydown', function(e) {
 	if (e.key === 'ArrowUp') {
