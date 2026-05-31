@@ -198,11 +198,11 @@ const commandRegistry = {
   'pwd': () => `/home/leddcode`,
   'date': () => new Date().toString(),
   'sudo': () => `Permission denied`,
-  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, matrix, neofetch, echo, calc`,
+  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, matrix, neofetch, echo, calc, bttf, timetravel, flux, sysinfo, weather, guess`,
 };
 
 // Generate cmdList dynamically
-const customCommands = ['theme', 'matrix', 'neofetch', 'echo', 'calc'];
+const customCommands = ['theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -309,6 +309,247 @@ function handleMatrixCommand() {
     }
 }
 
+
+
+
+
+
+
+
+window.gameState = {
+    active: false,
+    target: 0,
+    attempts: 0
+};
+
+function handleGuessCommand(args) {
+    if (!window.gameState.active) {
+        window.gameState.active = true;
+        window.gameState.target = Math.floor(Math.random() * 100) + 1;
+        window.gameState.attempts = 0;
+        return "I'm thinking of a number between 1 and 100. Enter your guess:";
+    }
+
+    const guess = parseInt(args[0], 10);
+    if (isNaN(guess)) {
+        return "Please enter a valid number, or type 'quit' to exit the game.";
+    }
+
+    window.gameState.attempts++;
+
+    if (guess < window.gameState.target) {
+        return "Too low! Try again:";
+    } else if (guess > window.gameState.target) {
+        return "Too high! Try again:";
+    } else {
+        window.gameState.active = false;
+        return `Congratulations! You guessed the number in ${window.gameState.attempts} attempts!`;
+    }
+}
+
+function handleWeatherCommand(args) {
+    if (args.length === 0) {
+        return "Usage: weather [city]<br>Example: weather Neo-Tokyo";
+    }
+    const city = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const conditions = ['Acid Rain', 'Nuclear Fallout', 'Cybernetic Smog', 'Neon Showers', 'Clear Sky (Simulation)'];
+    const condition = conditions[Math.floor(Math.random() * conditions.length)];
+    const temp = Math.floor(Math.random() * 50) + 10;
+
+    return `
+<div style="border-left: 3px solid var(--link-color); padding-left: 10px;">
+    <span style="color: var(--user-color); font-weight: bold;">METEOROLOGICAL REPORT FOR:</span> ${city}<br>
+    <span style="color: var(--command-color);">STATUS:</span> ${condition}<br>
+    <span style="color: var(--command-color);">TEMP:</span> ${temp}°C / ${Math.round(temp * 9/5 + 32)}°F<br>
+    <span style="color: var(--command-color);">RADIATION LEVEL:</span> ${(Math.random() * 5).toFixed(2)} Rad/h
+</div>`;
+}
+
+function handleSysinfoCommand() {
+    return `
+<div style="border: 1px solid var(--command-color); padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: var(--user-color);">/// SYSTEM DIAGNOSTICS</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="color: var(--command-color); padding-right: 20px;">CORE</td>
+            <td>Quantum Processor v9.4</td>
+        </tr>
+        <tr>
+            <td style="color: var(--command-color); padding-right: 20px;">MEMORY</td>
+            <td>64 PetaBytes [82% Available]</td>
+        </tr>
+        <tr>
+            <td style="color: var(--command-color); padding-right: 20px;">UPLINK</td>
+            <td>Subspace Relay (12Tbps)</td>
+        </tr>
+        <tr>
+            <td style="color: var(--command-color); padding-right: 20px;">POWER</td>
+            <td>Fusion Reactor [Online, Optimal]</td>
+        </tr>
+        <tr>
+            <td style="color: var(--command-color); padding-right: 20px;">SECURITY</td>
+            <td>ICE Matrix Level 4 Active</td>
+        </tr>
+    </table>
+</div>`;
+}
+
+function handleFluxCommand() {
+    return `
+<pre style="color: #fce205; font-weight: bold;">
+     _________________
+    |                 |
+    |  /\         /\  |
+    |  \ \       / /  |
+    |   \ \     / /   |
+    |    \ \___/ /    |
+    |     | ___ |     |
+    |     | | | |     |
+    |     | | | |     |
+    |     |_|_|_|     |
+    |                 |
+    |_________________|
+</pre>
+    <span style="color: var(--command-color);">Flux Capacitor is fluxing...</span>`;
+}
+
+function handleTimetravelCommand(args) {
+    if (args.length === 0) {
+        return "Usage: timetravel [year]<br>Example: timetravel 1985";
+    }
+    const year = args[0];
+    if (!/^\d{4}$/.test(year)) {
+        return "Invalid year. Please enter a 4-digit year.";
+    }
+
+    // Enable starfield if it's not already enabled
+    const canvas = document.getElementById('starfield-canvas');
+    if (canvas && canvas.style.display !== 'block') {
+        handleStarfieldCommand();
+    }
+
+    // Update the date command
+    window.timetravelYear = year;
+    commandRegistry['date'] = () => {
+        const currentDate = new Date();
+        currentDate.setFullYear(window.timetravelYear);
+        return currentDate.toString() + " (Simulated)";
+    };
+
+    return `<span style="color: #ff9900; font-weight: bold;">[!] FLUX CAPACITOR ACTIVATED</span><br>
+Charging to 1.21 gigawatts...<br>
+Accelerating to 88mph...<br>
+<span style="color: #00ffff; font-weight: bold;">>> SUCCESS! Arrived in ${year} <<</span>`;
+}
+
+function handleBttfCommand() {
+    document.body.className = 'theme-bttf';
+
+    // Update the prompt logic string replacing variables for 'bttf' logic later in handleEnter if we want
+    window.terminalUser = 'marty';
+    window.terminalHost = 'delorean';
+
+    // Update current prompts on screen
+    const userSpans = document.querySelectorAll('.user');
+    userSpans.forEach(span => {
+        span.textContent = window.terminalUser;
+        // The host text is immediately after the span, but since it's hardcoded as "@localhost:~$ "
+        // We'll handle this purely in the generation step in handleEnter
+    });
+
+    return `
+    <span class="bttf-title">BACK TO THE FUTURE</span><br>
+<pre style="color: var(--command-color); font-weight: bold;">
+         ___....___
+       _.-'         '-._
+     .'                 '.
+    /                     \
+   |                       |
+   |   1.21 GIGAWATTS!!    |
+    \                     /
+     '.                 .'
+       '-.___     ___.-'
+             \`'''\`
+       __   _.-._   __
+   _.-'  '-'     '-'  '-._
+  (_______________________)
+   |  _________________  |
+   | |                 | |
+   | |                 | |
+   | |_________________| |
+   |_____________________|
+      ( )           ( )
+       |             |
+       |             |
+      _|_           _|_
+</pre>
+    Theme changed to BTTF. Prompt identity changed to marty@delorean.`;
+}
+
+function handleStarfieldCommand() {
+    const canvas = document.getElementById('starfield-canvas');
+    if (!canvas) return "Error: canvas not found.";
+
+    if (canvas.style.display === 'block') {
+        canvas.style.display = 'none';
+        if (window.starfieldAnimation) {
+            cancelAnimationFrame(window.starfieldAnimation);
+            window.starfieldAnimation = null;
+        }
+        return "Starfield effect disabled.";
+    } else {
+        canvas.style.display = 'block';
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            canvas.style.display = 'none';
+            return 'Starfield effect enabled (canvas not supported). Run starfield again to disable.';
+        }
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const stars = [];
+        for (let i = 0; i < 200; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                z: Math.random() * canvas.width
+            });
+        }
+
+        function drawStarfield() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            for (let i = 0; i < stars.length; i++) {
+                const star = stars[i];
+                star.z -= 5; // speed
+                if (star.z <= 0) {
+                    star.x = Math.random() * canvas.width;
+                    star.y = Math.random() * canvas.height;
+                    star.z = canvas.width;
+                }
+
+                const px = (star.x - centerX) * (canvas.width / star.z) + centerX;
+                const py = (star.y - centerY) * (canvas.width / star.z) + centerY;
+
+                const s = (1 - star.z / canvas.width) * 3;
+
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(px, py, s, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            window.starfieldAnimation = requestAnimationFrame(drawStarfield);
+        }
+        drawStarfield();
+        return "Starfield effect enabled. Run 'starfield' again to disable.";
+    }
+}
+
 function handleCalcCommand(args) {
     const expression = args.join('');
     if (expression) {
@@ -387,33 +628,53 @@ function handleEnter(e) {
 
     commandLine.value = '';
     const prompt = document.createElement('div');
-    prompt.innerHTML = '<span class="user">leddcode</span>@localhost:~$ ';
+    prompt.innerHTML = `<span class="user">${window.terminalUser || 'leddcode'}</span>@${window.terminalHost || 'localhost'}:~$ `;
     prompt.appendChild(document.createTextNode(command));
+
 
     let outputElement = null;
     let outputHTML = '';
 
-    const args = rawCommand.split(' ').slice(1);
-    const cmdName = command.split(' ')[0];
-
-    if (commandRegistry[command]) {
-        outputHTML = commandRegistry[command]();
-    } else if (cmdName === 'matrix') {
-        outputHTML = handleMatrixCommand();
-    } else if (cmdName === 'calc') {
-        outputHTML = handleCalcCommand(args);
-    } else if (cmdName === 'echo') {
-        outputHTML = handleEchoCommand(args);
-    } else if (cmdName === 'neofetch') {
-        outputHTML = handleNeofetchCommand();
-    } else if (cmdName === 'theme') {
-        outputHTML = handleThemeCommand(args);
-    } else if (command.startsWith('python3')) {
-        outputHTML = `Command 'python3' not found, did you mean: command 'python' from deb python-is-python3?`;
-    } else if (command.startsWith('bash')) {
-        outputHTML = `Command 'bash' not found, did you mean: command 'sh'?`;
+    if (window.gameState && window.gameState.active && command !== 'quit') {
+        outputHTML = handleGuessCommand([rawCommand]);
+    } else if (window.gameState && window.gameState.active && command === 'quit') {
+        window.gameState.active = false;
+        outputHTML = "Game aborted.";
     } else {
-        outputHTML = 'Command not found';
+        const args = rawCommand.split(' ').slice(1);
+        const cmdName = command.split(' ')[0];
+
+        if (commandRegistry[command]) {
+            outputHTML = commandRegistry[command]();
+        } else if (cmdName === 'matrix') {
+            outputHTML = handleMatrixCommand();
+        } else if (cmdName === 'calc') {
+            outputHTML = handleCalcCommand(args);
+        } else if (cmdName === 'echo') {
+            outputHTML = handleEchoCommand(args);
+        } else if (cmdName === 'neofetch') {
+            outputHTML = handleNeofetchCommand();
+        } else if (cmdName === 'theme') {
+            outputHTML = handleThemeCommand(args);
+        } else if (cmdName === 'bttf') {
+            outputHTML = handleBttfCommand();
+        } else if (cmdName === 'timetravel') {
+            outputHTML = handleTimetravelCommand(args);
+        } else if (cmdName === 'flux') {
+            outputHTML = handleFluxCommand();
+        } else if (cmdName === 'sysinfo') {
+            outputHTML = handleSysinfoCommand();
+        } else if (cmdName === 'weather') {
+            outputHTML = handleWeatherCommand(args);
+        } else if (cmdName === 'guess') {
+            outputHTML = handleGuessCommand(args);
+        } else if (command.startsWith('python3')) {
+            outputHTML = `Command 'python3' not found, did you mean: command 'python' from deb python-is-python3?`;
+        } else if (command.startsWith('bash')) {
+            outputHTML = `Command 'bash' not found, did you mean: command 'sh'?`;
+        } else {
+            outputHTML = 'Command not found';
+        }
     }
 
     if (outputHTML !== null) {
@@ -446,5 +707,5 @@ commandLine.addEventListener('keydown', function(e) {
 });
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { type, handleArrowUp, handleArrowDown, handleTab, handleEnter, handleMatrixCommand, handleCalcCommand, handleEchoCommand, handleNeofetchCommand, handleThemeCommand };
+    module.exports = { type, handleArrowUp, handleArrowDown, handleTab, handleEnter, handleMatrixCommand, handleCalcCommand, handleEchoCommand, handleNeofetchCommand, handleThemeCommand, handleBttfCommand, handleTimetravelCommand, handleFluxCommand, handleSysinfoCommand, handleWeatherCommand, handleGuessCommand, handleStarfieldCommand };
 }
