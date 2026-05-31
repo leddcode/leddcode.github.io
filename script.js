@@ -74,6 +74,77 @@ function type(text, element) {
 
 type(greeting, results);
 
+
+function evaluateMath(expr) {
+    expr = expr.replace(/\s+/g, '');
+    let pos = 0;
+
+    function parseExpression() {
+        let left = parseTerm();
+        while (pos < expr.length) {
+            let op = expr[pos];
+            if (op === '+' || op === '-') {
+                pos++;
+                let right = parseTerm();
+                if (op === '+') left += right;
+                else left -= right;
+            } else {
+                break;
+            }
+        }
+        return left;
+    }
+
+    function parseTerm() {
+        let left = parseFactor();
+        while (pos < expr.length) {
+            let op = expr[pos];
+            if (op === '*' || op === '/') {
+                pos++;
+                let right = parseFactor();
+                if (op === '*') left *= right;
+                else left /= right;
+            } else {
+                break;
+            }
+        }
+        return left;
+    }
+
+    function parseFactor() {
+        if (pos >= expr.length) throw new Error("Unexpected end of expression");
+        let char = expr[pos];
+        if (char === '(') {
+            pos++;
+            let val = parseExpression();
+            if (expr[pos] !== ')') throw new Error("Expected ')'");
+            pos++;
+            return val;
+        } else if (char === '-' || char === '+') {
+            pos++;
+            let val = parseFactor();
+            return char === '-' ? -val : val;
+        } else {
+            return parseNumber();
+        }
+    }
+
+    function parseNumber() {
+        let start = pos;
+        while (pos < expr.length && (/[0-9.]/.test(expr[pos]))) {
+            pos++;
+        }
+        if (start === pos) throw new Error("Expected number");
+        let numStr = expr.substring(start, pos);
+        if (numStr.split('.').length > 2) throw new Error("Invalid number");
+        return parseFloat(numStr);
+    }
+
+    let result = parseExpression();
+    if (pos < expr.length) throw new Error("Unexpected character at " + pos);
+    return result;
+}
+
 const commandRegistry = {
   'ls': () => `
       about.sh
@@ -257,7 +328,7 @@ commandLine.addEventListener('keydown', function(e) {
               try {
                   // Only allow basic math characters to prevent injection
                   if (/^[0-9+\-*/().\s]+$/.test(expression)) {
-                      outputHTML = String(new Function('return ' + expression)());
+                      outputHTML = String(evaluateMath(expression));
                   } else {
                       outputHTML = "Invalid expression. Only numbers and basic operators (+ - * /) are allowed.";
                   }
