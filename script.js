@@ -1,4 +1,3 @@
-const terminal = document.getElementById('terminal');
 const results = document.getElementById('results');
 const commandLine = document.getElementById('command-line');
 
