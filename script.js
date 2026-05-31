@@ -202,7 +202,8 @@ commandLine.addEventListener('keydown', function(e) {
 
 	  commandLine.value = '';
 	  const prompt = document.createElement('div');
-	  prompt.innerHTML = '<span class="user">leddcode</span>@localhost:~$ ' + command;
+	  prompt.innerHTML = '<span class="user">leddcode</span>@localhost:~$ ';
+		  prompt.appendChild(document.createTextNode(command));
 
       let outputElement = null;
       let outputHTML = '';
