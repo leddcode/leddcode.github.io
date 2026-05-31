@@ -1,3 +1,73 @@
+
+function evaluateMath(expr) {
+    expr = expr.replace(/\s+/g, '');
+    let pos = 0;
+
+    function parseExpression() {
+        let val = parseTerm();
+        while (pos < expr.length && (expr[pos] === '+' || expr[pos] === '-')) {
+            let op = expr[pos++];
+            let nextVal = parseTerm();
+            if (op === '+') val += nextVal;
+            else val -= nextVal;
+        }
+        return val;
+    }
+
+    function parseTerm() {
+        let val = parseFactor();
+        while (pos < expr.length && (expr[pos] === '*' || expr[pos] === '/')) {
+            let op = expr[pos++];
+            let nextVal = parseFactor();
+            if (op === '*') val *= nextVal;
+            else val /= nextVal;
+        }
+        return val;
+    }
+
+    function parseFactor() {
+        let sign = 1;
+        if (pos < expr.length && expr[pos] === '+') {
+            pos++;
+        } else if (pos < expr.length && expr[pos] === '-') {
+            pos++;
+            sign = -1;
+        }
+
+        if (pos < expr.length && expr[pos] === '(') {
+            pos++;
+            let val = parseExpression();
+            if (pos < expr.length && expr[pos] === ')') {
+                pos++;
+            } else {
+                throw new Error("Mismatched parentheses");
+            }
+            return sign * val;
+        }
+
+        let startPos = pos;
+        while (pos < expr.length && (/[0-9.]/.test(expr[pos]))) {
+            pos++;
+        }
+        if (startPos === pos) {
+            throw new Error("Invalid syntax");
+        }
+        let numStr = expr.substring(startPos, pos);
+        if (numStr.split('.').length > 2) {
+            throw new Error("Invalid number format");
+        }
+        let num = parseFloat(numStr);
+        if (isNaN(num)) throw new Error("Invalid number");
+        return sign * num;
+    }
+
+    let result = parseExpression();
+    if (pos < expr.length) {
+        throw new Error("Unexpected characters");
+    }
+    return result;
+}
+
 const terminal = document.getElementById('terminal');
 const results = document.getElementById('results');
 const commandLine = document.getElementById('command-line');
@@ -257,7 +327,7 @@ commandLine.addEventListener('keydown', function(e) {
               try {
                   // Only allow basic math characters to prevent injection
                   if (/^[0-9+\-*/().\s]+$/.test(expression)) {
-                      outputHTML = String(new Function('return ' + expression)());
+                      outputHTML = String(evaluateMath(expression));
                   } else {
                       outputHTML = "Invalid expression. Only numbers and basic operators (+ - * /) are allowed.";
                   }
