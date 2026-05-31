@@ -288,6 +288,8 @@ commandLine.addEventListener('keydown', function(e) {
           const canvas = document.getElementById('matrix-canvas');
           if (canvas.style.display === 'block') {
               canvas.style.display = 'none';
+              clearInterval(window.matrixInterval);
+              window.matrixInterval = null;
               outputHTML = "Matrix effect disabled.";
           } else {
               canvas.style.display = 'block';
