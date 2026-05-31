@@ -307,7 +307,7 @@ commandLine.addEventListener('keydown', function(e) {
                   document.body.className = '';
                   outputHTML = `Theme changed to default`;
               } else {
-                  outputHTML = `Theme not found: ${themeName}`;
+                  outputHTML = `Theme not found: ${themeName.replace(/</g, "&lt;").replace(/>/g, "&gt;")}`;
               }
           }
 
