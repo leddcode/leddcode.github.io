@@ -345,3 +345,36 @@ body.theme-bttf .bttf-title {
 	display: none;
 	pointer-events: none;
 }
+
+
+#metrics-data .metric-card, #network-data .network-card {
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    background-color: rgba(25, 25, 25, 0.5);
+}
+#metrics-data .metric-title, #network-data .network-title {
+    color: var(--user-color);
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+#tab-contents {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.tab-content {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.tab-content.active {
+    display: flex;
+    flex-direction: column;
+}

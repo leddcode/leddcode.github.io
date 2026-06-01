@@ -41,9 +41,9 @@
         </div>
         <div id="main-content">
             <div id="top-bar">
-                <div class="tab active"><span class="tab-icon">⚙️</span> terminal</div>
-                <div class="tab"><span class="tab-icon">📊</span> metrics</div>
-                <div class="tab"><span class="tab-icon">🌐</span> network</div>
+                <div class="tab active" data-target="terminal"><span class="tab-icon">⚙️</span> terminal</div>
+                <div class="tab" data-target="metrics"><span class="tab-icon">📊</span> metrics</div>
+                <div class="tab" data-target="network"><span class="tab-icon">🌐</span> network</div>
                 <div class="tab-spacer"></div>
                 <div class="window-controls">
                     <div class="control min"></div>
@@ -51,11 +51,21 @@
                     <div class="control close"></div>
                 </div>
             </div>
-            <div id="terminal">
-                <div id="results"></div>
-                <div id="line">
-                    <div id="prompt"><span class="user">leddcode</span> <span class="arrow">❯</span></div>
-                    <input type="text" id="command-line" autofocus>
+            <div id="tab-contents">
+                <div id="terminal" class="tab-content active">
+                    <div id="results"></div>
+                    <div id="line">
+                        <div id="prompt"><span class="user">leddcode</span> <span class="arrow">❯</span></div>
+                        <input type="text" id="command-line" autofocus>
+                    </div>
+                </div>
+                <div id="metrics" class="tab-content" >
+                    <h2>System Metrics</h2>
+                    <div id="metrics-data"></div>
+                </div>
+                <div id="network" class="tab-content" >
+                    <h2>Network Monitor</h2>
+                    <div id="network-data"></div>
                 </div>
             </div>
         </div>
