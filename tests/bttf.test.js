@@ -18,6 +18,21 @@ describe('New Back to the Future Commands', () => {
     window.cancelAnimationFrame = jest.fn(clearTimeout);
     HTMLCanvasElement.prototype.getContext = jest.fn(() => ({ fillStyle: '', fillRect: jest.fn(), beginPath: jest.fn(), arc: jest.fn(), fill: jest.fn() }));
 
+    // Mock fetch for weather command
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          current_condition: [{
+            weatherDesc: [{ value: 'Simulated Rain' }],
+            temp_C: '15',
+            temp_F: '59',
+            humidity: '80'
+          }]
+        }),
+      })
+    );
+
     const scriptTags = document.getElementsByTagName('script');
     for (let i = scriptTags.length - 1; i >= 0; i--) {
       scriptTags[i].parentNode.removeChild(scriptTags[i]);
@@ -77,12 +92,23 @@ describe('New Back to the Future Commands', () => {
     expect(lastOutput.innerHTML).toContain('Quantum Processor v9.4');
   });
 
-  test('weather command handles args', () => {
+  test('weather command handles args', async () => {
     const emptyOutput = simulateCommand('weather');
     expect(emptyOutput.innerHTML).toContain('Usage: weather [city]');
 
     const cityOutput = simulateCommand('weather Hill Valley');
-    expect(cityOutput.innerHTML).toContain('METEOROLOGICAL REPORT FOR:</span> Hill Valley');
+    expect(cityOutput.innerHTML).toContain('Fetching meteorological data for Hill Valley...');
+
+    // Wait for the async fetch to resolve and DOM to update
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    // Check that fetch was called
+    expect(global.fetch).toHaveBeenCalledWith('https://wttr.in/Hill%20Valley?format=j1');
+
+    // Look for the injected content inside the generated div
+    const innerHtml = cityOutput.innerHTML;
+    expect(innerHtml).toContain('METEOROLOGICAL REPORT FOR:</span> Hill Valley');
+    expect(innerHtml).toContain('Simulated Rain');
   });
 
   test('guess command handles state properly', () => {
