@@ -6,6 +6,49 @@ let historyIndex = -1;
 
 const fileList = ['about.sh', 'aranea.py', 'commands.txt', 'diablob.py', 'glazgo.exe', 'oculus.py', 'trophy.html', 'xsstrike.py'];
 
+// Gamification / LocalStorage functions
+function getUserData() {
+    let data = { xp: 0, level: 1, history: [] };
+    try {
+        const stored = localStorage.getItem('termUserData');
+        if (stored) {
+            data = JSON.parse(stored);
+        }
+    } catch (e) {
+        // localStorage might not be available in some test environments
+    }
+    return data;
+}
+
+function saveUserData(data) {
+    try {
+        localStorage.setItem('termUserData', JSON.stringify(data));
+    } catch (e) {}
+}
+
+function addXP(amount) {
+    const data = getUserData();
+    data.xp += amount;
+
+    const xpNeededForNextLevel = data.level * 100;
+    let levelUpMsg = "";
+    if (data.xp >= xpNeededForNextLevel) {
+        data.xp -= xpNeededForNextLevel;
+        data.level += 1;
+        levelUpMsg = `<div style="color: #ffcc00; font-weight: bold; margin-top: 5px;">🌟 LEVEL UP! You are now level ${data.level}! 🌟</div>`;
+    }
+
+    saveUserData(data);
+    return levelUpMsg;
+}
+
+function recordCommand(cmd) {
+    const data = getUserData();
+    if (!data.history) data.history = [];
+    data.history.push({ cmd, time: new Date().toISOString() });
+    saveUserData(data);
+}
+
 const greeting = `Portfolio Terminal
 &copy;2023, <span class="blink">⠓⠁⠝⠕⠉⠓ ⠗⠊⠵⠵</span><br><br>
 Hello, Universe! Welcome to the @leddcode machine.
@@ -198,11 +241,11 @@ const commandRegistry = {
   'pwd': () => `/home/leddcode`,
   'date': () => new Date().toString(),
   'sudo': () => `Permission denied`,
-  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, matrix, neofetch, echo, calc, bttf, timetravel, flux, sysinfo, weather, guess`,
+  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, matrix, neofetch, echo, calc, bttf, timetravel, flux, sysinfo, weather, guess, stats, companion, crypto, wiki, github, photo, challenge, feedback`,
 };
 
 // Generate cmdList dynamically
-const customCommands = ['theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess'];
+const customCommands = ['theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'photo', 'challenge', 'feedback'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -347,22 +390,271 @@ function handleGuessCommand(args) {
     }
 }
 
-function handleWeatherCommand(args) {
+function handleWeatherCommand(args, id) {
     if (args.length === 0) {
-        return "Usage: weather [city]<br>Example: weather Neo-Tokyo";
+        return "Usage: weather [city]<br>Example: weather Tokyo";
     }
     const city = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const conditions = ['Acid Rain', 'Nuclear Fallout', 'Cybernetic Smog', 'Neon Showers', 'Clear Sky (Simulation)'];
-    const condition = conditions[Math.floor(Math.random() * conditions.length)];
-    const temp = Math.floor(Math.random() * 50) + 10;
 
-    return `
+    // Asynchronous fetch with fallback
+    fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`)
+        .then(response => {
+            if (!response.ok) throw new Error("Network response was not ok");
+            return response.json();
+        })
+        .then(data => {
+            const current = data.current_condition[0];
+            const resultHtml = `
 <div style="border-left: 3px solid var(--link-color); padding-left: 10px;">
+    <span style="color: var(--user-color); font-weight: bold;">METEOROLOGICAL REPORT FOR:</span> ${city}<br>
+    <span style="color: var(--command-color);">STATUS:</span> ${current.weatherDesc[0].value}<br>
+    <span style="color: var(--command-color);">TEMP:</span> ${current.temp_C}°C / ${current.temp_F}°F<br>
+    <span style="color: var(--command-color);">HUMIDITY:</span> ${current.humidity}%
+</div>`;
+            document.getElementById(id).innerHTML = resultHtml;
+        })
+        .catch(err => {
+            // Fallback to simulated weather
+            const conditions = ['Acid Rain', 'Nuclear Fallout', 'Cybernetic Smog', 'Neon Showers', 'Clear Sky (Simulation)'];
+            const condition = conditions[Math.floor(Math.random() * conditions.length)];
+            const temp = Math.floor(Math.random() * 50) + 10;
+
+            const fallbackHtml = `
+<div style="border-left: 3px solid var(--link-color); padding-left: 10px;">
+    <span style="color: #ff3333; font-style: italic;">[API UPLINK FAILED - USING SIMULATION]</span><br>
     <span style="color: var(--user-color); font-weight: bold;">METEOROLOGICAL REPORT FOR:</span> ${city}<br>
     <span style="color: var(--command-color);">STATUS:</span> ${condition}<br>
     <span style="color: var(--command-color);">TEMP:</span> ${temp}°C / ${Math.round(temp * 9/5 + 32)}°F<br>
     <span style="color: var(--command-color);">RADIATION LEVEL:</span> ${(Math.random() * 5).toFixed(2)} Rad/h
 </div>`;
+            const el = document.getElementById(id);
+            if(el) el.innerHTML = fallbackHtml;
+        });
+
+    return `Fetching meteorological data for ${city}...`;
+}
+
+function handleStatsCommand() {
+    const data = getUserData();
+    const xpNeeded = data.level * 100;
+    const pct = Math.floor((data.xp / xpNeeded) * 100);
+
+    // Create a progress bar
+    const barLength = 20;
+    const filled = Math.floor((pct / 100) * barLength);
+    const empty = barLength - filled;
+    const bar = '█'.repeat(filled) + '░'.repeat(empty);
+
+    return `
+<div style="border: 1px solid var(--command-color); padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: var(--user-color);">/// USER STATISTICS</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="color: var(--command-color); padding-right: 20px;">LEVEL</td>
+            <td>${data.level}</td>
+        </tr>
+        <tr>
+            <td style="color: var(--command-color); padding-right: 20px;">XP</td>
+            <td>${data.xp} / ${xpNeeded}</td>
+        </tr>
+        <tr>
+            <td style="color: var(--command-color); padding-right: 20px;">PROGRESS</td>
+            <td>[${bar}] ${pct}%</td>
+        </tr>
+        <tr>
+            <td style="color: var(--command-color); padding-right: 20px;">COMMANDS EXECUTED</td>
+            <td>${data.history ? data.history.length : 0}</td>
+        </tr>
+    </table>
+</div>`;
+}
+
+function handleCryptoCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: crypto [coin_id]<br>Example: crypto bitcoin<br>Try: bitcoin, ethereum, dogecoin";
+    }
+    const coin = args.join('-').toLowerCase().replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(coin)}&vs_currencies=usd`)
+        .then(response => {
+            if (!response.ok) throw new Error("Network response was not ok");
+            return response.json();
+        })
+        .then(data => {
+            if (data[coin] && data[coin].usd) {
+                const price = data[coin].usd;
+                const resultHtml = `
+<div style="border-left: 3px solid #f7931a; padding-left: 10px;">
+    <span style="color: #f7931a; font-weight: bold;">[CRYPTO TRACKER]</span><br>
+    <span style="color: var(--user-color);">${coin.toUpperCase()}</span>: $${price.toLocaleString()} USD
+</div>`;
+                document.getElementById(id).innerHTML = resultHtml;
+            } else {
+                document.getElementById(id).innerHTML = `<div style="color: #ff3333;">Error: Coin '${coin}' not found on CoinGecko.</div>`;
+            }
+        })
+        .catch(err => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch crypto data.</div>`;
+        });
+
+    return `Fetching crypto data for ${coin}...`;
+}
+
+function handleWikiCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: wiki [query]<br>Example: wiki Cybersecurity";
+    }
+    const query = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`)
+        .then(response => {
+            if (!response.ok) throw new Error("Not found");
+            return response.json();
+        })
+        .then(data => {
+            if (data.type === "disambiguation") {
+                document.getElementById(id).innerHTML = `<div style="color: #ffaa00;">[WIKI] Multiple results found for '${data.title}'. Please be more specific.</div>`;
+            } else if (data.extract) {
+                const resultHtml = `
+<div style="border: 1px solid var(--command-color); padding: 10px; margin: 10px 0;">
+    <span style="color: var(--user-color); font-weight: bold;">[WIKIPEDIA EXTRACT]</span> ${data.title}<br><br>
+    <div style="font-size: 0.9em; line-height: 1.4;">${data.extract}</div>
+    ${data.content_urls ? `<br><a href="${data.content_urls.desktop.page}" target="_blank" class="link">Read more...</a>` : ''}
+</div>`;
+                document.getElementById(id).innerHTML = resultHtml;
+            } else {
+                document.getElementById(id).innerHTML = `<div style="color: #ff3333;">Error: No extract found for '${query}'.</div>`;
+            }
+        })
+        .catch(err => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch Wikipedia data for '${query}'.</div>`;
+        });
+
+    return `Querying Wikipedia for ${query}...`;
+}
+
+function handleGithubCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: github [username]<br>Example: github leddcode";
+    }
+    const username = args[0].replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    fetch(`https://api.github.com/users/${encodeURIComponent(username)}/repos?sort=updated&per_page=5`)
+        .then(response => {
+            if (!response.ok) throw new Error("Not found");
+            return response.json();
+        })
+        .then(data => {
+            if (data.length === 0) {
+                document.getElementById(id).innerHTML = `<div style="color: #ffaa00;">User '${username}' has no public repositories.</div>`;
+            } else {
+                let reposHtml = data.map(repo => {
+                    return `<li><a href="${repo.html_url}" target="_blank" class="link">${repo.name}</a> ${repo.language ? `[${repo.language}]` : ''} - ${repo.description ? repo.description : 'No description'}</li>`;
+                }).join('');
+
+                const resultHtml = `
+<div style="border: 1px solid var(--command-color); padding: 10px; margin: 10px 0;">
+    <span style="color: var(--user-color); font-weight: bold;">[GITHUB REPOSITORIES]</span> ${username}<br><br>
+    <ul style="margin: 0; padding-left: 20px;">
+        ${reposHtml}
+    </ul>
+</div>`;
+                document.getElementById(id).innerHTML = resultHtml;
+            }
+        })
+        .catch(err => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch GitHub data for '${username}'. User might not exist or API rate limit exceeded.</div>`;
+        });
+
+    return `Fetching GitHub repositories for ${username}...`;
+}
+
+function handlePhotoCommand() {
+    const randomSeed = Math.floor(Math.random() * 1000);
+    const imgUrl = `https://picsum.photos/seed/${randomSeed}/400/300`;
+    return `
+<div style="border: 1px solid var(--command-color); padding: 5px; display: inline-block; margin: 10px 0;">
+    <div style="color: var(--user-color); font-weight: bold; margin-bottom: 5px;">[IMAGE VIEWER] Image Seed: ${randomSeed}</div>
+    <img src="${imgUrl}" alt="Random Image" style="max-width: 100%; height: auto; display: block; filter: grayscale(50%) contrast(120%);">
+</div>`;
+}
+
+function handleChallengeCommand() {
+    const challenges = [
+        "What has keys but can't open locks? (A piano)",
+        "Write a function to reverse a string.",
+        "How do you find the missing number in a given integer array of 1 to 100?",
+        "What runs but never walks, murmurs but never talks, has a bed but never sleeps? (A river)",
+        "Write a script to check if a string is a palindrome.",
+        "Implement FizzBuzz: Print 1 to 100, replacing multiples of 3 with Fizz, 5 with Buzz, and both with FizzBuzz.",
+        "I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I? (An echo)"
+    ];
+
+    // Pick a pseudo-random challenge for the day based on the date
+    const today = new Date();
+    const index = (today.getFullYear() + today.getMonth() + today.getDate()) % challenges.length;
+    const challenge = challenges[index];
+
+    return `
+<div style="border: 1px dashed var(--user-color); padding: 10px; margin: 10px 0;">
+    <div style="color: var(--user-color); font-weight: bold; margin-bottom: 5px;">🔥 DAILY MICRO-CHALLENGE 🔥</div>
+    <div style="color: var(--command-color);">${challenge}</div>
+</div>`;
+}
+
+function handleFeedbackCommand(args) {
+    if (args.length === 0) {
+        return "Usage: feedback [message]<br>Example: feedback Add a music player command!";
+    }
+    const message = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    let feedbackList = [];
+    try {
+        const stored = localStorage.getItem('termFeedback');
+        if (stored) feedbackList = JSON.parse(stored);
+    } catch (e) {}
+
+    feedbackList.push({ message, time: new Date().toISOString() });
+
+    try {
+        localStorage.setItem('termFeedback', JSON.stringify(feedbackList));
+    } catch (e) {}
+
+    return `
+<div style="color: #00ff00;">
+    [SUCCESS] Your feedback has been logged locally. Thank you for helping shape the ecosystem!<br>
+    <span style="color: var(--command-color); font-style: italic;">"${message}"</span>
+</div>`;
+}
+
+function handleCompanionCommand() {
+    const data = getUserData();
+    const suggestions = [
+        "Try typing 'matrix' to make things look cool.",
+        "Need a break? Try the 'guess' command.",
+        "Check your 'stats' to see your level!",
+        "Curious about the system? Run 'sysinfo'.",
+        "It's raining bytes out there. Use 'weather' to check.",
+        "You can change the theme with the 'theme' command.",
+        "Ready to travel? Try 'timetravel 1985' or 'bttf'.",
+        "Remember, use 'help' if you forget what you can do."
+    ];
+
+    // Choose a suggestion based on level, pseudo-randomly
+    const suggestion = suggestions[(data.level + (data.history ? data.history.length : 0)) % suggestions.length];
+
+    return `
+<pre style="color: #00ffcc; font-weight: bold;">
+    \\__/
+    (oo)
+   //||\\\\
+</pre>
+<div style="color: var(--user-color); font-weight: bold; margin-bottom: 5px;">Companion AI (Level ${data.level} Assistant)</div>
+<div style="font-style: italic;">"Hello! I see you have executed ${data.history ? data.history.length : 0} commands so far. Here is a tip: ${suggestion}"</div>
+    `;
 }
 
 function handleSysinfoCommand() {
@@ -644,6 +936,8 @@ function handleEnter(e) {
         const args = rawCommand.split(' ').slice(1);
         const cmdName = command.split(' ')[0];
 
+        const outId = 'out-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+
         if (commandRegistry[command]) {
             outputHTML = commandRegistry[command]();
         } else if (cmdName === 'matrix') {
@@ -665,7 +959,23 @@ function handleEnter(e) {
         } else if (cmdName === 'sysinfo') {
             outputHTML = handleSysinfoCommand();
         } else if (cmdName === 'weather') {
-            outputHTML = handleWeatherCommand(args);
+            outputHTML = `<div id="${outId}">${handleWeatherCommand(args, outId)}</div>`;
+        } else if (cmdName === 'crypto') {
+            outputHTML = `<div id="${outId}">${handleCryptoCommand(args, outId)}</div>`;
+        } else if (cmdName === 'wiki') {
+            outputHTML = `<div id="${outId}">${handleWikiCommand(args, outId)}</div>`;
+        } else if (cmdName === 'github') {
+            outputHTML = `<div id="${outId}">${handleGithubCommand(args, outId)}</div>`;
+        } else if (cmdName === 'photo') {
+            outputHTML = handlePhotoCommand();
+        } else if (cmdName === 'stats') {
+            outputHTML = handleStatsCommand();
+        } else if (cmdName === 'companion') {
+            outputHTML = handleCompanionCommand();
+        } else if (cmdName === 'challenge') {
+            outputHTML = handleChallengeCommand();
+        } else if (cmdName === 'feedback') {
+            outputHTML = handleFeedbackCommand(args);
         } else if (cmdName === 'guess') {
             outputHTML = handleGuessCommand(args);
         } else if (command.startsWith('python3')) {
@@ -678,8 +988,15 @@ function handleEnter(e) {
     }
 
     if (outputHTML !== null) {
+        // Add XP for successful command execution
+        let xpMsg = "";
+        if (outputHTML !== 'Command not found' && command !== '' && command !== 'clear') {
+            recordCommand(rawCommand);
+            xpMsg = addXP(10);
+        }
+
         outputElement = document.createElement('div');
-        outputElement.innerHTML = outputHTML;
+        outputElement.innerHTML = outputHTML + xpMsg;
         outputElement.classList.add("output");
         results.appendChild(prompt);
         results.appendChild(outputElement);
