@@ -4,7 +4,7 @@ const commandLine = document.getElementById('command-line');
 const commandHistory = [];
 let historyIndex = -1;
 
-const fileList = ['about.sh', 'aranea.py', 'commands.txt', 'diablob.py', 'glazgo.exe', 'oculus.py', 'trophy.html', 'xsstrike.py'];
+const fileList = ['about.sh', 'aranea.py', 'band.py', 'commands.txt', 'diablob.py', 'everything.txt', 'glazgo.exe', 'oculus.py', 'taxi.py', 'trophy.html', 'unalienable.py', 'xsstrike.py'];
 
 // Gamification / LocalStorage functions
 function getUserData() {
@@ -74,6 +74,11 @@ This tool is a compiled executable file that can be used when other tools are un
 such as when testing a web application in a black-box environment on a corporate machine.
 It helps to invetigate web apps and APIs by automating the process of providing expected and unexpected inputs in order to uncover application resources or to cause any unexpected behavior or crashes.
  <a href="https://github.com/leddcode/GlazGo" class="link" target="_blank">https://github.com/leddcode/GlazGo</a>`
+
+const band = `<a href="https://github.com/leddcode/band" class="link" target="_blank">https://github.com/leddcode/band</a>`
+const everything = `<a href="https://github.com/leddcode/Everything" class="link" target="_blank">https://github.com/leddcode/Everything</a>`
+const taxi = `<a href="https://github.com/leddcode/taxi" class="link" target="_blank">https://github.com/leddcode/taxi</a>`
+const unalienable = `<a href="https://github.com/leddcode/unalienable" class="link" target="_blank">https://github.com/leddcode/unalienable</a>`
 
 const xsstrike = `This tool is an upgraded version of a well-known Cross-Site Scripting detection suite:
 <a href="https://github.com/leddcode/XSStrike" class="link" target="_blank">https://github.com/leddcode/XSStrike</a>.
@@ -221,17 +226,25 @@ const commandRegistry = {
   'ls': () => `
       about.sh
       <a href="https://github.com/leddcode/Aranea" class="link" target="_blank">aranea.py</a>
+      <a href="https://github.com/leddcode/band" class="link" target="_blank">band.py</a>
       commands.txt
       <a href="https://github.com/leddcode/Diablob" class="link" target="_blank">diablob.py</a>
+      <a href="https://github.com/leddcode/Everything" class="link" target="_blank">everything.txt</a>
       <a href="https://github.com/leddcode/GlazGo" class="link" target="_blank">glazgo.exe</a>
       <a href="https://github.com/leddcode/Oculus" class="link" target="_blank">oculus.py</a>
+      <a href="https://github.com/leddcode/taxi" class="link" target="_blank">taxi.py</a>
       <a href="https://trophy.onrender.com/" class="link" target="_blank">trophy.html</a>
+      <a href="https://github.com/leddcode/unalienable" class="link" target="_blank">unalienable.py</a>
       <a href="https://github.com/leddcode/XSStrike" class="link" target="_blank">xsstrike.py</a>
       `,
   'python oculus.py': () => { window.open("https://github.com/leddcode/Oculus", "_blank"); return oculus; },
   'python aranea.py': () => { window.open("https://github.com/leddcode/Aranea", "_blank"); return aranea; },
   'python diablob.py': () => { window.open("https://github.com/leddcode/Diablob", "_blank"); return diablob; },
-  'python xsstrike.py': () => { window.open("https://github.com/leddcode/XSStrike", "_blank"); return xsstrike; },
+    'python xsstrike.py': () => { window.open("https://github.com/leddcode/XSStrike", "_blank"); return xsstrike; },
+  'python band.py': () => { window.open("https://github.com/leddcode/band", "_blank"); return band; },
+  'python taxi.py': () => { window.open("https://github.com/leddcode/taxi", "_blank"); return taxi; },
+  'python unalienable.py': () => { window.open("https://github.com/leddcode/unalienable", "_blank"); return unalienable; },
+  'cat everything.txt': () => { window.open("https://github.com/leddcode/Everything", "_blank"); return everything; },
   './glazgo.exe': () => { window.open("https://github.com/leddcode/GlazGo/releases", "_blank"); return glazgo; },
   'open trophy.html': () => { window.open("https://trophy.onrender.com/", "_blank"); return trophy; },
   'whoami': () => `<a href="${atob('aHR0cHM6Ly93d3cubGlua2VkaW4uY29tL2luL2hhbm9jaHJpenov')}" class="link" target="_blank">leddcode</a>`,
@@ -1061,6 +1074,43 @@ if (typeof module !== 'undefined' && module.exports) {
 // Tab functionality
 const tabs = document.querySelectorAll('.tab');
 const tabContents = document.querySelectorAll('.tab-content');
+
+// Explorer interactivity
+document.querySelectorAll('.tree-item').forEach(item => {
+    item.addEventListener('click', () => {
+        const text = item.textContent.replace('📄', '').trim();
+        let cmd = '';
+        if (text.endsWith('.py')) {
+            cmd = 'python ' + text;
+        } else if (text.endsWith('.sh')) {
+            cmd = './' + text;
+        } else if (text.endsWith('.exe')) {
+            cmd = './' + text;
+        } else if (text.endsWith('.html')) {
+            cmd = 'open ' + text;
+        } else {
+            cmd = 'cat ' + text;
+        }
+
+        const commandLine = document.getElementById('command-line');
+        if (commandLine) {
+            commandLine.value = cmd;
+            // Switch to terminal tab if not active
+            document.querySelector('.tab[data-target="terminal"]').click();
+            commandLine.focus();
+
+            // Trigger enter
+            const enterEvent = new KeyboardEvent('keydown', {
+                key: 'Enter',
+                code: 'Enter',
+                keyCode: 13,
+                which: 13,
+                bubbles: true
+            });
+            commandLine.dispatchEvent(enterEvent);
+        }
+    });
+});
 
 tabs.forEach(tab => {
     tab.addEventListener('click', () => {
