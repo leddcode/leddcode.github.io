@@ -4,7 +4,7 @@ const commandLine = document.getElementById('command-line');
 const commandHistory = [];
 let historyIndex = -1;
 
-const fileList = ['about.sh', 'aranea.py', 'band.py', 'commands.txt', 'diablob.py', 'everything.txt', 'glazgo.exe', 'oculus.py', 'taxi.py', 'trophy.html', 'unalienable.py', 'xsstrike.py'];
+const fileList = ['about.sh', 'aranea.py', 'band.py', 'commands.txt', 'diablob.py', 'everything.txt', 'glazgo.exe', 'oculus.py', 'taxi.py', 'trophy.html', 'unalista.py', 'xsstrike.py'];
 
 // Gamification / LocalStorage functions
 function getUserData() {
@@ -78,7 +78,7 @@ It helps to invetigate web apps and APIs by automating the process of providing 
 const band = `<a href="https://github.com/leddcode/band" class="link" target="_blank">https://github.com/leddcode/band</a>`
 const everything = `<a href="https://github.com/leddcode/Everything" class="link" target="_blank">https://github.com/leddcode/Everything</a>`
 const taxi = `<a href="https://github.com/leddcode/taxi" class="link" target="_blank">https://github.com/leddcode/taxi</a>`
-const unalienable = `<a href="https://github.com/leddcode/unalienable" class="link" target="_blank">https://github.com/leddcode/unalienable</a>`
+const unalista = `<a href="https://github.com/leddcode/unalista" class="link" target="_blank">https://github.com/leddcode/unalista</a>`
 
 const xsstrike = `This tool is an upgraded version of a well-known Cross-Site Scripting detection suite:
 <a href="https://github.com/leddcode/XSStrike" class="link" target="_blank">https://github.com/leddcode/XSStrike</a>.
@@ -234,7 +234,7 @@ const commandRegistry = {
       <a href="https://github.com/leddcode/Oculus" class="link" target="_blank">oculus.py</a>
       <a href="https://github.com/leddcode/taxi" class="link" target="_blank">taxi.py</a>
       <a href="https://trophy.onrender.com/" class="link" target="_blank">trophy.html</a>
-      <a href="https://github.com/leddcode/unalienable" class="link" target="_blank">unalienable.py</a>
+      <a href="https://github.com/leddcode/unalista" class="link" target="_blank">unalista.py</a>
       <a href="https://github.com/leddcode/XSStrike" class="link" target="_blank">xsstrike.py</a>
       `,
   'python oculus.py': () => { window.open("https://github.com/leddcode/Oculus", "_blank"); return oculus; },
@@ -243,7 +243,7 @@ const commandRegistry = {
     'python xsstrike.py': () => { window.open("https://github.com/leddcode/XSStrike", "_blank"); return xsstrike; },
   'python band.py': () => { window.open("https://github.com/leddcode/band", "_blank"); return band; },
   'python taxi.py': () => { window.open("https://github.com/leddcode/taxi", "_blank"); return taxi; },
-  'python unalienable.py': () => { window.open("https://github.com/leddcode/unalienable", "_blank"); return unalienable; },
+  'python unalista.py': () => { window.open("https://github.com/leddcode/unalista", "_blank"); return unalista; },
   'cat everything.txt': () => { window.open("https://github.com/leddcode/Everything", "_blank"); return everything; },
   './glazgo.exe': () => { window.open("https://github.com/leddcode/GlazGo/releases", "_blank"); return glazgo; },
   'open trophy.html': () => { window.open("https://trophy.onrender.com/", "_blank"); return trophy; },
@@ -285,11 +285,11 @@ const commandRegistry = {
   'pwd': () => `/home/leddcode`,
   'date': () => new Date().toString(),
   'sudo': () => `Permission denied`,
-  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, matrix, neofetch, echo, calc, bttf, timetravel, flux, sysinfo, weather, guess, stats, companion, crypto, wiki, github, photo, challenge, feedback`,
+  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, todo, cowsay, base64, roll, joke, coin, password, ping, matrix, neofetch, echo, calc, bttf, timetravel, flux, sysinfo, weather, guess, stats, companion, crypto, wiki, github, photo, challenge, feedback`,
 };
 
 // Generate cmdList dynamically
-const customCommands = ['theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'photo', 'challenge', 'feedback'];
+const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'photo', 'challenge', 'feedback'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -647,6 +647,202 @@ function handleChallengeCommand() {
     <div style="color: var(--user-color); font-weight: bold; margin-bottom: 5px;">🔥 DAILY MICRO-CHALLENGE 🔥</div>
     <div style="color: var(--command-color);">${challenge}</div>
 </div>`;
+}
+
+function handleTodoCommand(args) {
+    let todoList = [];
+    try {
+        const stored = localStorage.getItem('termTodo');
+        if (stored) todoList = JSON.parse(stored);
+    } catch (e) {}
+
+    if (args.length === 0) {
+        return "Usage: todo [add|list|remove|clear] [task|id]<br>Example: todo add Fix bugs";
+    }
+
+    const action = args[0].toLowerCase();
+
+    if (action === 'add') {
+        const task = args.slice(1).join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        if (!task) return "Error: Please specify a task.";
+        todoList.push({ id: Date.now().toString(36), task, done: false });
+        try { localStorage.setItem('termTodo', JSON.stringify(todoList)); } catch (e) {}
+        return `Added task: <span style="color: var(--user-color);">${task}</span>`;
+    }
+    else if (action === 'list') {
+        if (todoList.length === 0) return "Your todo list is empty.";
+        let listHTML = `<div style="border: 1px solid var(--command-color); padding: 10px; margin: 10px 0;"><h3 style="margin-top: 0; color: var(--user-color);">/// TODO LIST</h3><ol style="margin: 0; padding-left: 20px;">`;
+        todoList.forEach((item, index) => {
+            listHTML += `<li>[${index}] ${item.task}</li>`;
+        });
+        listHTML += `</ol></div>`;
+        return listHTML;
+    }
+    else if (action === 'remove') {
+        const index = parseInt(args[1], 10);
+        if (isNaN(index) || index < 0 || index >= todoList.length) return "Error: Invalid task index.";
+        const removed = todoList.splice(index, 1)[0];
+        try { localStorage.setItem('termTodo', JSON.stringify(todoList)); } catch (e) {}
+        return `Removed task: <span style="color: var(--user-color);">${removed.task}</span>`;
+    }
+    else if (action === 'clear') {
+        try { localStorage.removeItem('termTodo'); } catch (e) {}
+        return "Todo list cleared.";
+    }
+
+    return "Unknown action. Usage: todo [add|list|remove|clear] [task|id]";
+}
+
+function handleCowsayCommand(args) {
+    if (args.length === 0) return "Usage: cowsay [message]";
+    const text = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const dashLine = '-'.repeat(text.length + 2);
+    return `
+<pre style="color: var(--user-color); font-weight: bold;">
+ ${dashLine}
+&lt; ${text} &gt;
+ ${dashLine}
+        \\   ^__^
+         \\  (oo)\\_______
+            (__)\\       )\\/\\
+                ||----w |
+                ||     ||
+</pre>`;
+}
+
+function handleBase64Command(args) {
+    if (args.length < 2) return "Usage: base64 [encode|decode] [text]";
+    const action = args[0].toLowerCase();
+    const text = args.slice(1).join(' ');
+
+    try {
+        if (action === 'encode') {
+            return `Encoded: <span style="color: var(--user-color);">${btoa(text)}</span>`;
+        } else if (action === 'decode') {
+            return `Decoded: <span style=\"color: var(--user-color);\">${atob(text).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>`;
+        } else {
+            return "Usage: base64 [encode|decode] [text]";
+        }
+    } catch (e) {
+        return "Error: Invalid base64 string or encoding failure.";
+    }
+}
+
+function handleRollCommand(args) {
+    let count = 1;
+    let sides = 6;
+
+    if (args.length > 0) {
+        const match = args[0].toLowerCase().match(/^(\d*)d(\d+)$/);
+        if (match) {
+            count = parseInt(match[1]) || 1;
+            sides = parseInt(match[2]);
+        } else {
+            const parsed = parseInt(args[0]);
+            if (!isNaN(parsed) && parsed > 0) {
+                sides = parsed;
+            } else {
+                return "Usage: roll [sides] OR roll [count]d[sides] (e.g., roll 2d20)";
+            }
+        }
+    }
+
+    if (count > 100) return "Error: Too many dice (max 100).";
+    if (sides > 1000) return "Error: Too many sides (max 1000).";
+    if (sides < 2) return "Error: Dice must have at least 2 sides.";
+
+    let results = [];
+    let sum = 0;
+    for (let i = 0; i < count; i++) {
+        const roll = Math.floor(Math.random() * sides) + 1;
+        results.push(roll);
+        sum += roll;
+    }
+
+    if (count === 1) {
+        return `You rolled a d${sides} and got: <span style="color: var(--user-color); font-weight: bold; font-size: 1.2em;">${sum}</span>`;
+    } else {
+        return `You rolled ${count}d${sides}: [${results.join(', ')}] <br>Total: <span style="color: var(--user-color); font-weight: bold; font-size: 1.2em;">${sum}</span>`;
+    }
+}
+
+function handleJokeCommand() {
+    const jokes = [
+        "Why do programmers prefer dark mode? Because light attracts bugs.",
+        "How many programmers does it take to change a light bulb? None, that's a hardware problem.",
+        "There are 10 types of people in the world: those who understand binary, and those who don't.",
+        "I would love to change the world, but they won't give me the source code.",
+        "A SQL query goes into a bar, walks up to two tables and asks... 'Can I join you?'",
+        "Why did the programmer quit his job? Because he didn't get arrays.",
+        "What's the object-oriented way to become wealthy? Inheritance.",
+        "To understand what recursion is, you must first understand recursion.",
+        "Why do Java programmers have to wear glasses? Because they don't C#."
+    ];
+    const joke = jokes[Math.floor(Math.random() * jokes.length)];
+    return `<div style="color: var(--user-color); font-style: italic;">${joke}</div>`;
+}
+
+function handleCoinCommand() {
+    const result = Math.random() < 0.5 ? "Heads" : "Tails";
+    return `You flipped a coin and got: <span style="color: var(--user-color); font-weight: bold;">${result}</span>`;
+}
+
+function handlePasswordCommand(args) {
+    let length = 16;
+    if (args.length > 0) {
+        const parsed = parseInt(args[0]);
+        if (!isNaN(parsed) && parsed > 0) {
+            length = parsed;
+        } else {
+            return "Usage: password [length]";
+        }
+    }
+    if (length > 128) return "Error: Password length too long (max 128).";
+    if (length < 4) return "Error: Password length too short (min 4).";
+
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+~`|}{[]:;?><,./-=";
+    let password = "";
+    for (let i = 0; i < length; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    // Replace < and > to prevent HTML rendering issues
+    const safePassword = password.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return `Generated Password (${length} chars): <br><span style="color: var(--user-color); font-family: monospace; user-select: all; background: rgba(0,0,0,0.3); padding: 5px;">${safePassword}</span>`;
+}
+
+function handlePingCommand(args, id) {
+    if (args.length === 0) return "Usage: ping [host]<br>Example: ping google.com";
+    const host = args[0].replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+            let pings = "";
+            let totalTime = 0;
+            for(let i=1; i<=4; i++) {
+                const time = Math.floor(Math.random() * 50) + 10;
+                totalTime += time;
+                pings += `64 bytes from ${host}: icmp_seq=${i} ttl=54 time=${time} ms<br>`;
+            }
+            const avgTime = (totalTime / 4).toFixed(1);
+
+            el.innerHTML = `
+<div style="color: var(--command-color);">
+PING ${host} (192.168.1.${Math.floor(Math.random() * 255)}) 56(84) bytes of data.<br>
+${pings}
+<br>
+--- ${host} ping statistics ---<br>
+4 packets transmitted, 4 received, 0% packet loss, time ${Math.floor(Math.random() * 1000 + 3000)}ms<br>
+rtt min/avg/max/mdev = 10.0/${avgTime}/60.0/1.5 ms
+</div>`;
+            const termDiv = document.getElementById('terminal');
+            if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            else window.scrollTo(0, document.body.scrollHeight);
+        }
+    }, 1500);
+
+    return `PING ${host} (192.168.1.${Math.floor(Math.random() * 255)}) 56(84) bytes of data.<br><span style="color: #888;">[Waiting for reply...]</span>`;
 }
 
 function handleFeedbackCommand(args) {
@@ -1018,6 +1214,22 @@ function handleEnter(e) {
             outputHTML = handleCompanionCommand();
         } else if (cmdName === 'challenge') {
             outputHTML = handleChallengeCommand();
+        } else if (cmdName === 'todo') {
+            outputHTML = handleTodoCommand(args);
+        } else if (cmdName === 'cowsay') {
+            outputHTML = handleCowsayCommand(args);
+        } else if (cmdName === 'base64') {
+            outputHTML = handleBase64Command(args);
+        } else if (cmdName === 'roll') {
+            outputHTML = handleRollCommand(args);
+        } else if (cmdName === 'joke') {
+            outputHTML = handleJokeCommand();
+        } else if (cmdName === 'coin') {
+            outputHTML = handleCoinCommand();
+        } else if (cmdName === 'password') {
+            outputHTML = handlePasswordCommand(args);
+        } else if (cmdName === 'ping') {
+            outputHTML = `<div id="${outId}">${handlePingCommand(args, outId)}</div>`;
         } else if (cmdName === 'feedback') {
             outputHTML = handleFeedbackCommand(args);
         } else if (cmdName === 'guess') {
@@ -1068,7 +1280,7 @@ commandLine.addEventListener('keydown', function(e) {
 });
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { type, handleArrowUp, handleArrowDown, handleTab, handleEnter, handleMatrixCommand, handleCalcCommand, handleEchoCommand, handleNeofetchCommand, handleThemeCommand, handleBttfCommand, handleTimetravelCommand, handleFluxCommand, handleSysinfoCommand, handleWeatherCommand, handleGuessCommand, handleStarfieldCommand };
+    module.exports = { type, handleArrowUp, handleArrowDown, handleTab, handleEnter, handleMatrixCommand, handleCalcCommand, handleEchoCommand, handleNeofetchCommand, handleThemeCommand, handleBttfCommand, handleTimetravelCommand, handleFluxCommand, handleSysinfoCommand, handleWeatherCommand, handleGuessCommand, handleStarfieldCommand, handleTodoCommand, handleCowsayCommand, handleBase64Command, handleRollCommand, handleJokeCommand, handleCoinCommand, handlePasswordCommand, handlePingCommand };
 }
 
 // Tab functionality
