@@ -118,10 +118,10 @@ function runInstantIntro() {
     const banner = `
 <pre style="color: var(--user-color); font-weight: bold; margin-bottom: 20px;">
     __         __    __               __
-   / /   ___  / /___/ /________  ____/ /___
-  / /   / _ \\/ __  / __  / ___/ / __  / __ \\
- / /___/  __/ /_/ / /_/ / /__  / /_/ / /_/ /
-/_____/\\___/\\__,_/\\__,_/\\___/  \\__,_/\\____/
+   / /__  ____/ /___/ /________  ____/ /__
+  / / _ \\/ __  / __  / ___/ __ \\/ __  / _ \\
+ / /  __/ /_/ / /_/ / /__/ /_/ / /_/ /  __/
+/_/\\___/\\__,_/\\__,_/\\___/\\____/\\__,_/\\___/
 </pre>
     `;
     const introMsg = `
@@ -1056,4 +1056,123 @@ commandLine.addEventListener('keydown', function(e) {
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { type, handleArrowUp, handleArrowDown, handleTab, handleEnter, handleMatrixCommand, handleCalcCommand, handleEchoCommand, handleNeofetchCommand, handleThemeCommand, handleBttfCommand, handleTimetravelCommand, handleFluxCommand, handleSysinfoCommand, handleWeatherCommand, handleGuessCommand, handleStarfieldCommand };
+}
+
+// Tab functionality
+const tabs = document.querySelectorAll('.tab');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        const target = tab.getAttribute('data-target');
+
+        // Remove active class from all tabs and contents
+        tabs.forEach(t => t.classList.remove('active'));
+        tabContents.forEach(tc => tc.classList.remove('active'));
+
+        // Add active class to clicked tab and corresponding content
+        tab.classList.add('active');
+        document.getElementById(target).classList.add('active');
+
+        if (target === 'terminal') {
+            document.getElementById('command-line').focus();
+        } else if (target === 'metrics') {
+            updateMetrics();
+        } else if (target === 'network') {
+            updateNetwork();
+        }
+    });
+});
+
+function updateMetrics() {
+    const metricsData = document.getElementById('metrics-data');
+    if (!metricsData) return;
+
+    const data = getUserData();
+    const xpNeeded = data.level * 100;
+    const pct = Math.floor((data.xp / xpNeeded) * 100);
+
+    // Create a progress bar
+    const barLength = 30;
+    const filled = Math.floor((pct / 100) * barLength);
+    const empty = barLength - filled;
+    const bar = '█'.repeat(filled) + '░'.repeat(empty);
+
+    metricsData.innerHTML = `
+        <div class="metric-card">
+            <h3 class="metric-title">User Statistics</h3>
+            <p><strong>Level:</strong> ${data.level}</p>
+            <p><strong>XP:</strong> ${data.xp} / ${xpNeeded}</p>
+            <p><strong>Progress:</strong> <span style="color: var(--command-color);">${bar}</span> ${pct}%</p>
+            <p><strong>Commands Executed:</strong> ${data.history ? data.history.length : 0}</p>
+        </div>
+        <div class="metric-card">
+            <h3 class="metric-title">System Diagnostics</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="padding: 5px 0;">Core:</td><td style="color: var(--command-color);">Quantum Processor v9.4</td></tr>
+                <tr><td style="padding: 5px 0;">Memory:</td><td style="color: var(--command-color);">64 PetaBytes [82% Available]</td></tr>
+                <tr><td style="padding: 5px 0;">Uplink:</td><td style="color: var(--command-color);">Subspace Relay (12Tbps)</td></tr>
+                <tr><td style="padding: 5px 0;">Power:</td><td style="color: var(--command-color);">Fusion Reactor [Online, Optimal]</td></tr>
+            </table>
+        </div>
+    `;
+}
+
+function updateNetwork() {
+    const networkData = document.getElementById('network-data');
+    if (!networkData) return;
+
+    const connections = [
+        { ip: "192.168.1.104", status: "ESTABLISHED", port: "443", latency: "12ms" },
+        { ip: "10.0.0.5", status: "LISTEN", port: "22", latency: "-" },
+        { ip: "172.16.254.1", status: "TIME_WAIT", port: "80", latency: "45ms" },
+        { ip: "8.8.8.8", status: "ESTABLISHED", port: "53", latency: "8ms" },
+        { ip: "1.1.1.1", status: "ESTABLISHED", port: "443", latency: "10ms" }
+    ];
+
+    let rows = connections.map(c => `
+        <tr>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">${c.ip}</td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color); color: ${c.status === 'ESTABLISHED' ? 'var(--user-color)' : 'var(--command-color)'};">${c.status}</td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">${c.port}</td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">${c.latency}</td>
+        </tr>
+    `).join('');
+
+    networkData.innerHTML = `
+        <div class="network-card">
+            <h3 class="network-title">Active Connections</h3>
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr>
+                        <th style="padding: 8px; border-bottom: 2px solid var(--border-color); color: #888;">Remote Address</th>
+                        <th style="padding: 8px; border-bottom: 2px solid var(--border-color); color: #888;">State</th>
+                        <th style="padding: 8px; border-bottom: 2px solid var(--border-color); color: #888;">Port</th>
+                        <th style="padding: 8px; border-bottom: 2px solid var(--border-color); color: #888;">Latency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows}
+                </tbody>
+            </table>
+        </div>
+        <div class="network-card">
+            <h3 class="network-title">Network Interfaces</h3>
+            <pre style="margin: 0; color: #ccc;">
+eth0: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500
+        inet 192.168.1.104  netmask 255.255.255.0  broadcast 192.168.1.255
+        inet6 fe80::a00:27ff:fe4e:66a1  prefixlen 64  scopeid 0x20&lt;link&gt;
+        ether 08:00:27:4e:66:a1  txqueuelen 1000  (Ethernet)
+        RX packets 14532  bytes 12345678 (11.7 MiB)
+        TX packets 1234  bytes 123456 (120.5 KiB)
+
+lo: flags=73&lt;UP,LOOPBACK,RUNNING&gt;  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10&lt;host&gt;
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 24  bytes 2016 (1.9 KiB)
+        TX packets 24  bytes 2016 (1.9 KiB)
+            </pre>
+        </div>
+    `;
 }
