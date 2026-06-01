@@ -113,7 +113,38 @@ function type(text, element) {
   }, 30);
 }
 
-type(greeting, results);
+
+function runInstantIntro() {
+    const banner = `
+<pre style="color: var(--user-color); font-weight: bold; margin-bottom: 20px;">
+    __         __    __               __
+   / /   ___  / /___/ /________  ____/ /___
+  / /   / _ \\/ __  / __  / ___/ / __  / __ \\
+ / /___/  __/ /_/ / /_/ / /__  / /_/ / /_/ /
+/_____/\\___/\\__,_/\\__,_/\\___/  \\__,_/\\____/
+</pre>
+    `;
+    const introMsg = `
+<div style="animation: fadeIn 1s ease-in;">
+    <span style="color: var(--link-color); font-weight: bold;">Leddcode OS v2.0.4</span> [System Ready]<br>
+    <span style="color: #888;">Type 'help' to see available commands.</span><br><br>
+</div>
+<style>
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+    `;
+    results.innerHTML = banner + introMsg;
+
+    // Ensure prompt and command line are visible immediately
+    document.getElementById('prompt').style.display = 'flex';
+    document.getElementById('command-line').style.display = 'block';
+}
+
+runInstantIntro();
+
 
 
 function evaluateMath(expr) {
@@ -745,7 +776,7 @@ function handleBttfCommand() {
     const userSpans = document.querySelectorAll('.user');
     userSpans.forEach(span => {
         span.textContent = window.terminalUser;
-        // The host text is immediately after the span, but since it's hardcoded as "@localhost:~$ "
+        // The prompt is dynamically generated now, so we just set variables.
         // We'll handle this purely in the generation step in handleEnter
     });
 
@@ -920,7 +951,7 @@ function handleEnter(e) {
 
     commandLine.value = '';
     const prompt = document.createElement('div');
-    prompt.innerHTML = `<span class="user">${window.terminalUser || 'leddcode'}</span>@${window.terminalHost || 'localhost'}:~$ `;
+    prompt.innerHTML = `<span class="user">${window.terminalUser || 'leddcode'}</span> <span class="arrow">❯</span> `;
     prompt.appendChild(document.createTextNode(command));
 
 
@@ -1008,7 +1039,7 @@ function handleEnter(e) {
         }
     }
 
-    window.scrollTo(0, document.body.scrollHeight);
+    const termDiv = document.getElementById('terminal'); if (termDiv) termDiv.scrollTop = termDiv.scrollHeight; else window.scrollTo(0, document.body.scrollHeight);
 }
 
 commandLine.addEventListener('keydown', function(e) {
