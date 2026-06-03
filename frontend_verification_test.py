@@ -15,30 +15,33 @@ async def run():
         # Wait for the terminal to be ready
         await page.wait_for_selector('#command-line', state='visible')
 
-        # Test remember
-        await page.fill('#command-line', 'remember goal Become the ultimate hacker')
+        # Test agent profile updates
+        await page.fill('#command-line', 'todo add Build the ultimate app')
         await page.press('#command-line', 'Enter')
         await page.wait_for_timeout(500)
 
-        # Test recall
-        await page.fill('#command-line', 'recall goal')
-        await page.press('#command-line', 'Enter')
+        # Switch to tasks tab
+        await page.click('div[data-target="tasks"]')
+        await page.wait_for_selector('#tasks-data', state='visible')
         await page.wait_for_timeout(500)
 
-        # Test geo
-        await page.fill('#command-line', 'geo me')
-        await page.press('#command-line', 'Enter')
-        await page.wait_for_timeout(1000)
+        # Add task via UI
+        await page.fill('#new-task-input', 'Rule the world')
+        await page.click('.add-task-form button')
+        await page.wait_for_timeout(500)
 
-        # Test leaderboard
-        await page.fill('#command-line', 'leaderboard')
-        await page.press('#command-line', 'Enter')
-        await page.wait_for_timeout(1000)
+        # Toggle a task via UI
+        await page.click('.task-item input[type="checkbox"]')
+        await page.wait_for_timeout(500)
 
-        # Test challenge
-        await page.fill('#command-line', 'challenge')
-        await page.press('#command-line', 'Enter')
-        await page.wait_for_timeout(1000)
+        # Switch to settings tab
+        await page.click('div[data-target="settings"]')
+        await page.wait_for_selector('#settings-data', state='visible')
+        await page.wait_for_timeout(500)
+
+        # Change theme via UI
+        await page.click('.theme-card:has(.theme-preview-dracula)')
+        await page.wait_for_timeout(500)
 
         # Take a screenshot
         await page.screenshot(path="/home/jules/verification/screenshots/verification.png")

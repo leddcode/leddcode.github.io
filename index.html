@@ -17,6 +17,13 @@
     <div id="app-container">
         <div id="sidebar">
             <div class="sidebar-section">
+                <div class="sidebar-header">AGENT PROFILE</div>
+                <div class="sys-stats" id="agent-profile">
+                    <div class="stat-row"><span>LVL:</span><span class="stat-val" id="sidebar-level">1</span></div>
+                    <div class="stat-row"><span>XP:</span><span class="stat-val" id="sidebar-xp">0 / 100</span></div>
+                </div>
+            </div>
+            <div class="sidebar-section">
                 <div class="sidebar-header">EXPLORER</div>
                 <div class="file-tree">
                     <div class="tree-item"><span class="tree-icon">📄</span> about.sh</div>
@@ -36,8 +43,8 @@
             <div class="sidebar-section">
                 <div class="sidebar-header">SYSTEM STATUS</div>
                 <div class="sys-stats">
-                    <div class="stat-row"><span>CPU:</span><span class="stat-val good">12%</span></div>
-                    <div class="stat-row"><span>MEM:</span><span class="stat-val warn">64%</span></div>
+                    <div class="stat-row"><span>CPU:</span><span class="stat-val good" id="sys-cpu">12%</span></div>
+                    <div class="stat-row"><span>MEM:</span><span class="stat-val warn" id="sys-mem">64%</span></div>
                     <div class="stat-row"><span>NET:</span><span class="stat-val good">Online</span></div>
                     <div class="stat-row"><span>UPLINK:</span><span class="stat-val good">Active</span></div>
                 </div>
@@ -48,6 +55,8 @@
                 <div class="tab active" data-target="terminal"><span class="tab-icon">⚙️</span> terminal</div>
                 <div class="tab" data-target="metrics"><span class="tab-icon">📊</span> metrics</div>
                 <div class="tab" data-target="network"><span class="tab-icon">🌐</span> network</div>
+                <div class="tab" data-target="tasks"><span class="tab-icon">📋</span> tasks</div>
+                <div class="tab" data-target="settings"><span class="tab-icon">⚙️</span> settings</div>
                 <div class="tab-spacer"></div>
                 <div class="window-controls">
                     <div class="control min"></div>
@@ -70,6 +79,14 @@
                 <div id="network" class="tab-content" >
                     <h2>Network Monitor</h2>
                     <div id="network-data"></div>
+                </div>
+                <div id="tasks" class="tab-content" >
+                    <h2>Task Manager</h2>
+                    <div id="tasks-data"></div>
+                </div>
+                <div id="settings" class="tab-content" >
+                    <h2>System Settings</h2>
+                    <div id="settings-data"></div>
                 </div>
             </div>
         </div>
