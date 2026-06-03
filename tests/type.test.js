@@ -24,9 +24,6 @@ describe('type function', () => {
   it('should type and erase text correctly', () => {
     const { type } = require('../script.js');
 
-    // Fast forward to let the initial greeting type out and erase
-    jest.runAllTimers();
-
     const element = document.createElement('div');
 
     // Clear mocks so we can test the specific call
@@ -63,7 +60,6 @@ describe('type function', () => {
 
   it('should handle empty text gracefully', () => {
     const { type } = require('../script.js');
-    jest.runAllTimers();
 
     const element = document.createElement('div');
     global.setInterval.mockClear();

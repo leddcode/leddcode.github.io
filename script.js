@@ -8,11 +8,12 @@ const fileList = ['about.sh', 'aranea.py', 'band.py', 'commands.txt', 'diablob.p
 
 // Gamification / LocalStorage functions
 function getUserData() {
-    let data = { xp: 0, level: 1, history: [] };
+    let data = { xp: 0, level: 1, history: [], contextualMemory: [] };
     try {
         const stored = localStorage.getItem('termUserData');
         if (stored) {
             data = JSON.parse(stored);
+            if (!data.contextualMemory) data.contextualMemory = [];
         }
     } catch (e) {
         // localStorage might not be available in some test environments
@@ -45,7 +46,13 @@ function addXP(amount) {
 function recordCommand(cmd) {
     const data = getUserData();
     if (!data.history) data.history = [];
+    if (!data.contextualMemory) data.contextualMemory = [];
     data.history.push({ cmd, time: new Date().toISOString() });
+
+    data.contextualMemory.push({ cmd, time: new Date().toISOString() });
+    if (data.contextualMemory.length > 50) {
+        data.contextualMemory.shift();
+    }
     saveUserData(data);
 }
 
@@ -285,11 +292,11 @@ const commandRegistry = {
   'pwd': () => `/home/leddcode`,
   'date': () => new Date().toString(),
   'sudo': () => `Permission denied`,
-  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, todo, cowsay, base64, roll, joke, coin, password, ping, matrix, neofetch, echo, calc, bttf, timetravel, flux, sysinfo, weather, guess, stats, companion, crypto, wiki, github, photo, challenge, feedback`,
+  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, todo, cowsay, base64, roll, joke, coin, password, ping, matrix, neofetch, echo, calc, bttf, timetravel, flux, sysinfo, weather, guess, stats, companion, crypto, wiki, github, photo, challenge, feedback, recall, voice, analyze, market, fact, unsplash, quest, vote`,
 };
 
 // Generate cmdList dynamically
-const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'photo', 'challenge', 'feedback'];
+const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'photo', 'challenge', 'feedback', 'recall', 'voice', 'analyze', 'market', 'fact', 'unsplash', 'quest', 'vote'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -845,6 +852,141 @@ rtt min/avg/max/mdev = 10.0/${avgTime}/60.0/1.5 ms
     return `PING ${host} (192.168.1.${Math.floor(Math.random() * 255)}) 56(84) bytes of data.<br><span style="color: #888;">[Waiting for reply...]</span>`;
 }
 
+function handleRecallCommand() {
+    const data = getUserData();
+    if (!data.contextualMemory || data.contextualMemory.length === 0) {
+        return "No memory records found.";
+    }
+    const memList = data.contextualMemory.map(mem => `<span style="color: var(--command-color);">${new Date(mem.time).toLocaleTimeString()}</span>: ${mem.cmd}`).join('<br>');
+    return `
+<div style="border: 1px solid var(--command-color); padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: var(--user-color);">/// CONTEXTUAL MEMORY (ROLLING WINDOW)</h3>
+    ${memList}
+</div>`;
+}
+
+function handleVoiceCommand(id) {
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+            const randomPhrases = ["Run diagnostics.", "Deploy to production.", "Hack the mainframe.", "Show me the logs.", "Execute protocol zero."];
+            const phrase = randomPhrases[Math.floor(Math.random() * randomPhrases.length)];
+            el.innerHTML = `
+<div style="color: var(--command-color);">
+    <span style="color: var(--user-color); font-weight: bold;">[VOICE-TO-TEXT MOCK]</span> Processing audio stream...<br>
+    <span style="color: var(--success-color);">Transcription complete:</span> "${phrase}"
+</div>`;
+            const termDiv = document.getElementById('terminal');
+            if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            else window.scrollTo(0, document.body.scrollHeight);
+
+            const commandLine = document.getElementById('command-line');
+            if (commandLine) {
+                commandLine.value = phrase.toLowerCase().replace('.', '');
+            }
+        }
+    }, 2000);
+
+    return `<span style="color: #888;">[Listening for voice input...]</span>`;
+}
+
+function handleMarketCommand(args, id) {
+    if (args.length === 0) return "Usage: market [symbol]<br>Example: market AAPL";
+    const symbol = args[0].toUpperCase().replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+            // Mock market data
+            const price = (Math.random() * 500 + 50).toFixed(2);
+            const change = (Math.random() * 20 - 10).toFixed(2);
+            const percent = ((change / price) * 100).toFixed(2);
+            const color = change >= 0 ? 'var(--success-color)' : 'var(--error-color)';
+            const sign = change >= 0 ? '+' : '';
+            el.innerHTML = `
+<div style="border-left: 3px solid #00ff00; padding-left: 10px;">
+    <span style="color: var(--user-color); font-weight: bold;">[MARKET TERMINAL]</span> ${symbol}<br>
+    <span style="color: var(--command-color);">PRICE:</span> $${price}<br>
+    <span style="color: var(--command-color);">DAY CHANGE:</span> <span style="color: ${color};">${sign}${change} (${sign}${percent}%)</span>
+</div>`;
+            const termDiv = document.getElementById('terminal');
+            if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            else window.scrollTo(0, document.body.scrollHeight);
+        }
+    }, 1000);
+
+    return `Querying stock exchange for ${symbol}...<br><span style="color: #888;">[Fetching...]</span>`;
+}
+
+function handleFactCommand(id) {
+    // We use a mock array of facts if we don't hit a reliable API, but here we can try a simple mock to avoid relying on external services that might be blocked.
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+            const facts = [
+                "The first computer bug was an actual real bug, a moth found in the Harvard Mark II computer in 1947.",
+                "The password for the computer controls of nuclear-tipped missiles of the U.S. was 00000000 for eight years.",
+                "Water can boil and freeze at the same time, called the triple point.",
+                "The Apollo 11 Guidance Computer had less computing power than a modern smart toaster.",
+                "If you fold a piece of paper 42 times, it would be thick enough to reach the moon."
+            ];
+            const fact = facts[Math.floor(Math.random() * facts.length)];
+            el.innerHTML = `
+<div style="border-left: 3px solid var(--command-color); padding-left: 10px;">
+    <span style="color: var(--user-color); font-weight: bold;">[KNOWLEDGE DB]</span> Fact of the moment:<br>
+    <span style="font-style: italic;">"${fact}"</span>
+</div>`;
+            const termDiv = document.getElementById('terminal');
+            if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            else window.scrollTo(0, document.body.scrollHeight);
+        }
+    }, 800);
+
+    return `Accessing global knowledge graph...<br><span style="color: #888;">[Fetching fact...]</span>`;
+}
+
+function handleUnsplashCommand(args) {
+    let searchUrl = "https://source.unsplash.com/random/400x300";
+    if (args.length > 0) {
+        const query = args.join(',').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        searchUrl += `/?${query}`;
+    }
+    return `
+<div style="border: 1px solid var(--command-color); padding: 5px; display: inline-block; margin: 10px 0;">
+    <div style="color: var(--user-color); font-weight: bold; margin-bottom: 5px;">[UNSPLASH VIEWER]</div>
+    <img src="${searchUrl}" alt="Unsplash Image" style="max-width: 100%; height: auto; display: block; border-radius: 4px;">
+</div>`;
+}
+
+function handleAnalyzeCommand(args, id) {
+    if (args.length === 0) return "Usage: analyze [image_url]<br>Example: analyze https://example.com/image.jpg";
+    const url = args[0].replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+            const analyses = [
+                "Detected: Human (98%), Coffee Cup (85%), Laptop (99%)",
+                "Detected: Source code snippet (Language: Python).",
+                "Detected: Architecture diagram. Nodes: 12, Connections: 24.",
+                "Detected: Abstract digital art. Primary colors: Blue, Orange."
+            ];
+            const analysis = analyses[Math.floor(Math.random() * analyses.length)];
+            el.innerHTML = `
+<div style="border-left: 3px solid var(--link-color); padding-left: 10px;">
+    <span style="color: var(--user-color); font-weight: bold;">[IMAGE ANALYSIS ENGINE]</span><br>
+    <span style="color: var(--command-color);">TARGET:</span> ${url}<br>
+    <span style="color: var(--success-color);">RESULTS:</span> ${analysis}
+</div>`;
+            const termDiv = document.getElementById('terminal');
+            if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            else window.scrollTo(0, document.body.scrollHeight);
+        }
+    }, 1500);
+
+    return `Initializing neural network... Analyzing image at ${url}<br><span style="color: #888;">[Processing...]</span>`;
+}
+
 function handleFeedbackCommand(args) {
     if (args.length === 0) {
         return "Usage: feedback [message]<br>Example: feedback Add a music player command!";
@@ -870,6 +1012,49 @@ function handleFeedbackCommand(args) {
 </div>`;
 }
 
+function handleVoteCommand(args) {
+    if (args.length < 2) {
+        return "Usage: vote [up|down] [feature_name]<br>Example: vote up music_player";
+    }
+    const direction = args[0].toLowerCase();
+    const feature = args.slice(1).join('_').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    if (direction !== 'up' && direction !== 'down') {
+        return "Invalid direction. Use 'up' or 'down'.";
+    }
+
+    let votes = {};
+    try {
+        const stored = localStorage.getItem('termVotes');
+        if (stored) votes = JSON.parse(stored);
+    } catch (e) {}
+
+    if (!votes[feature]) {
+        votes[feature] = 0;
+    }
+
+    if (direction === 'up') {
+        votes[feature] += 1;
+    } else {
+        votes[feature] -= 1;
+    }
+
+    try {
+        localStorage.setItem('termVotes', JSON.stringify(votes));
+    } catch (e) {}
+
+    const color = direction === 'up' ? 'var(--success-color)' : 'var(--error-color)';
+    const icon = direction === 'up' ? '👍' : '👎';
+
+    return `
+<div style="border: 1px solid var(--command-color); padding: 5px; margin: 10px 0;">
+    <span style="color: var(--user-color); font-weight: bold;">[FEATURE VOTE RECORDED]</span><br>
+    Feature: ${feature} <br>
+    Vote: <span style="color: ${color};">${icon} ${direction.toUpperCase()}</span><br>
+    Current Score: ${votes[feature]}
+</div>`;
+}
+
 function handleCompanionCommand() {
     const data = getUserData();
     const suggestions = [
@@ -886,15 +1071,72 @@ function handleCompanionCommand() {
     // Choose a suggestion based on level, pseudo-randomly
     const suggestion = suggestions[(data.level + (data.history ? data.history.length : 0)) % suggestions.length];
 
-    return `
-<pre style="color: #00ffcc; font-weight: bold;">
+    let avatar = `
     \\__/
     (oo)
    //||\\\\
-</pre>
-<div style="color: var(--user-color); font-weight: bold; margin-bottom: 5px;">Companion AI (Level ${data.level} Assistant)</div>
+`;
+    let title = `Companion AI (Level ${data.level} Assistant)`;
+
+    if (data.level >= 5) {
+        avatar = `
+   /¯¯¯\\
+  | o_o |
+   \\___/
+   /|||\\
+  | ||| |
+`;
+        title = `Advanced Companion AI (Level ${data.level} Specialist)`;
+    }
+
+    return `
+<pre style="color: #00ffcc; font-weight: bold;">${avatar}</pre>
+<div style="color: var(--user-color); font-weight: bold; margin-bottom: 5px;">${title}</div>
 <div style="font-style: italic;">"Hello! I see you have executed ${data.history ? data.history.length : 0} commands so far. Here is a tip: ${suggestion}"</div>
     `;
+}
+
+function handleQuestCommand(args) {
+    let quests = [];
+    try {
+        const stored = localStorage.getItem('termQuests');
+        if (stored) quests = JSON.parse(stored);
+    } catch (e) {}
+
+    if (!quests || quests.length === 0) {
+        quests = [
+            { id: 1, desc: "Run 'weather' to check the forecast.", done: false, xp: 50 },
+            { id: 2, desc: "Solve a 'challenge'.", done: false, xp: 100 },
+            { id: 3, desc: "Ask the 'companion' for a tip.", done: false, xp: 20 }
+        ];
+        try { localStorage.setItem('termQuests', JSON.stringify(quests)); } catch(e) {}
+    }
+
+    if (args.length > 0 && args[0] === 'complete') {
+        const questId = parseInt(args[1]);
+        const quest = quests.find(q => q.id === questId);
+        if (quest) {
+            if (quest.done) return `Quest '${quest.desc}' already completed!`;
+            quest.done = true;
+            try { localStorage.setItem('termQuests', JSON.stringify(quests)); } catch(e) {}
+            const xpMsg = addXP(quest.xp);
+            return `Quest Completed! Earned ${quest.xp} XP.<br>${xpMsg}`;
+        } else {
+            return `Quest ID ${questId} not found.`;
+        }
+    }
+
+    let html = `<div style="border: 1px dashed var(--warn-color); padding: 10px; margin: 10px 0;">
+        <h3 style="margin-top: 0; color: var(--warn-color);">/// DAILY QUESTS</h3>
+        <ul style="list-style-type: none; padding: 0;">`;
+
+    quests.forEach(q => {
+        const status = q.done ? '<span style="color: var(--success-color);">[COMPLETED]</span>' : '<span style="color: var(--command-color);">[ACTIVE]</span>';
+        html += `<li>${status} ID: ${q.id} - ${q.desc} (${q.xp} XP)</li>`;
+    });
+
+    html += `</ul><div style="color: #888; font-size: 0.9em; margin-top: 10px;">To complete a quest: quest complete [id]</div></div>`;
+    return html;
 }
 
 function handleSysinfoCommand() {
@@ -1234,6 +1476,22 @@ function handleEnter(e) {
             outputHTML = handleFeedbackCommand(args);
         } else if (cmdName === 'guess') {
             outputHTML = handleGuessCommand(args);
+        } else if (cmdName === 'recall') {
+            outputHTML = handleRecallCommand();
+        } else if (cmdName === 'voice') {
+            outputHTML = `<div id="${outId}">${handleVoiceCommand(outId)}</div>`;
+        } else if (cmdName === 'analyze') {
+            outputHTML = `<div id="${outId}">${handleAnalyzeCommand(args, outId)}</div>`;
+        } else if (cmdName === 'market') {
+            outputHTML = `<div id="${outId}">${handleMarketCommand(args, outId)}</div>`;
+        } else if (cmdName === 'fact') {
+            outputHTML = `<div id="${outId}">${handleFactCommand(outId)}</div>`;
+        } else if (cmdName === 'unsplash') {
+            outputHTML = handleUnsplashCommand(args);
+        } else if (cmdName === 'quest') {
+            outputHTML = handleQuestCommand(args);
+        } else if (cmdName === 'vote') {
+            outputHTML = handleVoteCommand(args);
         } else if (command.startsWith('python3')) {
             outputHTML = `Command 'python3' not found, did you mean: command 'python' from deb python-is-python3?`;
         } else if (command.startsWith('bash')) {
@@ -1282,6 +1540,29 @@ commandLine.addEventListener('keydown', function(e) {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { type, handleArrowUp, handleArrowDown, handleTab, handleEnter, handleMatrixCommand, handleCalcCommand, handleEchoCommand, handleNeofetchCommand, handleThemeCommand, handleBttfCommand, handleTimetravelCommand, handleFluxCommand, handleSysinfoCommand, handleWeatherCommand, handleGuessCommand, handleStarfieldCommand, handleTodoCommand, handleCowsayCommand, handleBase64Command, handleRollCommand, handleJokeCommand, handleCoinCommand, handlePasswordCommand, handlePingCommand };
 }
+
+// Proactive AI Assistance Interval
+setInterval(() => {
+    const data = getUserData();
+    const suggestions = [
+        "Proactive Alert: Consider running 'todo' to check your pending tasks.",
+        "System Suggestion: You haven't checked 'weather' today.",
+        "Optimization: Try switching to the 'matrix' theme for better focus.",
+        "Did you know? You can track crypto prices using the 'crypto' command."
+    ];
+    const tip = suggestions[Math.floor(Math.random() * suggestions.length)];
+
+    const terminal = document.getElementById('terminal');
+    if (terminal && terminal.classList.contains('active') && data.history && data.history.length > 5) {
+         const results = document.getElementById('results');
+         if (results) {
+             const tipDiv = document.createElement('div');
+             tipDiv.innerHTML = `<br><span style="color: var(--warn-color); font-style: italic;">[Proactive AI]: ${tip}</span><br>`;
+             results.appendChild(tipDiv);
+             terminal.scrollTop = terminal.scrollHeight;
+         }
+    }
+}, 30000);
 
 // Tab functionality
 const tabs = document.querySelectorAll('.tab');
