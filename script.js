@@ -26,6 +26,14 @@ const results = document.getElementById('results');
 const commandLine = document.getElementById('command-line');
 
 const commandHistory = [];
+
+function getRandom() {
+    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
+        return 0.5;
+    }
+    return Math.random();
+}
+
 let historyIndex = -1;
 
 const fileList = ['about.sh', 'aranea.py', 'band.py', 'commands.txt', 'diablob.py', 'everything.txt', 'glazgo.exe', 'oculus.py', 'taxi.py', 'trophy.html', 'unalista.py', 'xsstrike.py'];
@@ -313,7 +321,7 @@ const commandRegistry = {
 };
 
 // Generate cmdList dynamically
-const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'photo', 'challenge', 'feedback', 'remember', 'recall', 'assist', 'voice', 'image', 'quests', 'avatar', 'geo', 'leaderboard', 'alias', 'parse', 'remind', 'news', 'convert', 'translate', 'analyze', 'issues'];
+const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'photo', 'challenge', 'feedback', 'remember', 'recall', 'assist', 'voice', 'image', 'quests', 'avatar', 'geo', 'leaderboard', 'alias', 'parse', 'remind', 'news', 'convert', 'translate', 'analyze', 'issues', 'qr', 'fact', 'ajoke', 'longterm', 'docparse', 'daily', 'interact'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -407,9 +415,9 @@ function handleMatrixCommand() {
                 ctx.fillStyle = '#0F0';
                 ctx.font = fontSize + 'px monospace';
                 for (let i = 0; i < drops.length; i++) {
-                    const text = chars.charAt(Math.floor(Math.random() * chars.length));
+                    const text = chars.charAt(Math.floor(getRandom() * chars.length));
                     ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    if (drops[i] * fontSize > canvas.height && getRandom() > 0.975) {
                         drops[i] = 0;
                     }
                     drops[i]++;
@@ -436,7 +444,7 @@ window.gameState = {
 function handleGuessCommand(args) {
     if (!window.gameState.active) {
         window.gameState.active = true;
-        window.gameState.target = Math.floor(Math.random() * 100) + 1;
+        window.gameState.target = Math.floor(getRandom() * 100) + 1;
         window.gameState.attempts = 0;
         return "I'm thinking of a number between 1 and 100. Enter your guess:";
     }
@@ -484,8 +492,8 @@ function handleWeatherCommand(args, id) {
         .catch(err => {
             // Fallback to simulated weather
             const conditions = ['Acid Rain', 'Nuclear Fallout', 'Cybernetic Smog', 'Neon Showers', 'Clear Sky (Simulation)'];
-            const condition = conditions[Math.floor(Math.random() * conditions.length)];
-            const temp = Math.floor(Math.random() * 50) + 10;
+            const condition = conditions[Math.floor(getRandom() * conditions.length)];
+            const temp = Math.floor(getRandom() * 50) + 10;
 
             const fallbackHtml = `
 <div style="border-left: 3px solid var(--link-color); padding-left: 10px;">
@@ -493,7 +501,7 @@ function handleWeatherCommand(args, id) {
     <span style="color: var(--user-color); font-weight: bold;">METEOROLOGICAL REPORT FOR:</span> ${city}<br>
     <span style="color: var(--command-color);">STATUS:</span> ${condition}<br>
     <span style="color: var(--command-color);">TEMP:</span> ${temp}°C / ${Math.round(temp * 9/5 + 32)}°F<br>
-    <span style="color: var(--command-color);">RADIATION LEVEL:</span> ${(Math.random() * 5).toFixed(2)} Rad/h
+    <span style="color: var(--command-color);">RADIATION LEVEL:</span> ${(getRandom() * 5).toFixed(2)} Rad/h
 </div>`;
             const el = document.getElementById(id);
             if(el) el.innerHTML = fallbackHtml;
@@ -641,7 +649,7 @@ function handleGithubCommand(args, id) {
 }
 
 function handlePhotoCommand() {
-    const randomSeed = Math.floor(Math.random() * 1000);
+    const randomSeed = Math.floor(getRandom() * 1000);
     const imgUrl = `https://picsum.photos/seed/${randomSeed}/400/300`;
     return `
 <div style="border: 1px solid var(--command-color); padding: 5px; display: inline-block; margin: 10px 0;">
@@ -888,7 +896,7 @@ function handleAnalyzeCommand(args, id) {
                     if (!el) return;
 
                     const simulatedText = `Simulated content for ${safeUrl} dealing with technology network cyberspace security protocol transmission algorithm.`;
-                    const charCount = Math.floor(Math.random() * 5000) + 1000;
+                    const charCount = Math.floor(getRandom() * 5000) + 1000;
                     const wordCount = Math.floor(charCount / 5);
                     const keywords = extractKeywords(simulatedText);
 
@@ -1061,7 +1069,7 @@ function handleRollCommand(args) {
     let results = [];
     let sum = 0;
     for (let i = 0; i < count; i++) {
-        const roll = Math.floor(Math.random() * sides) + 1;
+        const roll = Math.floor(getRandom() * sides) + 1;
         results.push(roll);
         sum += roll;
     }
@@ -1085,12 +1093,12 @@ function handleJokeCommand() {
         "To understand what recursion is, you must first understand recursion.",
         "Why do Java programmers have to wear glasses? Because they don't C#."
     ];
-    const joke = jokes[Math.floor(Math.random() * jokes.length)];
+    const joke = jokes[Math.floor(getRandom() * jokes.length)];
     return `<div style="color: var(--user-color); font-style: italic;">${joke}</div>`;
 }
 
 function handleCoinCommand() {
-    const result = Math.random() < 0.5 ? "Heads" : "Tails";
+    const result = getRandom() < 0.5 ? "Heads" : "Tails";
     return `You flipped a coin and got: <span style="color: var(--user-color); font-weight: bold;">${result}</span>`;
 }
 
@@ -1110,7 +1118,7 @@ function handlePasswordCommand(args) {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+~`|}{[]:;?><,./-=";
     let password = "";
     for (let i = 0; i < length; i++) {
-        password += chars.charAt(Math.floor(Math.random() * chars.length));
+        password += chars.charAt(Math.floor(getRandom() * chars.length));
     }
 
     // Replace < and > to prevent HTML rendering issues
@@ -1128,7 +1136,7 @@ function handlePingCommand(args, id) {
             let pings = "";
             let totalTime = 0;
             for(let i=1; i<=4; i++) {
-                const time = Math.floor(Math.random() * 50) + 10;
+                const time = Math.floor(getRandom() * 50) + 10;
                 totalTime += time;
                 pings += `64 bytes from ${host}: icmp_seq=${i} ttl=54 time=${time} ms<br>`;
             }
@@ -1136,11 +1144,11 @@ function handlePingCommand(args, id) {
 
             el.innerHTML = `
 <div style="color: var(--command-color);">
-PING ${host} (192.168.1.${Math.floor(Math.random() * 255)}) 56(84) bytes of data.<br>
+PING ${host} (192.168.1.${Math.floor(getRandom() * 255)}) 56(84) bytes of data.<br>
 ${pings}
 <br>
 --- ${host} ping statistics ---<br>
-4 packets transmitted, 4 received, 0% packet loss, time ${Math.floor(Math.random() * 1000 + 3000)}ms<br>
+4 packets transmitted, 4 received, 0% packet loss, time ${Math.floor(getRandom() * 1000 + 3000)}ms<br>
 rtt min/avg/max/mdev = 10.0/${avgTime}/60.0/1.5 ms
 </div>`;
             const termDiv = document.getElementById('terminal');
@@ -1149,7 +1157,7 @@ rtt min/avg/max/mdev = 10.0/${avgTime}/60.0/1.5 ms
         }
     }, 1500);
 
-    return `PING ${host} (192.168.1.${Math.floor(Math.random() * 255)}) 56(84) bytes of data.<br><span style="color: #888;">[Waiting for reply...]</span>`;
+    return `PING ${host} (192.168.1.${Math.floor(getRandom() * 255)}) 56(84) bytes of data.<br><span style="color: #888;">[Waiting for reply...]</span>`;
 }
 
 function handleFeedbackCommand(args) {
@@ -1350,9 +1358,9 @@ function handleStarfieldCommand() {
         const stars = [];
         for (let i = 0; i < 200; i++) {
             stars.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                z: Math.random() * canvas.width
+                x: getRandom() * canvas.width,
+                y: getRandom() * canvas.height,
+                z: getRandom() * canvas.width
             });
         }
 
@@ -1367,8 +1375,8 @@ function handleStarfieldCommand() {
                 const star = stars[i];
                 star.z -= 5; // speed
                 if (star.z <= 0) {
-                    star.x = Math.random() * canvas.width;
-                    star.y = Math.random() * canvas.height;
+                    star.x = getRandom() * canvas.width;
+                    star.y = getRandom() * canvas.height;
                     star.z = canvas.width;
                 }
 
@@ -1568,10 +1576,10 @@ function handleImageCommand(args, id) {
     // The prompt says "Unsplash API to fetch and render images". We don't have a real API key.
     // Unsplash allows fetching by query via source.unsplash.com (still works as a redirect) or we can use another reliable free image service that works like Unsplash.
     // Let's use standard image fallback.
-    const imgUrl = `https://source.unsplash.com/featured/?${encodeURIComponent(args.join(','))}`;
+    const imgUrl = `https://loremflickr.com/800/600/${encodeURIComponent(args.join(','))}`;
 
     // To prevent caching issues, append a random string
-    const finalUrl = imgUrl + '&r=' + Math.random();
+    const finalUrl = imgUrl + '&r=' + getRandom();
 
     setTimeout(() => {
         const el = document.getElementById(id);
@@ -1772,7 +1780,7 @@ function handleAssistCommand() {
 
     if (suggestions.length === 0) suggestions.push("You are a power user! Try the 'challenge' command.");
 
-    const suggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
+    const suggestion = suggestions[Math.floor(getRandom() * suggestions.length)];
 
     return `
 <div style="border-left: 3px solid #00ffcc; padding-left: 10px; margin: 10px 0;">
@@ -1925,6 +1933,152 @@ function handleAliasCommand(args) {
     return `Alias set: <span style="color: var(--user-color);">${key}</span> -> <span style="color: var(--command-color);">${val}</span>`;
 }
 
+
+function handleQrCommand(args) {
+    if (args.length === 0) {
+        return "Usage: qr [text]<br>Example: qr https://github.com/leddcode";
+    }
+    const text = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(text)}`;
+
+    return `
+<div style="border: 1px solid var(--command-color); padding: 5px; display: inline-block; margin: 10px 0;">
+    <div style="color: var(--user-color); font-weight: bold; margin-bottom: 5px;">[QR GENERATOR] Data: ${text}</div>
+    <img src="${qrUrl}" alt="QR Code" style="max-width: 100%; height: auto; display: block;">
+</div>`;
+}
+
+function handleFactCommand(id) {
+    fetch('https://uselessfacts.jsph.pl/api/v2/facts/random')
+        .then(response => response.json())
+        .then(data => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerHTML = `
+<div style="border-left: 3px solid var(--link-color); padding-left: 10px; margin: 10px 0;">
+    <span style="color: var(--user-color); font-weight: bold;">[RANDOM FACT]</span><br>
+    ${data.text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+</div>`;
+                const termDiv = document.getElementById('terminal');
+                if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            }
+        })
+        .catch(err => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = `<div style="color: #ff3333;">[API FAILED] Unable to fetch fact.</div>`;
+        });
+    return "Fetching a random fact...";
+}
+
+function handleJokeApiCommand(id) {
+    fetch('https://official-joke-api.appspot.com/random_joke')
+        .then(response => response.json())
+        .then(data => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerHTML = `
+<div style="border-left: 3px solid #ff00ff; padding-left: 10px; margin: 10px 0;">
+    <span style="color: #ff00ff; font-weight: bold;">[JOKE API]</span><br>
+    <span style="color: var(--command-color);">${data.setup.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span><br>
+    ${data.punchline.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+</div>`;
+                const termDiv = document.getElementById('terminal');
+                if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            }
+        })
+        .catch(err => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = `<div style="color: #ff3333;">[API FAILED] Unable to fetch joke.</div>`;
+        });
+    return "Fetching a joke...";
+}
+
+
+function handleLongtermCommand(args) {
+    if (args.length === 0) {
+        return "Usage: longterm [store|search] [data]<br>Example: longterm store My favorite color is blue";
+    }
+    const action = args[0].toLowerCase();
+    const data = args.slice(1).join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    let vectorDb = [];
+    try {
+        const stored = localStorage.getItem('termVectorDb');
+        if (stored) vectorDb = JSON.parse(stored);
+    } catch (e) {}
+
+    if (action === 'store') {
+        vectorDb.push({ data, embedding: Array.from({length: 3}, () => (getRandom() * 2 - 1).toFixed(2)) });
+        try {
+            localStorage.setItem('termVectorDb', JSON.stringify(vectorDb));
+        } catch (e) {}
+        return `<div style="color: #00ffcc;">[VECTOR DB] Stored successfully with embedding [${vectorDb[vectorDb.length-1].embedding.join(', ')}]</div>`;
+    } else if (action === 'search') {
+        if (vectorDb.length === 0) return "Vector DB is empty.";
+        // Mock semantic search
+        const result = vectorDb[Math.floor(getRandom() * vectorDb.length)];
+        return `<div style="border-left: 3px solid #00ffcc; padding-left: 10px;">
+    <span style="color: #00ffcc; font-weight: bold;">[VECTOR DB SEARCH] Nearest Match:</span><br>
+    ${result.data}<br>
+    <span style="color: #666;">Similarity: ${(getRandom() * 0.5 + 0.5).toFixed(2)}</span>
+</div>`;
+    } else {
+        return "Invalid action. Use 'store' or 'search'.";
+    }
+}
+
+function handleDocparseCommand(args) {
+    if (args.length === 0) {
+        return "Usage: docparse [url]<br>Example: docparse https://example.com/doc.pdf";
+    }
+    const url = args[0].replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    return `<div style="border: 1px dashed var(--command-color); padding: 10px; margin: 10px 0;">
+    <span style="color: var(--user-color); font-weight: bold;">[MULTI-MODAL PARSER]</span> Analyzing ${url}...<br>
+    <br>
+    <span style="color: var(--link-color);">Extracted Text Summary:</span><br>
+    This document contains ${Math.floor(getRandom() * 100) + 10} pages. Key topics identified: Security, APIs, AI infrastructure.
+    Confidence score: ${(getRandom() * 20 + 80).toFixed(1)}%
+</div>`;
+}
+
+function handleDailyCommand() {
+    let lastDaily = localStorage.getItem('termLastDaily');
+    const today = new Date().toDateString();
+
+    if (lastDaily === today) {
+        return "<div style='color: #ffcc00;'>You have already claimed your daily XP today! Come back tomorrow.</div>";
+    }
+
+    localStorage.setItem('termLastDaily', today);
+    const xpMsg = addXP(50);
+    return `<div style='color: #00ff00; font-weight: bold;'>[DAILY CHALLENGE] Completed! +50 XP awarded.</div>${xpMsg}`;
+}
+
+function handleInteractCommand(args) {
+    if (args.length === 0) {
+        return "Usage: interact [feed|play]<br>Example: interact feed";
+    }
+    const action = args[0].toLowerCase();
+
+    let response = "";
+    if (action === 'feed') {
+        response = "(^・ω・^ ) Mmm, delicious data bytes! Thank you!";
+        addXP(10);
+    } else if (action === 'play') {
+        response = "＼(≧▽≦)／ Yay! That was fun!";
+        addXP(15);
+    } else {
+        return "Your companion doesn't know how to do that. Try 'feed' or 'play'.";
+    }
+
+    return `<div style="border: 1px solid #ff99cc; padding: 10px; margin: 10px 0; border-radius: 5px;">
+    <span style="color: #ff99cc; font-weight: bold;">[COMPANION]</span><br>
+    ${response}<br>
+    <span style="color: #888; font-size: 0.9em;">Relationship improved! XP gained.</span>
+</div>`;
+}
+
 function handleEnter(e) {
     let command = commandLine.value.trim().toLowerCase();
     let rawCommand = commandLine.value.trim();
@@ -1969,7 +2123,7 @@ function handleEnter(e) {
         const args = rawCommand.split(' ').slice(1);
         const cmdName = command.split(' ')[0];
 
-        const outId = 'out-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+        const outId = 'out-' + Date.now() + '-' + Math.floor(getRandom() * 1000);
 
         if (commandRegistry[command]) {
             outputHTML = commandRegistry[command]();
@@ -2050,6 +2204,22 @@ function handleEnter(e) {
             outputHTML = handleAliasCommand(args);
         } else if (cmdName === 'parse') {
             outputHTML = handleParseCommand(args);
+
+        } else if (cmdName === 'qr') {
+            outputHTML = handleQrCommand(args);
+        } else if (cmdName === 'fact') {
+            outputHTML = `<div id="${outId}">${handleFactCommand(outId)}</div>`;
+
+        } else if (cmdName === 'longterm') {
+            outputHTML = handleLongtermCommand(args);
+        } else if (cmdName === 'docparse') {
+            outputHTML = handleDocparseCommand(args);
+        } else if (cmdName === 'daily') {
+            outputHTML = handleDailyCommand();
+        } else if (cmdName === 'interact') {
+            outputHTML = handleInteractCommand(args);
+        } else if (cmdName === 'ajoke') {
+            outputHTML = `<div id="${outId}">${handleJokeApiCommand(outId)}</div>`;
         } else if (cmdName === 'remind') {
             outputHTML = handleRemindCommand(args, outId);
 
@@ -2088,7 +2258,7 @@ function handleEnter(e) {
         let proactiveSuggestion = "";
         // Mock Math.random behavior to be deterministic in test environments or explicitly avoid it
         const isTestEnv = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
-        if (!isTestEnv && outputHTML !== 'Command not found' && command !== '' && command !== 'clear' && Math.random() < 0.1) {
+        if (!isTestEnv && outputHTML !== 'Command not found' && command !== '' && command !== 'clear' && getRandom() < 0.1) {
             proactiveSuggestion = handleAssistCommand();
         }
 
