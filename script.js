@@ -2360,9 +2360,130 @@ tabs.forEach(tab => {
             updateMetrics();
         } else if (target === 'network') {
             updateNetwork();
+        } else if (target === 'ai-hub') {
+            updateAiHub();
+        } else if (target === 'intelligence') {
+            updateIntelligence();
+        } else if (target === 'ecosystem') {
+            updateEcosystem();
         }
     });
 });
+
+function updateIntelligence() {
+    const intelligenceData = document.getElementById('intelligence-data');
+    if (!intelligenceData) return;
+
+    let vectorHtml = handleLongtermCommand(['search']);
+    let docparseHtml = handleDocparseCommand(['https://leddcode.com/architecture.pdf']);
+    let photoHtml = handleImageCommand(['cyberpunk', 'ai', 'hacker'], 'photo-preview');
+    let voiceHtml = handleVoiceCommand();
+
+    intelligenceData.innerHTML = `
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Advanced Contextual Memory (Vector DB)</h3>
+            ${vectorHtml}
+        </div>
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Multi-Modal Capabilities</h3>
+            <div style="margin-bottom: 10px;">
+                <strong>Document Parser:</strong><br>
+                ${docparseHtml}
+            </div>
+            <div style="margin-bottom: 10px;">
+                <strong>Voice Recognition Uplink:</strong><br>
+                ${voiceHtml}
+            </div>
+            <div>
+                <strong>Image Generation API:</strong><br>
+                ${photoHtml}
+            </div>
+        </div>
+    `;
+}
+
+function updateEcosystem() {
+    const ecosystemData = document.getElementById('ecosystem-data');
+    if (!ecosystemData) return;
+
+    let weatherHtml = handleWeatherCommand(['Tokyo'], 'weather-preview');
+    let geoHtml = handleGeoCommand(['me'], 'geo-preview');
+    let cryptoHtml = handleCryptoCommand(['bitcoin'], 'crypto-preview');
+    let githubHtml = handleGithubCommand(['leddcode'], 'github-preview');
+    let issuesHtml = handleIssuesCommand(['leddcode/Oculus'], 'issues-preview');
+    let wikiHtml = handleWikiCommand(['Cybersecurity'], 'wiki-preview');
+
+    ecosystemData.innerHTML = `
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Data & Productivity APIs</h3>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <strong>Weather & Geolocation:</strong><br>
+                    ${weatherHtml}
+                    ${geoHtml}
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                    <strong>Financial Markets:</strong><br>
+                    ${cryptoHtml}
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                    <strong>Public Knowledge Graph:</strong><br>
+                    ${wikiHtml}
+                </div>
+            </div>
+        </div>
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Developer & Creator Tools</h3>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <strong>GitHub Integration:</strong><br>
+                    ${githubHtml}
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <strong>Issue Tracker:</strong><br>
+                    ${issuesHtml}
+                </div>
+            </div>
+        </div>
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Feedback & Future Iterations</h3>
+            <div style="margin-top: 10px;">
+                Which integration should we add next? Let us know!<br>
+                <button onclick="window.logFeedback(true); alert('Thanks for the feedback!');" style="background: var(--panel-bg); color: var(--user-color); border: 1px solid var(--border-color); padding: 5px 10px; cursor: pointer; margin-top: 5px;">Spotify API</button>
+                <button onclick="window.logFeedback(true); alert('Thanks for the feedback!');" style="background: var(--panel-bg); color: var(--user-color); border: 1px solid var(--border-color); padding: 5px 10px; cursor: pointer; margin-top: 5px; margin-left: 5px;">News API</button>
+                <button onclick="window.logFeedback(true); alert('Thanks for the feedback!');" style="background: var(--panel-bg); color: var(--user-color); border: 1px solid var(--border-color); padding: 5px 10px; cursor: pointer; margin-top: 5px; margin-left: 5px;">Google Maps</button>
+            </div>
+        </div>
+    `;
+}
+
+function updateAiHub() {
+    const aiHubData = document.getElementById('ai-hub-data');
+    if (!aiHubData) return;
+
+    let avatarHtml = handleAvatarCommand();
+    let questsHtml = handleQuestsCommand();
+    let memoryHtml = handleRecallCommand([]);
+    let challengeHtml = handleChallengeCommand();
+    let assistHtml = handleAssistCommand();
+
+    aiHubData.innerHTML = `
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Digital Companion</h3>
+            ${avatarHtml}
+            ${assistHtml}
+        </div>
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Active Quests & Challenges</h3>
+            ${questsHtml}
+            ${challengeHtml}
+        </div>
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Contextual Memory</h3>
+            ${memoryHtml}
+        </div>
+    `;
+}
 
 function updateMetrics() {
     const metricsData = document.getElementById('metrics-data');
