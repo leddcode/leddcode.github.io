@@ -347,14 +347,14 @@ body.theme-bttf .bttf-title {
 }
 
 
-#metrics-data .metric-card, #network-data .network-card {
+#metrics-data .metric-card, #network-data .network-card, #ai-hub-data .ai-hub-card, #intelligence-data .ai-hub-card, #ecosystem-data .ai-hub-card {
     border: 1px solid var(--border-color);
     padding: 15px;
     margin-bottom: 15px;
     border-radius: 4px;
     background-color: rgba(25, 25, 25, 0.5);
 }
-#metrics-data .metric-title, #network-data .network-title {
+#metrics-data .metric-title, #network-data .network-title, #ai-hub-data .ai-hub-title, #intelligence-data .ai-hub-title, #ecosystem-data .ai-hub-title {
     color: var(--user-color);
     margin-top: 0;
     margin-bottom: 10px;
