@@ -51,6 +51,9 @@
                 <div class="tab" data-target="ai-hub"><span class="tab-icon">🧠</span> ai hub</div>
                 <div class="tab" data-target="intelligence"><span class="tab-icon">💡</span> intelligence</div>
                 <div class="tab" data-target="ecosystem"><span class="tab-icon">🌍</span> ecosystem</div>
+                <div class="tab" data-target="editor"><span class="tab-icon">📝</span> editor</div>
+                <div class="tab" data-target="games"><span class="tab-icon">🕹️</span> games</div>
+                <div class="tab" data-target="settings"><span class="tab-icon">⚙️</span> settings</div>
                 <div class="tab-spacer"></div>
                 <div class="window-controls">
                     <div class="control min"></div>
@@ -85,6 +88,20 @@
                 <div id="ecosystem" class="tab-content" >
                     <h2>Global Utility & Free API Integrations</h2>
                     <div id="ecosystem-data"></div>
+                </div>
+                <div id="editor" class="tab-content" >
+                    <div id="editor-container" style="display: flex; flex-direction: column; height: 100%;">
+                        <div id="editor-header" style="padding: 10px; background: var(--panel-bg); border-bottom: 1px solid var(--border-color); font-weight: bold;">[No File Selected]</div>
+                        <textarea id="editor-textarea" style="flex: 1; background: transparent; color: var(--text-color); border: none; padding: 10px; font-family: 'Fira Code', monospace; resize: none; outline: none;" readonly>Select a file from the EXPLORER sidebar to view its contents.</textarea>
+                    </div>
+                </div>
+                <div id="games" class="tab-content" >
+                    <h2>Mini-Games & Utilities</h2>
+                    <div id="games-data"></div>
+                </div>
+                <div id="settings" class="tab-content" >
+                    <h2>System Settings</h2>
+                    <div id="settings-data"></div>
                 </div>
             </div>
         </div>

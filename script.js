@@ -2366,6 +2366,10 @@ tabs.forEach(tab => {
             updateIntelligence();
         } else if (target === 'ecosystem') {
             updateEcosystem();
+        } else if (target === 'games') {
+            updateGames();
+        } else if (target === 'settings') {
+            updateSettings();
         }
     });
 });
@@ -2574,6 +2578,104 @@ lo: flags=73&lt;UP,LOOPBACK,RUNNING&gt;  mtu 65536
         RX packets 24  bytes 2016 (1.9 KiB)
         TX packets 24  bytes 2016 (1.9 KiB)
             </pre>
+        </div>
+    `;
+}
+
+
+
+const fileContents = {
+    "about.sh": "#!/bin/bash\necho 'Leddcode is a highly creative software engineer.'\necho 'Welcome to my terminal portfolio.'",
+    "aranea.py": "def spin_web():\n    print('Spinning a delicate web...')\n    return True\n\nspin_web()",
+    "band.py": "class Band:\n    def __init__(self, name):\n        self.name = name\n    def play(self):\n        print(f'{self.name} is playing!')\n\nmy_band = Band('The Variables')\nmy_band.play()",
+    "commands.txt": "List of useful commands:\n- help: show all commands\n- neofetch: display system info\n- stats: view user stats\n- bttf: time travel",
+    "diablob.py": "import random\n\ndef summon_blob():\n    size = random.randint(10, 100)\n    print(f'Summoned a blob of size {size}')\n\nsummon_blob()",
+    "everything.txt": "42 is the answer to life, the universe, and everything.",
+    "glazgo.exe": "MZ\x90\x00\x03\x00\x00\x00\x04\x00\x00\x00\xff\xff\x00\x00\xb8\x00\x00\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00\x0e\x1f\xba\x0e\x00\xb4\t\xcd!\xb8\x01L\xcd!This program cannot be run in DOS mode.\r\r\n$",
+    "oculus.py": "def observe():\n    print('The eye sees all.')\n\nobserve()",
+    "taxi.py": "class Taxi:\n    def __init__(self, driver):\n        self.driver = driver\n    def drive(self):\n        print(f'{self.driver} is driving you to your destination.')",
+    "trophy.html": "<!DOCTYPE html>\n<html>\n<head>\n<title>Trophy Room</title>\n</head>\n<body>\n<h1>My Achievements</h1>\n<ul>\n<li>Built a cool terminal portfolio</li>\n<li>Learned JavaScript</li>\n</ul>\n</body>\n</html>",
+    "unalista.py": "def manage_list():\n    my_list = [1, 2, 3]\n    my_list.append(4)\n    print(my_list)\n\nmanage_list()",
+    "xsstrike.py": "def scan_xss(url):\n    print(f'Scanning {url} for XSS vulnerabilities...')\n    # Implementation omitted for security reasons\n    return False"
+};
+
+function openFileInEditor(filename) {
+    const editorTab = document.querySelector('.tab[data-target="editor"]');
+    if (editorTab) {
+        editorTab.click();
+    }
+    const header = document.getElementById('editor-header');
+    const textarea = document.getElementById('editor-textarea');
+    if (header && textarea) {
+        header.textContent = filename;
+        textarea.value = fileContents[filename] || "File content not found.";
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const treeItems = document.querySelectorAll('.tree-item');
+    treeItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const filename = item.textContent.replace(/\s*📄\s*/, '').trim();
+            openFileInEditor(filename);
+        });
+    });
+
+    // Dynamic stats update using safe getRandom
+    setInterval(() => {
+        const cpuStat = document.querySelector('.stat-val.good');
+        const memStat = document.querySelector('.stat-val.warn');
+        if (cpuStat && memStat) {
+            const newCpu = Math.floor(getRandom() * 20 + 5);
+            const newMem = Math.floor(getRandom() * 30 + 50);
+            cpuStat.textContent = newCpu + '%';
+            memStat.textContent = newMem + '%';
+        }
+    }, 5000);
+});
+
+
+
+function updateGames() {
+    const gamesData = document.getElementById('games-data');
+    if (!gamesData) return;
+
+    let rollHtml = handleRollCommand(['20']);
+    let coinHtml = handleCoinCommand();
+
+    gamesData.innerHTML = `
+        <div class="games-card">
+            <h3>Dice Roller</h3>
+            ${rollHtml}
+        </div>
+        <div class="games-card">
+            <h3>Coin Flipper</h3>
+            ${coinHtml}
+        </div>
+    `;
+}
+
+function updateSettings() {
+    const settingsData = document.getElementById('settings-data');
+    if (!settingsData) return;
+
+    settingsData.innerHTML = `
+        <div class="settings-card">
+            <h3>Theme Selection</h3>
+            <button class="settings-btn" onclick="document.body.className='theme-dracula'">Dracula</button>
+            <button class="settings-btn" onclick="document.body.className='theme-ocean'">Ocean</button>
+            <button class="settings-btn" onclick="document.body.className='theme-matrix'">Matrix</button>
+            <button class="settings-btn" onclick="document.body.className='theme-light'">Light</button>
+            <button class="settings-btn" onclick="document.body.className=''">Default</button>
+        </div>
+        <div class="settings-card">
+            <h3>Visual Effects</h3>
+            <button class="settings-btn" onclick="handleMatrixCommand()">Toggle Matrix Effect</button>
+            <button class="settings-btn" onclick="handleStarfieldCommand()">Toggle Starfield</button>
+        </div>
+        <div class="settings-card">
+            <h3>System Management</h3>
+            <button class="settings-btn" style="border-color: #ff5555; color: #ff5555;" onclick="if(confirm('Clear all local storage?')) { localStorage.clear(); alert('Local storage cleared. Refreshing...'); location.reload(); }">Clear Local Storage & Reload</button>
         </div>
     `;
 }
