@@ -321,7 +321,7 @@ const commandRegistry = {
 };
 
 // Generate cmdList dynamically
-const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'photo', 'challenge', 'feedback', 'remember', 'recall', 'assist', 'voice', 'image', 'quests', 'avatar', 'geo', 'leaderboard', 'alias', 'parse', 'remind', 'news', 'convert', 'translate', 'analyze', 'issues', 'qr', 'fact', 'ajoke', 'longterm', 'docparse', 'daily', 'interact'];
+const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'photo', 'challenge', 'feedback', 'remember', 'recall', 'assist', 'voice', 'image', 'quests', 'avatar', 'geo', 'leaderboard', 'alias', 'parse', 'remind', 'news', 'convert', 'translate', 'analyze', 'issues', 'qr', 'fact', 'ajoke', 'longterm', 'docparse', 'daily', 'interact', 'suggest'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -1948,6 +1948,24 @@ function handleQrCommand(args) {
 </div>`;
 }
 
+function handleSuggestCommand() {
+    const suggestions = [
+        "Try using the 'weather' command to check your local forecast.",
+        "You can customize your profile avatar using the 'avatar' command.",
+        "Want to learn something new? Use 'wiki Cybersecurity'.",
+        "Don't forget to claim your daily rewards with 'daily'!",
+        "Feeling stuck? Use 'assist' for helpful tips.",
+        "You can 'interact feed' your digital companion to gain XP.",
+        "Use 'photo cyberpunk hacker' to generate some cool AI art."
+    ];
+    const suggestion = suggestions[Math.floor(getRandom() * suggestions.length)];
+
+    return `<div style="border-left: 3px solid var(--command-color); padding-left: 10px; margin: 10px 0; background: rgba(0,0,0,0.1);">
+    <span style="color: var(--command-color); font-weight: bold;">[PROACTIVE SUGGESTION]</span><br>
+    <em>${suggestion}</em>
+</div>`;
+}
+
 function handleFactCommand(id) {
     fetch('https://uselessfacts.jsph.pl/api/v2/facts/random')
         .then(response => response.json())
@@ -2218,6 +2236,8 @@ function handleEnter(e) {
             outputHTML = handleDailyCommand();
         } else if (cmdName === 'interact') {
             outputHTML = handleInteractCommand(args);
+        } else if (cmdName === 'suggest') {
+            outputHTML = handleSuggestCommand();
         } else if (cmdName === 'ajoke') {
             outputHTML = `<div id="${outId}">${handleJokeApiCommand(outId)}</div>`;
         } else if (cmdName === 'remind') {
@@ -2383,6 +2403,9 @@ function updateIntelligence() {
     let photoHtml = handleImageCommand(['cyberpunk', 'ai', 'hacker'], 'photo-preview');
     let voiceHtml = handleVoiceCommand();
 
+    let factHtml = handleFactCommand('fact-preview');
+    let suggestHtml = handleSuggestCommand();
+
     intelligenceData.innerHTML = `
         <div class="ai-hub-card">
             <h3 class="ai-hub-title">Advanced Contextual Memory (Vector DB)</h3>
@@ -2402,6 +2425,11 @@ function updateIntelligence() {
                 <strong>Image Generation API:</strong><br>
                 ${photoHtml}
             </div>
+        </div>
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Proactive Assistance & Facts</h3>
+            ${suggestHtml}
+            <div id="fact-preview" style="margin-top: 10px;">${factHtml}</div>
         </div>
     `;
 }
@@ -2470,12 +2498,17 @@ function updateAiHub() {
     let memoryHtml = handleRecallCommand([]);
     let challengeHtml = handleChallengeCommand();
     let assistHtml = handleAssistCommand();
+    let companionHtml = handleCompanionCommand();
 
     aiHubData.innerHTML = `
         <div class="ai-hub-card">
             <h3 class="ai-hub-title">Digital Companion</h3>
             ${avatarHtml}
             ${assistHtml}
+            ${companionHtml}
+            <div style="margin-top: 10px; font-size: 0.9em; color: var(--text-color);">
+                <em>Tip: Use <span style="color: var(--command-color);">interact feed</span> in the terminal to feed your companion!</em>
+            </div>
         </div>
         <div class="ai-hub-card">
             <h3 class="ai-hub-title">Active Quests & Challenges</h3>
@@ -2642,6 +2675,8 @@ function updateGames() {
 
     let rollHtml = handleRollCommand(['20']);
     let coinHtml = handleCoinCommand();
+    let leaderboardHtml = handleLeaderboardCommand();
+    let dailyHtml = handleDailyCommand();
 
     gamesData.innerHTML = `
         <div class="games-card">
@@ -2651,6 +2686,14 @@ function updateGames() {
         <div class="games-card">
             <h3>Coin Flipper</h3>
             ${coinHtml}
+        </div>
+        <div class="games-card">
+            <h3>Global Leaderboard</h3>
+            ${leaderboardHtml}
+        </div>
+        <div class="games-card">
+            <h3>Daily Rewards</h3>
+            ${dailyHtml}
         </div>
     `;
 }
