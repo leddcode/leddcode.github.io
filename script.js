@@ -317,11 +317,11 @@ const commandRegistry = {
   'pwd': () => `/home/leddcode`,
   'date': () => new Date().toString(),
   'sudo': () => `Permission denied`,
-  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, todo, cowsay, base64, roll, joke, coin, password, ping, matrix, neofetch, echo, calc, bttf, timetravel, flux, sysinfo, weather, guess, stats, companion, crypto, wiki, github, photo, challenge, feedback, remember, recall, assist, voice, image, quests, avatar, geo, leaderboard, alias, parse, remind, news, convert, translate, analyze, issues`,
+  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, todo, cowsay, base64, roll, joke, coin, password, ping, matrix, neofetch, echo, calc, bttf, timetravel, flux, sysinfo, weather, guess, stats, companion, crypto, wiki, github, gitlab, wikidata, pexels, workspace, photo, challenge, feedback, remember, recall, assist, voice, image, quests, avatar, geo, leaderboard, alias, parse, remind, news, convert, translate, analyze, issues`,
 };
 
 // Generate cmdList dynamically
-const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'photo', 'challenge', 'feedback', 'remember', 'recall', 'assist', 'voice', 'image', 'quests', 'avatar', 'geo', 'leaderboard', 'alias', 'parse', 'remind', 'news', 'convert', 'translate', 'analyze', 'issues', 'qr', 'fact', 'ajoke', 'longterm', 'docparse', 'daily', 'interact', 'suggest', 'automate', 'runflow', 'stock', 'review', 'trivia', 'shop', 'buy', 'inventory'];
+const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'gitlab', 'wikidata', 'pexels', 'workspace', 'photo', 'challenge', 'feedback', 'remember', 'recall', 'assist', 'voice', 'image', 'quests', 'avatar', 'geo', 'leaderboard', 'alias', 'parse', 'remind', 'news', 'convert', 'translate', 'analyze', 'issues', 'qr', 'fact', 'ajoke', 'longterm', 'docparse', 'daily', 'interact', 'suggest', 'automate', 'runflow', 'stock', 'review', 'trivia', 'shop', 'buy', 'inventory'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -577,6 +577,43 @@ function handleCryptoCommand(args, id) {
     return `Fetching crypto data for ${coin}...`;
 }
 
+function handleWikidataCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: wikidata [query]<br>Example: wikidata Earth";
+    }
+    const query = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    // First fetch entity ID using the wbsearchentities endpoint
+    fetch(`https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(query)}&language=en&format=json&origin=*`)
+        .then(response => {
+            if (!response.ok) throw new Error("Search failed");
+            return response.json();
+        })
+        .then(data => {
+            if (!data.search || data.search.length === 0) {
+                document.getElementById(id).innerHTML = `<div style="color: #ffaa00;">[WIKIDATA] No entities found for '${query}'.</div>`;
+                return;
+            }
+            const entity = data.search[0];
+            const entityId = entity.id;
+            const description = entity.description || 'No description available';
+
+            const resultHtml = `
+<div style="border: 1px solid var(--command-color); padding: 10px; margin: 10px 0;">
+    <span style="color: var(--user-color); font-weight: bold;">[WIKIDATA ENTITY]</span> ${entity.label} (${entityId})<br><br>
+    <div style="font-size: 0.9em; line-height: 1.4;">${description}</div>
+    <br><a href="${entity.concepturi}" target="_blank" class="link">View on Wikidata...</a>
+</div>`;
+            document.getElementById(id).innerHTML = resultHtml;
+        })
+        .catch(err => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch Wikidata for '${query}'.</div>`;
+        });
+
+    return `Querying Wikidata for ${query}...`;
+}
+
 function handleWikiCommand(args, id) {
     if (args.length === 0) {
         return "Usage: wiki [query]<br>Example: wiki Cybersecurity";
@@ -646,6 +683,57 @@ function handleGithubCommand(args, id) {
         });
 
     return `Fetching GitHub repositories for ${username}...`;
+}
+
+function handleGitlabCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: gitlab [username]<br>Example: gitlab leddcode";
+    }
+    const username = args[0].replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    fetch(`https://gitlab.com/api/v4/users?username=${encodeURIComponent(username)}`)
+        .then(response => {
+            if (!response.ok) throw new Error("Not found");
+            return response.json();
+        })
+        .then(data => {
+            if (data.length === 0) {
+                document.getElementById(id).innerHTML = `<div style="color: #ffaa00;">User '${username}' not found on GitLab.</div>`;
+                return;
+            }
+            const userId = data[0].id;
+            return fetch(`https://gitlab.com/api/v4/users/${userId}/projects?per_page=5`);
+        })
+        .then(response => {
+            if (!response) return;
+            if (!response.ok) throw new Error("Not found");
+            return response.json();
+        })
+        .then(data => {
+            if (!data) return;
+            if (data.length === 0) {
+                document.getElementById(id).innerHTML = `<div style="color: #ffaa00;">User '${username}' has no public projects on GitLab.</div>`;
+            } else {
+                let reposHtml = data.map(repo => {
+                    return `<li><a href="${repo.web_url}" target="_blank" class="link">${repo.name}</a> - ${repo.description ? repo.description : 'No description'}</li>`;
+                }).join('');
+
+                const resultHtml = `
+<div style="border: 1px solid var(--command-color); padding: 10px; margin: 10px 0;">
+    <span style="color: var(--user-color); font-weight: bold;">[GITLAB PROJECTS]</span> ${username}<br><br>
+    <ul style="margin: 0; padding-left: 20px;">
+        ${reposHtml}
+    </ul>
+</div>`;
+                document.getElementById(id).innerHTML = resultHtml;
+            }
+        })
+        .catch(err => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch GitLab data for '${username}'. User might not exist or API rate limit exceeded.</div>`;
+        });
+
+    return `Fetching GitLab projects for ${username}...`;
 }
 
 function handlePhotoCommand() {
@@ -1565,6 +1653,32 @@ function handleGeoCommand(args, id) {
     return `<div id="${id}"><span style="color: #888;">[Tracing IP Routing for '${query}'...]</span></div>`;
 }
 
+function handlePexelsCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: pexels [query]<br>Example: pexels cyberpunk city";
+    }
+    const query = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    // MVP fallback simulation: Pexels API requires an auth key.
+    // We'll use a royalty-free image generation proxy or lorempixel equivalent for the MVP.
+    const imgUrl = `https://loremflickr.com/800/600/${encodeURIComponent(args.join(','))}?lock=${Math.floor(getRandom() * 1000)}`;
+
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.innerHTML = `
+<div style="border: 1px solid var(--command-color); padding: 5px; display: inline-block; margin: 10px 0;">
+    <div style="color: var(--user-color); font-weight: bold; margin-bottom: 5px;">[PEXELS MEDIA] Query: ${query}</div>
+    <img src="${imgUrl}" alt="${query}" style="max-width: 100%; height: auto; display: block;" onerror="this.onerror=null; this.parentNode.innerHTML='<div style=\'color: #ff3333;\'>[MEDIA FAILED] Unable to load media for ${query}.</div>';">
+</div>`;
+            const termDiv = document.getElementById('terminal');
+            if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+        }
+    }, 500);
+
+    return `<span style="color: var(--command-color);">Fetching Pexels media for '${query}'...</span>`;
+}
+
 function handleImageCommand(args, id) {
     if (args.length === 0) {
         return "Usage: image [query]<br>Example: image cyberpunk city";
@@ -1628,6 +1742,71 @@ function handleQuestsCommand() {
 
     html += `</ul><div style="margin-top: 10px; color: var(--link-color);">Progress: ${completed}/${quests.length}</div></div>`;
     return html;
+}
+
+function handleWorkspaceCommand() {
+    const data = getUserData();
+    const lvl = data.level;
+
+    let ascii = "";
+    let status = "";
+    let color = "";
+
+    if (lvl < 3) {
+        ascii = `
+   [  BASIC TERMINAL  ]
+   +------------------+
+   |   $ ls -la       |
+   |                  |
+   +------------------+
+`;
+        status = "Tier 1: Rookie Setup";
+        color = "#888";
+    } else if (lvl < 7) {
+        ascii = `
+   [ MULTI-MONITOR RIG ]
+    +--------+--------+
+    | SYSTEM | SERVER |
+    |   OK   | ONLINE |
+    +--------+--------+
+      \\____/   \\____/
+`;
+        status = "Tier 2: Hacker Desk";
+        color = "#00ffcc";
+    } else if (lvl < 15) {
+        ascii = `
+ [ NEURAL UPLINK MATRIX ]
+       /\\      /\\
+     /    \\  /    \\
+    | CORE || DATA |
+     \\    /  \\    /
+       \\/      \\/
+`;
+        status = "Tier 3: Cybernetic Hub";
+        color = "#ff00ff";
+    } else {
+        ascii = `
+[ QUANTUM OMNI-CUBE ]
+       .------.
+     .'  \\  /  '.
+    /     \\/     \\
+    |     /\\     |
+    \\    /  \\    /
+     '. /____\\ .'
+`;
+        status = "Tier 4: Quantum Node";
+        color = "#fce205";
+    }
+
+    return `
+<div style="border: 2px dashed ${color}; padding: 15px; margin: 10px 0; text-align: center; border-radius: 8px;">
+    <div style="color: ${color}; font-weight: bold; margin-bottom: 5px;">[AI WORKSPACE]</div>
+    <div style="color: var(--text-color);">Level: ${lvl} - ${status}</div>
+<pre style="color: ${color}; font-weight: bold; display: inline-block; text-align: left;">
+${ascii}
+</pre>
+    <div style="font-size: 0.8em; color: #888; margin-top: 10px;">(Workspace automatically upgrades as you gain levels and XP)</div>
+</div>`;
 }
 
 function handleAvatarCommand() {
@@ -2476,6 +2655,14 @@ function handleEnter(e) {
             outputHTML = `<div id="${outId}">${handleWikiCommand(args, outId)}</div>`;
         } else if (cmdName === 'github') {
             outputHTML = `<div id="${outId}">${handleGithubCommand(args, outId)}</div>`;
+        } else if (cmdName === 'gitlab') {
+            outputHTML = `<div id="${outId}">${handleGitlabCommand(args, outId)}</div>`;
+        } else if (cmdName === 'wikidata') {
+            outputHTML = `<div id="${outId}">${handleWikidataCommand(args, outId)}</div>`;
+        } else if (cmdName === 'pexels') {
+            outputHTML = `<div id="${outId}">${handlePexelsCommand(args, outId)}</div>`;
+        } else if (cmdName === 'workspace') {
+            outputHTML = handleWorkspaceCommand();
         } else if (cmdName === 'photo') {
             outputHTML = handlePhotoCommand();
         } else if (cmdName === 'stats') {
@@ -2638,7 +2825,7 @@ if (commandLine) commandLine.addEventListener('keydown', function(e) {
 });
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { type, handleArrowUp, handleArrowDown, handleTab, handleEnter, handleMatrixCommand, handleCalcCommand, handleEchoCommand, handleNeofetchCommand, handleThemeCommand, handleBttfCommand, handleTimetravelCommand, handleFluxCommand, handleSysinfoCommand, handleWeatherCommand, handleGuessCommand, handleStarfieldCommand, handleTodoCommand, handleCowsayCommand, handleBase64Command, handleRollCommand, handleJokeCommand, handleCoinCommand, handlePasswordCommand, handlePingCommand, handleRememberCommand, handleRecallCommand, handleAssistCommand, handleVoiceCommand, handleImageCommand, handleQuestsCommand, handleAvatarCommand, handleGeoCommand, handleLeaderboardCommand, handleAliasCommand, handleParseCommand, handleRemindCommand, handleNewsCommand, handleConvertCommand, handleTranslateCommand, handleAnalyzeCommand, handleIssuesCommand, handleAutomateCommand, handleRunflowCommand, handleStockCommand, handleReviewCommand, handleTriviaCommand, handleShopCommand, handleBuyCommand, handleInventoryCommand };
+    module.exports = { type, handleArrowUp, handleArrowDown, handleTab, handleEnter, handleMatrixCommand, handleCalcCommand, handleEchoCommand, handleNeofetchCommand, handleThemeCommand, handleBttfCommand, handleTimetravelCommand, handleFluxCommand, handleSysinfoCommand, handleWeatherCommand, handleGuessCommand, handleStarfieldCommand, handleTodoCommand, handleCowsayCommand, handleBase64Command, handleRollCommand, handleJokeCommand, handleCoinCommand, handlePasswordCommand, handlePingCommand, handleRememberCommand, handleRecallCommand, handleAssistCommand, handleVoiceCommand, handleImageCommand, handleQuestsCommand, handleAvatarCommand, handleGeoCommand, handleLeaderboardCommand, handleAliasCommand, handleParseCommand, handleRemindCommand, handleNewsCommand, handleConvertCommand, handleTranslateCommand, handleAnalyzeCommand, handleIssuesCommand, handleAutomateCommand, handleRunflowCommand, handleStockCommand, handleReviewCommand, handleTriviaCommand, handleShopCommand, handleBuyCommand, handleInventoryCommand, handleGitlabCommand, handleWikidataCommand, handlePexelsCommand, handleWorkspaceCommand };
 }
 
 // Tab functionality
@@ -2768,8 +2955,11 @@ function updateEcosystem() {
     let cryptoHtml = handleCryptoCommand(['bitcoin'], 'crypto-preview');
     let stockHtml = handleStockCommand(['AAPL'], 'stock-preview');
     let githubHtml = handleGithubCommand(['leddcode'], 'github-preview');
+    let gitlabHtml = handleGitlabCommand(['leddcode'], 'gitlab-preview');
     let issuesHtml = handleIssuesCommand(['leddcode/Oculus'], 'issues-preview');
     let wikiHtml = handleWikiCommand(['Cybersecurity'], 'wiki-preview');
+    let wikidataHtml = handleWikidataCommand(['Earth'], 'wikidata-preview');
+    let pexelsHtml = handlePexelsCommand(['cyberpunk'], 'pexels-preview');
     let reviewHtml = handleReviewCommand(['function add(a,b){return a+b;}'], 'review-preview');
 
     ecosystemData.innerHTML = `
@@ -2787,8 +2977,9 @@ function updateEcosystem() {
                     ${stockHtml}
                 </div>
                 <div style="flex: 1; min-width: 200px;">
-                    <strong>Public Knowledge Graph:</strong><br>
+                    <strong>Public Knowledge Graphs:</strong><br>
                     ${wikiHtml}
+                    ${wikidataHtml}
                 </div>
             </div>
         </div>
@@ -2796,16 +2987,18 @@ function updateEcosystem() {
             <h3 class="ai-hub-title">Developer & Creator Tools</h3>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 250px;">
-                    <strong>GitHub Integration:</strong><br>
+                    <strong>GitHub & GitLab:</strong><br>
                     ${githubHtml}
+                    ${gitlabHtml}
                 </div>
                 <div style="flex: 1; min-width: 250px;">
-                    <strong>Issue Tracker:</strong><br>
+                    <strong>Issue Tracker & Code Review:</strong><br>
                     ${issuesHtml}
+                    ${reviewHtml}
                 </div>
                 <div style="flex: 1; min-width: 250px;">
-                    <strong>AI Code Review:</strong><br>
-                    ${reviewHtml}
+                    <strong>Media (Pexels):</strong><br>
+                    ${pexelsHtml}
                 </div>
             </div>
         </div>
@@ -2825,6 +3018,7 @@ function updateAiHub() {
     const aiHubData = document.getElementById('ai-hub-data');
     if (!aiHubData) return;
 
+    let workspaceHtml = handleWorkspaceCommand();
     let avatarHtml = handleAvatarCommand();
     let questsHtml = handleQuestsCommand();
     let memoryHtml = handleRecallCommand([]);
@@ -2834,7 +3028,8 @@ function updateAiHub() {
 
     aiHubData.innerHTML = `
         <div class="ai-hub-card">
-            <h3 class="ai-hub-title">Digital Companion</h3>
+            <h3 class="ai-hub-title">Digital Workspace & Companion</h3>
+            ${workspaceHtml}
             ${avatarHtml}
             ${assistHtml}
             ${companionHtml}
