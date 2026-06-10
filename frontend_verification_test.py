@@ -1,7 +1,11 @@
 import asyncio
 from playwright.async_api import async_playwright
+import os
 
 async def run():
+    os.makedirs("/home/jules/verification/videos/", exist_ok=True)
+    os.makedirs("/home/jules/verification/screenshots/", exist_ok=True)
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         context = await browser.new_context(
@@ -15,33 +19,38 @@ async def run():
         # Wait for the terminal to be ready
         await page.wait_for_selector('#command-line', state='visible')
 
-        # Test remember
-        await page.fill('#command-line', 'remember goal Become the ultimate hacker')
+        # Test Gitlab
+        await page.fill('#command-line', 'gitlab leddcode')
         await page.press('#command-line', 'Enter')
-        await page.wait_for_timeout(500)
+        await page.wait_for_timeout(2000)
 
-        # Test recall
-        await page.fill('#command-line', 'recall goal')
+        # Test Wikidata
+        await page.fill('#command-line', 'wikidata Earth')
         await page.press('#command-line', 'Enter')
-        await page.wait_for_timeout(500)
+        await page.wait_for_timeout(2000)
 
-        # Test geo
-        await page.fill('#command-line', 'geo me')
+        # Test Pexels
+        await page.fill('#command-line', 'pexels cyberpunk')
         await page.press('#command-line', 'Enter')
-        await page.wait_for_timeout(1000)
+        await page.wait_for_timeout(2000)
 
-        # Test leaderboard
-        await page.fill('#command-line', 'leaderboard')
-        await page.press('#command-line', 'Enter')
-        await page.wait_for_timeout(1000)
-
-        # Test challenge
-        await page.fill('#command-line', 'challenge')
+        # Test Workspace
+        await page.fill('#command-line', 'workspace')
         await page.press('#command-line', 'Enter')
         await page.wait_for_timeout(1000)
 
         # Take a screenshot
-        await page.screenshot(path="/home/jules/verification/screenshots/verification.png")
+        await page.screenshot(path="/home/jules/verification/screenshots/terminal.png")
+
+        # Navigate to Ecosystem tab
+        await page.click('.tab[data-target="ecosystem"]')
+        await page.wait_for_timeout(2000)
+        await page.screenshot(path="/home/jules/verification/screenshots/ecosystem.png")
+
+        # Navigate to AI Hub tab
+        await page.click('.tab[data-target="ai-hub"]')
+        await page.wait_for_timeout(1000)
+        await page.screenshot(path="/home/jules/verification/screenshots/ai_hub.png")
 
         await context.close()
         await browser.close()
