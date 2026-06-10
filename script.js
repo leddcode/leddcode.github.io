@@ -173,11 +173,11 @@ function runInstantIntro() {
 }
 </style>
     `;
-    results.innerHTML = banner + introMsg;
+    if (results) results.innerHTML = banner + introMsg;
 
     // Ensure prompt and command line are visible immediately
-    document.getElementById('prompt').style.display = 'flex';
-    document.getElementById('command-line').style.display = 'block';
+    if (document.getElementById('prompt')) document.getElementById('prompt').style.display = 'flex';
+    if (document.getElementById('command-line')) document.getElementById('command-line').style.display = 'block';
 }
 
 runInstantIntro();
@@ -724,7 +724,8 @@ function handleChallengeCommand() {
 
 
 function handleConvertCommand(args, id) {
-    if (args.length < 4 || args[1].toLowerCase() !== 'to') {
+    if (!id) return "Error: Missing output ID.";
+    if (args.length < 4 || args[2].toLowerCase() !== 'to') {
         return "Usage: convert [amount] [from_currency] to [to_currency]<br>Example: convert 100 USD to EUR";
     }
 
@@ -733,12 +734,11 @@ function handleConvertCommand(args, id) {
         return "Error: Invalid amount. Please provide a number.";
     }
 
-    const fromCurr = args[2].toUpperCase().replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const fromCurr = args[1].toUpperCase().replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const toCurr = args[3].toUpperCase().replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-    // We fetch the rates from ExchangeRate-API (free, no key required for public endpoint)
     setTimeout(() => {
-        fetch(`https://api.exchangerate-api.com/v4/latest/${fromCurr}`)
+        fetch(`https://open.er-api.com/v6/latest/${fromCurr}`)
             .then(response => {
                 if (!response.ok) throw new Error("Network response was not ok");
                 return response.json();
@@ -764,11 +764,13 @@ function handleConvertCommand(args, id) {
             })
             .catch(err => {
                 const el = document.getElementById(id);
-                if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch exchange rates for '${fromCurr}'. Check currency code or connection.</div>`;
+                if (el) {
+                    el.innerHTML = `<div style="color: #ff3333;">[ERROR] Network request failed.</div>`;
+                }
             });
-    }, 100);
+    });
 
-    return `<div id="${id}"><span style="color: #888;">[Fetching exchange rates for ${fromCurr}...]</span></div>`;
+    return `<div id="${id}">[..] Fetching conversion rates...</div>`;
 }
 
 
@@ -1789,26 +1791,55 @@ function handleAssistCommand() {
 </div>`;
 }
 
-function handleNewsCommand() {
-    const headlines = [
-        "Quantum computing breakthrough promises 100x speedup in cryptography.",
-        "New AI model accurately predicts protein folding in real-time.",
-        "Major tech firm open-sources advanced autonomous driving dataset.",
-        "Cybersecurity report: Phishing attacks utilizing deepfakes increase by 400%.",
-        "Global internet speeds average 200Mbps as satellite mesh networks expand."
-    ];
+function handleNewsCommand(args, id) {
+    if (!id) return "Error: Missing output ID.";
+    let query = "";
+    if (args && args.length > 0) {
+        query = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
 
-    let html = `
+    let url = query ? `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(query)}&tags=story` : `https://hn.algolia.com/api/v1/search?tags=front_page`;
+
+    setTimeout(() => {
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error("Network response was not ok");
+                return response.json();
+            })
+            .then(data => {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                if (data.hits && data.hits.length > 0) {
+                    let html = `
 <div style="border: 1px dashed var(--link-color); padding: 10px; margin: 10px 0;">
-    <h3 style="margin-top: 0; color: var(--link-color);">/// GLOBAL DAILY BULLETIN</h3>
+    <h3 style="margin-top: 0; color: var(--link-color);">/// HACKER NEWS BULLETIN ${query ? '- Search: ' + query : '- Front Page'}</h3>
     <ul style="list-style-type: none; padding-left: 0;">`;
 
-    headlines.forEach(headline => {
-        html += `<li style="margin-bottom: 5px; color: var(--command-color);">:: ${headline}</li>`;
+                    const hits = data.hits.slice(0, 5); // Take top 5
+                    hits.forEach(hit => {
+                        const title = hit.title || hit.story_title || "No Title";
+                        const url = hit.url || (hit.objectID ? `https://news.ycombinator.com/item?id=${hit.objectID}` : '#');
+                        html += `<li style="margin-bottom: 5px; color: var(--command-color);">:: <a href="${url}" target="_blank" style="color: var(--command-color); text-decoration: none;">${title}</a></li>`;
+                    });
+
+                    html += `</ul></div>`;
+                    el.innerHTML = html;
+                } else {
+                    el.innerHTML = `<div style="color: #ff3333;">[ERROR] No news found for query: ${query}</div>`;
+                }
+                const termDiv = document.getElementById('terminal');
+                if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            })
+            .catch(err => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.innerHTML = `<div style="color: #ff3333;">[ERROR] Network request failed. Cannot fetch news.</div>`;
+                }
+            });
     });
 
-    html += `</ul></div>`;
-    return html;
+    return `<div id="${id}">[..] Fetching news...</div>`;
 }
 
 function handleRemindCommand(args, id) {
@@ -2529,7 +2560,7 @@ function handleEnter(e) {
         } else if (cmdName === 'convert') {
             outputHTML = handleConvertCommand(args, outId);
         } else if (cmdName === 'news') {
-            outputHTML = handleNewsCommand();
+            outputHTML = handleNewsCommand(args, outId);
         } else if (cmdName === 'automate') {
             outputHTML = handleAutomateCommand(args);
         } else if (cmdName === 'runflow') {
@@ -2594,7 +2625,7 @@ function handleEnter(e) {
     const termDiv = document.getElementById('terminal'); if (termDiv) termDiv.scrollTop = termDiv.scrollHeight; else window.scrollTo(0, document.body.scrollHeight);
 }
 
-commandLine.addEventListener('keydown', function(e) {
+if (commandLine) commandLine.addEventListener('keydown', function(e) {
     if (e.key === 'ArrowUp') {
         handleArrowUp(e);
     } else if (e.key === 'ArrowDown') {
