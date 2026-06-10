@@ -321,7 +321,7 @@ const commandRegistry = {
 };
 
 // Generate cmdList dynamically
-const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'photo', 'challenge', 'feedback', 'remember', 'recall', 'assist', 'voice', 'image', 'quests', 'avatar', 'geo', 'leaderboard', 'alias', 'parse', 'remind', 'news', 'convert', 'translate', 'analyze', 'issues', 'qr', 'fact', 'ajoke', 'longterm', 'docparse', 'daily', 'interact', 'suggest'];
+const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'photo', 'challenge', 'feedback', 'remember', 'recall', 'assist', 'voice', 'image', 'quests', 'avatar', 'geo', 'leaderboard', 'alias', 'parse', 'remind', 'news', 'convert', 'translate', 'analyze', 'issues', 'qr', 'fact', 'ajoke', 'longterm', 'docparse', 'daily', 'interact', 'suggest', 'automate', 'runflow', 'stock', 'review', 'trivia', 'shop', 'buy', 'inventory'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -2097,6 +2097,280 @@ function handleInteractCommand(args) {
 </div>`;
 }
 
+function handleAutomateCommand(args) {
+    if (args.length < 2) {
+        return "Usage: automate [flow_name] [command1;command2;...]<br>Example: automate morning weather Tokyo; crypto bitcoin";
+    }
+    const flowName = args[0].toLowerCase();
+    const commandsStr = args.slice(1).join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const flowCommands = commandsStr.split(';').map(c => c.trim()).filter(c => c.length > 0);
+
+    let flows = {};
+    try {
+        const stored = localStorage.getItem('termFlows');
+        if (stored) flows = JSON.parse(stored);
+    } catch (e) {}
+
+    flows[flowName] = flowCommands;
+
+    try {
+        localStorage.setItem('termFlows', JSON.stringify(flows));
+    } catch (e) {}
+
+    return `Automation flow <span style="color: var(--user-color);">${flowName}</span> saved with ${flowCommands.length} commands. Run it using 'runflow ${flowName}'.`;
+}
+
+function handleRunflowCommand(args, outId) {
+    if (args.length === 0) {
+        let flows = {};
+        try {
+            const stored = localStorage.getItem('termFlows');
+            if (stored) flows = JSON.parse(stored);
+        } catch (e) {}
+        if (Object.keys(flows).length === 0) return "No automation flows saved. Create one with 'automate'.";
+
+        let html = `<div style="border: 1px solid var(--command-color); padding: 10px; margin: 10px 0;"><h3 style="margin-top: 0; color: var(--user-color);">/// AUTOMATION FLOWS</h3><ul>`;
+        for (const [name, cmds] of Object.entries(flows)) {
+            html += `<li><strong>${name}</strong>: ${cmds.join(' ; ')}</li>`;
+        }
+        html += `</ul></div>`;
+        return html;
+    }
+
+    const flowName = args[0].toLowerCase();
+    let flows = {};
+    try {
+        const stored = localStorage.getItem('termFlows');
+        if (stored) flows = JSON.parse(stored);
+    } catch (e) {}
+
+    if (!flows[flowName]) {
+        return `Error: Automation flow '${flowName}' not found.`;
+    }
+
+    const commands = flows[flowName];
+    let outputHTML = `<div style="border-left: 3px solid #00ffcc; padding-left: 10px; margin: 10px 0;"><span style="color: #00ffcc; font-weight: bold;">[RUNNING FLOW: ${flowName}]</span><br>`;
+
+    // We will just print that the flow is running and execute the commands in sequence using a timeout.
+    setTimeout(() => {
+        const executeNext = (idx) => {
+            if (idx >= commands.length) {
+                const resultsDiv = document.getElementById('results');
+                if (resultsDiv) {
+                    const doneDiv = document.createElement('div');
+                    doneDiv.className = 'output';
+                    doneDiv.innerHTML = `<span style="color: #00ff00;">[FLOW ${flowName} COMPLETED]</span>`;
+                    resultsDiv.appendChild(doneDiv);
+                    const termDiv = document.getElementById('terminal');
+                    if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+                }
+                return;
+            }
+
+            const cmd = commands[idx];
+            const commandLine = document.getElementById('command-line');
+            if (commandLine) {
+                commandLine.value = cmd;
+                const enterEvent = new KeyboardEvent('keydown', {
+                    key: 'Enter',
+                    code: 'Enter',
+                    keyCode: 13,
+                    which: 13,
+                    bubbles: true
+                });
+                commandLine.dispatchEvent(enterEvent);
+            }
+
+            setTimeout(() => executeNext(idx + 1), 1000);
+        };
+        executeNext(0);
+    }, 500);
+
+    return outputHTML + `Executing ${commands.length} commands...</div>`;
+}
+
+function handleStockCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: stock [symbol]<br>Example: stock AAPL";
+    }
+    const symbol = args[0].toUpperCase().replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    // Simulating stock API fetch
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+            const simulatedPrice = (getRandom() * 500 + 50).toFixed(2);
+            const simulatedChange = (getRandom() * 10 - 5).toFixed(2);
+            const changeColor = simulatedChange >= 0 ? '#00ff00' : '#ff3333';
+            const changeSign = simulatedChange >= 0 ? '+' : '';
+
+            el.innerHTML = `
+<div style="border-left: 3px solid #00bfff; padding-left: 10px;">
+    <span style="color: #00bfff; font-weight: bold;">[MARKET TRACKER]</span><br>
+    <span style="color: var(--user-color);">${symbol}</span>: $${simulatedPrice} USD <span style="color: ${changeColor};">(${changeSign}${simulatedChange}%)</span>
+</div>`;
+            const termDiv = document.getElementById('terminal');
+            if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+        }
+    }, 500);
+
+    return `<div id="${id}"><span style="color: #888;">[Fetching market data for ${symbol}...]</span></div>`;
+}
+
+function handleReviewCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: review [code_snippet]<br>Example: review function add(a,b){return a+b;}";
+    }
+    const code = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+            // Simulated AI review
+            let vulnerabilities = "None detected.";
+            let optimization = "Looks good.";
+            if (code.includes('eval') || code.includes('innerHTML')) {
+                vulnerabilities = "<span style='color: #ff3333;'>Warning: Potential XSS/Injection vulnerability detected. Avoid executing arbitrary strings.</span>";
+            }
+            if (code.length > 50) {
+                optimization = "Consider refactoring into smaller, more modular functions.";
+            }
+
+            el.innerHTML = `
+<div style="border: 1px dashed #ff00ff; padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: #ff00ff;">/// AI CODE REVIEW</h3>
+    <pre style="background: rgba(0,0,0,0.3); padding: 5px; color: var(--command-color);">${code}</pre>
+    <div style="margin-top: 10px;">
+        <strong>Vulnerabilities:</strong><br>${vulnerabilities}<br><br>
+        <strong>Optimization:</strong><br>${optimization}
+    </div>
+</div>`;
+            const termDiv = document.getElementById('terminal');
+            if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+        }
+    }, 800);
+
+    return `<div id="${id}"><span style="color: #888;">[AI analyzing code snippet...]</span></div>`;
+}
+
+function handleTriviaCommand(id) {
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+            // Fetch from OpenTDB
+            fetch('https://opentdb.com/api.php?amount=1&type=multiple')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.results && data.results.length > 0) {
+                        const question = data.results[0];
+                        const qText = question.question.replace(/&quot;/g, '"').replace(/&#039;/g, "'");
+                        const correctAnswer = question.correct_answer;
+                        const inc = question.incorrect_answers;
+                        let options = [correctAnswer, ...inc].sort(() => getRandom() - 0.5);
+
+                        let optionsHtml = options.map((opt, i) => `[${i+1}] ${opt.replace(/&quot;/g, '"').replace(/&#039;/g, "'")}`).join('<br>');
+
+                        window.currentTriviaAnswer = options.indexOf(correctAnswer) + 1;
+
+                        el.innerHTML = `
+<div style="border: 1px solid #ffcc00; padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: #ffcc00;">/// TRIVIA CHALLENGE</h3>
+    <p><strong>${qText}</strong></p>
+    <div style="color: var(--command-color);">${optionsHtml}</div>
+    <div style="margin-top: 10px; font-style: italic; color: #888;">(Answer not interactive in terminal yet, but think of the correct number!)</div>
+</div>`;
+                    } else {
+                        throw new Error("No trivia results");
+                    }
+                })
+                .catch(err => {
+                    // Fallback
+                    el.innerHTML = `
+<div style="border: 1px solid #ffcc00; padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: #ffcc00;">/// TRIVIA CHALLENGE</h3>
+    <p><strong>What is the capital of Assyria?</strong></p>
+    <div style="color: var(--command-color);">[1] Nineveh<br>[2] Assur<br>[3] Babylon<br>[4] I don't know that</div>
+</div>`;
+                });
+            const termDiv = document.getElementById('terminal');
+            if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+        }
+    }, 300);
+
+    return `<div id="${id}"><span style="color: #888;">[Fetching trivia question...]</span></div>`;
+}
+
+function handleShopCommand() {
+    const data = getUserData();
+    return `
+<div style="border: 1px solid #00ffcc; padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: #00ffcc;">/// SYSTEM SHOP</h3>
+    <p>Your Balance: <strong style="color: #ffcc00;">${data.xp} XP</strong></p>
+    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <tr><th style="padding: 5px;">Item ID</th><th style="padding: 5px;">Description</th><th style="padding: 5px;">Cost</th></tr>
+        <tr><td style="padding: 5px; color: var(--command-color);">neon_aura</td><td style="padding: 5px;">Avatar glow effect</td><td style="padding: 5px; color: #ffcc00;">150 XP</td></tr>
+        <tr><td style="padding: 5px; color: var(--command-color);">golden_prompt</td><td style="padding: 5px;">Make your prompt golden</td><td style="padding: 5px; color: #ffcc00;">300 XP</td></tr>
+        <tr><td style="padding: 5px; color: var(--command-color);">cyber_pet</td><td style="padding: 5px;">Unlock a mini cyber-pet</td><td style="padding: 5px; color: #ffcc00;">500 XP</td></tr>
+    </table>
+    <div style="margin-top: 10px; font-style: italic;">Use 'buy [item_id]' to purchase.</div>
+</div>`;
+}
+
+function handleBuyCommand(args) {
+    if (args.length === 0) return "Usage: buy [item_id]<br>Check 'shop' for available items.";
+    const itemId = args[0].toLowerCase();
+
+    const items = {
+        'neon_aura': 150,
+        'golden_prompt': 300,
+        'cyber_pet': 500
+    };
+
+    if (!items[itemId]) return `Item '${itemId}' not found in shop.`;
+
+    const cost = items[itemId];
+    const data = getUserData();
+
+    if (data.xp < cost) return `<span style="color: #ff3333;">Insufficient XP. You need ${cost} XP, but have ${data.xp} XP.</span>`;
+
+    let inventory = [];
+    try {
+        const stored = localStorage.getItem('termInventory');
+        if (stored) inventory = JSON.parse(stored);
+    } catch (e) {}
+
+    if (inventory.includes(itemId)) return `<span style="color: #ffaa00;">You already own '${itemId}'.</span>`;
+
+    // Deduct XP and add to inventory
+    data.xp -= cost;
+    saveUserData(data);
+
+    inventory.push(itemId);
+    try {
+        localStorage.setItem('termInventory', JSON.stringify(inventory));
+    } catch (e) {}
+
+    return `<span style="color: #00ff00;">Successfully purchased '${itemId}' for ${cost} XP! Use 'inventory' to view items.</span>`;
+}
+
+function handleInventoryCommand() {
+    let inventory = [];
+    try {
+        const stored = localStorage.getItem('termInventory');
+        if (stored) inventory = JSON.parse(stored);
+    } catch (e) {}
+
+    if (inventory.length === 0) return "Your inventory is empty. Visit the 'shop' to buy items.";
+
+    return `
+<div style="border: 1px solid #00ffcc; padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: #00ffcc;">/// YOUR INVENTORY</h3>
+    <ul>
+        ${inventory.map(item => `<li><span style="color: var(--command-color);">${item}</span></li>`).join('')}
+    </ul>
+</div>`;
+}
+
 function handleEnter(e) {
     let command = commandLine.value.trim().toLowerCase();
     let rawCommand = commandLine.value.trim();
@@ -2256,7 +2530,22 @@ function handleEnter(e) {
             outputHTML = handleConvertCommand(args, outId);
         } else if (cmdName === 'news') {
             outputHTML = handleNewsCommand();
-
+        } else if (cmdName === 'automate') {
+            outputHTML = handleAutomateCommand(args);
+        } else if (cmdName === 'runflow') {
+            outputHTML = handleRunflowCommand(args, outId);
+        } else if (cmdName === 'stock') {
+            outputHTML = `<div id="${outId}">${handleStockCommand(args, outId)}</div>`;
+        } else if (cmdName === 'review') {
+            outputHTML = `<div id="${outId}">${handleReviewCommand(args, outId)}</div>`;
+        } else if (cmdName === 'trivia') {
+            outputHTML = `<div id="${outId}">${handleTriviaCommand(outId)}</div>`;
+        } else if (cmdName === 'shop') {
+            outputHTML = handleShopCommand();
+        } else if (cmdName === 'buy') {
+            outputHTML = handleBuyCommand(args);
+        } else if (cmdName === 'inventory') {
+            outputHTML = handleInventoryCommand();
         } else if (command.startsWith('python3')) {
             outputHTML = `Command 'python3' not found, did you mean: command 'python' from deb python-is-python3?`;
         } else if (command.startsWith('bash')) {
@@ -2318,7 +2607,7 @@ commandLine.addEventListener('keydown', function(e) {
 });
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { type, handleArrowUp, handleArrowDown, handleTab, handleEnter, handleMatrixCommand, handleCalcCommand, handleEchoCommand, handleNeofetchCommand, handleThemeCommand, handleBttfCommand, handleTimetravelCommand, handleFluxCommand, handleSysinfoCommand, handleWeatherCommand, handleGuessCommand, handleStarfieldCommand, handleTodoCommand, handleCowsayCommand, handleBase64Command, handleRollCommand, handleJokeCommand, handleCoinCommand, handlePasswordCommand, handlePingCommand, handleRememberCommand, handleRecallCommand, handleAssistCommand, handleVoiceCommand, handleImageCommand, handleQuestsCommand, handleAvatarCommand, handleGeoCommand, handleLeaderboardCommand, handleAliasCommand, handleParseCommand, handleRemindCommand, handleNewsCommand, handleConvertCommand, handleTranslateCommand, handleAnalyzeCommand, handleIssuesCommand };
+    module.exports = { type, handleArrowUp, handleArrowDown, handleTab, handleEnter, handleMatrixCommand, handleCalcCommand, handleEchoCommand, handleNeofetchCommand, handleThemeCommand, handleBttfCommand, handleTimetravelCommand, handleFluxCommand, handleSysinfoCommand, handleWeatherCommand, handleGuessCommand, handleStarfieldCommand, handleTodoCommand, handleCowsayCommand, handleBase64Command, handleRollCommand, handleJokeCommand, handleCoinCommand, handlePasswordCommand, handlePingCommand, handleRememberCommand, handleRecallCommand, handleAssistCommand, handleVoiceCommand, handleImageCommand, handleQuestsCommand, handleAvatarCommand, handleGeoCommand, handleLeaderboardCommand, handleAliasCommand, handleParseCommand, handleRemindCommand, handleNewsCommand, handleConvertCommand, handleTranslateCommand, handleAnalyzeCommand, handleIssuesCommand, handleAutomateCommand, handleRunflowCommand, handleStockCommand, handleReviewCommand, handleTriviaCommand, handleShopCommand, handleBuyCommand, handleInventoryCommand };
 }
 
 // Tab functionality
@@ -2405,6 +2694,7 @@ function updateIntelligence() {
 
     let factHtml = handleFactCommand('fact-preview');
     let suggestHtml = handleSuggestCommand();
+    let runflowHtml = handleRunflowCommand([], 'runflow-preview');
 
     intelligenceData.innerHTML = `
         <div class="ai-hub-card">
@@ -2427,6 +2717,10 @@ function updateIntelligence() {
             </div>
         </div>
         <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Automation Workflows</h3>
+            ${runflowHtml}
+        </div>
+        <div class="ai-hub-card">
             <h3 class="ai-hub-title">Proactive Assistance & Facts</h3>
             ${suggestHtml}
             <div id="fact-preview" style="margin-top: 10px;">${factHtml}</div>
@@ -2441,9 +2735,11 @@ function updateEcosystem() {
     let weatherHtml = handleWeatherCommand(['Tokyo'], 'weather-preview');
     let geoHtml = handleGeoCommand(['me'], 'geo-preview');
     let cryptoHtml = handleCryptoCommand(['bitcoin'], 'crypto-preview');
+    let stockHtml = handleStockCommand(['AAPL'], 'stock-preview');
     let githubHtml = handleGithubCommand(['leddcode'], 'github-preview');
     let issuesHtml = handleIssuesCommand(['leddcode/Oculus'], 'issues-preview');
     let wikiHtml = handleWikiCommand(['Cybersecurity'], 'wiki-preview');
+    let reviewHtml = handleReviewCommand(['function add(a,b){return a+b;}'], 'review-preview');
 
     ecosystemData.innerHTML = `
         <div class="ai-hub-card">
@@ -2457,6 +2753,7 @@ function updateEcosystem() {
                 <div style="flex: 1; min-width: 200px;">
                     <strong>Financial Markets:</strong><br>
                     ${cryptoHtml}
+                    ${stockHtml}
                 </div>
                 <div style="flex: 1; min-width: 200px;">
                     <strong>Public Knowledge Graph:</strong><br>
@@ -2474,6 +2771,10 @@ function updateEcosystem() {
                 <div style="flex: 1; min-width: 250px;">
                     <strong>Issue Tracker:</strong><br>
                     ${issuesHtml}
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <strong>AI Code Review:</strong><br>
+                    ${reviewHtml}
                 </div>
             </div>
         </div>
@@ -2677,8 +2978,20 @@ function updateGames() {
     let coinHtml = handleCoinCommand();
     let leaderboardHtml = handleLeaderboardCommand();
     let dailyHtml = handleDailyCommand();
+    let triviaHtml = handleTriviaCommand('trivia-preview');
+    let shopHtml = handleShopCommand();
+    let inventoryHtml = handleInventoryCommand();
 
     gamesData.innerHTML = `
+        <div class="games-card">
+            <h3>Trivia Challenge</h3>
+            ${triviaHtml}
+        </div>
+        <div class="games-card">
+            <h3>System Shop & Inventory</h3>
+            ${shopHtml}
+            ${inventoryHtml}
+        </div>
         <div class="games-card">
             <h3>Dice Roller</h3>
             ${rollHtml}
