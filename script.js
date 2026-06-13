@@ -321,7 +321,7 @@ const commandRegistry = {
 };
 
 // Generate cmdList dynamically
-const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'gitlab', 'wikidata', 'pexels', 'workspace', 'photo', 'challenge', 'feedback', 'remember', 'recall', 'assist', 'voice', 'image', 'quests', 'avatar', 'geo', 'leaderboard', 'alias', 'parse', 'remind', 'news', 'convert', 'translate', 'analyze', 'issues', 'qr', 'fact', 'ajoke', 'longterm', 'docparse', 'daily', 'interact', 'suggest', 'automate', 'runflow', 'stock', 'review', 'trivia', 'shop', 'buy', 'inventory'];
+const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'gitlab', 'wikidata', 'pexels', 'workspace', 'photo', 'challenge', 'feedback', 'remember', 'recall', 'assist', 'voice', 'image', 'quests', 'avatar', 'geo', 'leaderboard', 'alias', 'parse', 'remind', 'news', 'convert', 'translate', 'analyze', 'issues', 'qr', 'fact', 'ajoke', 'longterm', 'docparse', 'daily', 'interact', 'suggest', 'automate', 'runflow', 'stock', 'review', 'trivia', 'shop', 'buy', 'inventory', 'dictionary', 'space', 'npm', 'rps', 'music', 'sentiment'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -2828,6 +2828,18 @@ function handleEnter(e) {
             outputHTML = handleBuyCommand(args);
         } else if (cmdName === 'inventory') {
             outputHTML = handleInventoryCommand();
+        } else if (cmdName === 'dictionary') {
+            outputHTML = handleDictionaryCommand(args, outId);
+        } else if (cmdName === 'space') {
+            outputHTML = handleSpaceCommand(outId);
+        } else if (cmdName === 'npm') {
+            outputHTML = handleNpmCommand(args, outId);
+        } else if (cmdName === 'rps') {
+            outputHTML = handleRpsCommand(args);
+        } else if (cmdName === 'music') {
+            outputHTML = handleMusicCommand(args);
+        } else if (cmdName === 'sentiment') {
+            outputHTML = handleSentimentCommand(args, outId);
         } else if (command.startsWith('python3')) {
             outputHTML = `Command 'python3' not found, did you mean: command 'python' from deb python-is-python3?`;
         } else if (command.startsWith('bash')) {
@@ -2889,7 +2901,7 @@ if (commandLine) commandLine.addEventListener('keydown', function(e) {
 });
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { type, handleArrowUp, handleArrowDown, handleTab, handleEnter, handleMatrixCommand, handleCalcCommand, handleEchoCommand, handleNeofetchCommand, handleThemeCommand, handleBttfCommand, handleTimetravelCommand, handleFluxCommand, handleSysinfoCommand, handleWeatherCommand, handleGuessCommand, handleStarfieldCommand, handleTodoCommand, handleCowsayCommand, handleBase64Command, handleRollCommand, handleJokeCommand, handleCoinCommand, handlePasswordCommand, handlePingCommand, handleRememberCommand, handleRecallCommand, handleAssistCommand, handleVoiceCommand, handleImageCommand, handleQuestsCommand, handleAvatarCommand, handleGeoCommand, handleLeaderboardCommand, handleAliasCommand, handleParseCommand, handleRemindCommand, handleNewsCommand, handleConvertCommand, handleTranslateCommand, handleAnalyzeCommand, handleIssuesCommand, handleAutomateCommand, handleRunflowCommand, handleStockCommand, handleReviewCommand, handleTriviaCommand, handleShopCommand, handleBuyCommand, handleInventoryCommand, handleGitlabCommand, handleWikidataCommand, handlePexelsCommand, handleWorkspaceCommand };
+    module.exports = { type, handleArrowUp, handleArrowDown, handleTab, handleEnter, handleMatrixCommand, handleCalcCommand, handleEchoCommand, handleNeofetchCommand, handleThemeCommand, handleBttfCommand, handleTimetravelCommand, handleFluxCommand, handleSysinfoCommand, handleWeatherCommand, handleGuessCommand, handleStarfieldCommand, handleTodoCommand, handleCowsayCommand, handleBase64Command, handleRollCommand, handleJokeCommand, handleCoinCommand, handlePasswordCommand, handlePingCommand, handleRememberCommand, handleRecallCommand, handleAssistCommand, handleVoiceCommand, handleImageCommand, handleQuestsCommand, handleAvatarCommand, handleGeoCommand, handleLeaderboardCommand, handleAliasCommand, handleParseCommand, handleRemindCommand, handleNewsCommand, handleConvertCommand, handleTranslateCommand, handleAnalyzeCommand, handleIssuesCommand, handleAutomateCommand, handleRunflowCommand, handleStockCommand, handleReviewCommand, handleTriviaCommand, handleShopCommand, handleBuyCommand, handleInventoryCommand, handleGitlabCommand, handleWikidataCommand, handlePexelsCommand, handleWorkspaceCommand, handleDictionaryCommand, handleSpaceCommand, handleNpmCommand, handleRpsCommand, handleMusicCommand, handleSentimentCommand };
 }
 
 // Tab functionality
@@ -3003,6 +3015,7 @@ function updateIntelligence() {
     let factHtml = handleFactCommand('fact-preview');
     let suggestHtml = handleSuggestCommand();
     let runflowHtml = handleRunflowCommand([], 'runflow-preview');
+    let sentimentHtml = handleSentimentCommand(['This new tool is incredible!'], 'sentiment-preview');
 
     intelligenceData.innerHTML = `
         <div class="ai-hub-card">
@@ -3033,6 +3046,10 @@ function updateIntelligence() {
             ${suggestHtml}
             <div id="fact-preview" style="margin-top: 10px;">${factHtml}</div>
         </div>
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Sentiment Analysis</h3>
+            ${sentimentHtml}
+        </div>
     `;
 }
 
@@ -3051,6 +3068,9 @@ function updateEcosystem() {
     let wikidataHtml = handleWikidataCommand(['Earth'], 'wikidata-preview');
     let pexelsHtml = handlePexelsCommand(['cyberpunk'], 'pexels-preview');
     let reviewHtml = handleReviewCommand(['function add(a,b){return a+b;}'], 'review-preview');
+    let dictionaryHtml = handleDictionaryCommand(['cyberpunk'], 'dictionary-preview');
+    let spaceHtml = handleSpaceCommand('space-preview');
+    let npmHtml = handleNpmCommand(['react'], 'npm-preview');
 
     ecosystemData.innerHTML = `
         <div class="ai-hub-card">
@@ -3070,6 +3090,23 @@ function updateEcosystem() {
                     <strong>Public Knowledge Graphs:</strong><br>
                     ${wikiHtml}
                     ${wikidataHtml}
+                </div>
+            </div>
+        </div>
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">External Intelligence APIs</h3>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <strong>Dictionary API:</strong><br>
+                    ${dictionaryHtml}
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <strong>NPM Registry:</strong><br>
+                    ${npmHtml}
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <strong>Space API:</strong><br>
+                    ${spaceHtml}
                 </div>
             </div>
         </div>
@@ -3115,6 +3152,7 @@ function updateAiHub() {
     let challengeHtml = handleChallengeCommand();
     let assistHtml = handleAssistCommand();
     let companionHtml = handleCompanionCommand();
+    let musicHtml = handleMusicCommand(['play']);
 
     aiHubData.innerHTML = `
         <div class="ai-hub-card">
@@ -3135,6 +3173,10 @@ function updateAiHub() {
         <div class="ai-hub-card">
             <h3 class="ai-hub-title">Contextual Memory</h3>
             ${memoryHtml}
+        </div>
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Terminal Music Player</h3>
+            ${musicHtml}
         </div>
     `;
 }
@@ -3297,6 +3339,7 @@ function updateGames() {
     let triviaHtml = handleTriviaCommand('trivia-preview');
     let shopHtml = handleShopCommand();
     let inventoryHtml = handleInventoryCommand();
+    let rpsHtml = handleRpsCommand(['rock']);
 
     gamesData.innerHTML = `
         <div class="games-card">
@@ -3324,6 +3367,10 @@ function updateGames() {
             <h3>Daily Rewards</h3>
             ${dailyHtml}
         </div>
+        <div class="games-card">
+            <h3>Rock Paper Scissors</h3>
+            ${rpsHtml}
+        </div>
     `;
 }
 
@@ -3350,4 +3397,216 @@ function updateSettings() {
             <button class="settings-btn" style="border-color: #ff5555; color: #ff5555;" onclick="if(confirm('Clear all local storage?')) { localStorage.clear(); alert('Local storage cleared. Refreshing...'); location.reload(); }">Clear Local Storage & Reload</button>
         </div>
     `;
+}
+function handleDictionaryCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: dictionary [word]<br>Example: dictionary hello";
+    }
+    const word = args[0].replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`)
+            .then(response => {
+                if (!response.ok) throw new Error("Not found");
+                return response.json();
+            })
+            .then(data => {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                if (data && data.length > 0 && data[0].meanings && data[0].meanings.length > 0) {
+                    const meaning = data[0].meanings[0];
+                    const definition = meaning.definitions[0].definition;
+                    const pos = meaning.partOfSpeech;
+
+                    el.innerHTML = `
+<div style="border-left: 3px solid var(--link-color); padding-left: 10px; margin: 10px 0;">
+    <span style="color: var(--user-color); font-weight: bold;">[DICTIONARY]</span> ${word} <span style="color: #888; font-style: italic;">(${pos})</span><br>
+    <span style="color: var(--command-color);">${definition.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</span>
+</div>`;
+                } else {
+                    el.innerHTML = `<div style="color: #ffaa00;">[DICTIONARY] No definitions found for '${word}'.</div>`;
+                }
+                const termDiv = document.getElementById('terminal');
+                if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            })
+            .catch(err => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch dictionary data for '${word}'.</div>`;
+            });
+    }, 100);
+
+    return `<div id="${id}"><span style="color: #888;">[Looking up '${word}'...]</span></div>`;
+}
+
+function handleSpaceCommand(id) {
+    setTimeout(() => {
+        // Due to mixed content policies, this endpoint may be blocked if accessed via HTTPS.
+        // As a fallback/MVP for this environment, we fetch from a proxy or switch the endpoint.
+        fetch('https://corsproxy.io/?http://api.open-notify.org/astros.json')
+            .then(response => response.json())
+            .then(data => {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                if (data && data.number > 0) {
+                    let html = `<div style="border: 1px solid var(--command-color); padding: 10px; margin: 10px 0;">
+                        <h3 style="margin-top: 0; color: var(--user-color);">/// HUMANS IN SPACE (${data.number})</h3>
+                        <ul style="margin: 0; padding-left: 20px;">`;
+                    data.people.forEach(person => {
+                        html += `<li>${person.name.replace(/</g, "&lt;").replace(/>/g, "&gt;")} <span style="color: #888;">(${person.craft})</span></li>`;
+                    });
+                    html += `</ul></div>`;
+                    el.innerHTML = html;
+                } else {
+                    el.innerHTML = `<div style="color: #ffaa00;">[SPACE] Could not fetch astronaut data.</div>`;
+                }
+                const termDiv = document.getElementById('terminal');
+                if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            })
+            .catch(err => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch space data.</div>`;
+            });
+    }, 100);
+
+    return `<div id="${id}"><span style="color: #888;">[Establishing link to orbit...]</span></div>`;
+}
+
+function handleNpmCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: npm [package_name]<br>Example: npm react";
+    }
+    const pkg = args[0].replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        fetch(`https://registry.npmjs.org/${encodeURIComponent(pkg)}/latest`)
+            .then(response => {
+                if (!response.ok) throw new Error("Not found");
+                return response.json();
+            })
+            .then(data => {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                const version = data.version || 'Unknown';
+                const description = data.description || 'No description';
+                const license = data.license || 'Unknown';
+
+                el.innerHTML = `
+<div style="border-left: 3px solid #cb3837; padding-left: 10px; margin: 10px 0;">
+    <span style="color: #cb3837; font-weight: bold;">[NPM REGISTRY]</span> ${pkg}<br>
+    <span style="color: var(--command-color);">Version:</span> ${version}<br>
+    <span style="color: var(--command-color);">License:</span> ${license}<br>
+    <span style="color: var(--text-color); font-style: italic;">${description.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</span>
+</div>`;
+                const termDiv = document.getElementById('terminal');
+                if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            })
+            .catch(err => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch NPM data for '${pkg}'. Package might not exist.</div>`;
+            });
+    }, 100);
+
+    return `<div id="${id}"><span style="color: #888;">[Querying NPM registry for '${pkg}'...]</span></div>`;
+}
+function handleRpsCommand(args) {
+    if (args.length === 0) {
+        return "Usage: rps [rock|paper|scissors]<br>Example: rps rock";
+    }
+    const userChoice = args[0].toLowerCase();
+    if (!['rock', 'paper', 'scissors'].includes(userChoice)) {
+        return "Invalid choice. Please choose 'rock', 'paper', or 'scissors'.";
+    }
+
+    const choices = ['rock', 'paper', 'scissors'];
+    // In test env getRandom() returns 0.5 -> index 1 (paper)
+    const aiChoice = choices[Math.floor(getRandom() * 3)];
+
+    let result = "";
+    if (userChoice === aiChoice) {
+        result = "<span style='color: #ffaa00;'>It's a tie!</span>";
+    } else if (
+        (userChoice === 'rock' && aiChoice === 'scissors') ||
+        (userChoice === 'paper' && aiChoice === 'rock') ||
+        (userChoice === 'scissors' && aiChoice === 'paper')
+    ) {
+        result = "<span style='color: #00ff00;'>You win!</span>";
+        addXP(20);
+        result += " (+20 XP)";
+    } else {
+        result = "<span style='color: #ff3333;'>You lose!</span>";
+    }
+
+    return `
+<div style="border: 1px solid var(--command-color); padding: 10px; margin: 10px 0;">
+    <span style="color: var(--user-color); font-weight: bold;">[ROCK PAPER SCISSORS]</span><br>
+    You chose: <span style="color: var(--link-color);">${userChoice}</span><br>
+    AI chose: <span style="color: var(--link-color);">${aiChoice}</span><br>
+    <br>
+    Result: ${result}
+</div>`;
+}
+
+function handleMusicCommand(args) {
+    if (args.length === 0) {
+        return "Usage: music [play|stop|next]<br>Example: music play";
+    }
+    const action = args[0].toLowerCase();
+
+    if (action === 'play') {
+        const tracks = ["Cyberpunk City", "Neon Nights", "Matrix Beats", "Synthwave Drift"];
+        const track = tracks[Math.floor(getRandom() * tracks.length)];
+        return `
+<div style="border-left: 3px solid #ff00ff; padding-left: 10px; margin: 10px 0;">
+    <span style="color: #ff00ff; font-weight: bold;">[TERMINAL MUSIC PLAYER]</span><br>
+    <span style="color: var(--command-color);">Status:</span> Playing 🎵<br>
+    <span style="color: var(--user-color);">Track:</span> ${track}<br>
+    <span style="color: #888; font-size: 0.9em;">[Visualizing audio data stream...]</span>
+</div>`;
+    } else if (action === 'stop') {
+        return `<span style="color: #ffaa00;">[TERMINAL MUSIC PLAYER] Playback stopped.</span>`;
+    } else if (action === 'next') {
+        return `<span style="color: #00ffcc;">[TERMINAL MUSIC PLAYER] Skipping to next track... Run 'music play' again.</span>`;
+    } else {
+        return "Unknown action. Use 'play', 'stop', or 'next'.";
+    }
+}
+
+function handleSentimentCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: sentiment [text]<br>Example: sentiment This is amazing!";
+    }
+    const text = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    // Simulated AI sentiment analysis
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+            let score = getRandom() * 2 - 1; // -1 to 1
+            const lowerText = text.toLowerCase();
+            if (lowerText.includes('good') || lowerText.includes('amazing') || lowerText.includes('love') || lowerText.includes('great')) {
+                score = Math.abs(score) * 0.5 + 0.5; // push positive
+            } else if (lowerText.includes('bad') || lowerText.includes('hate') || lowerText.includes('terrible') || lowerText.includes('angry')) {
+                score = -Math.abs(score) * 0.5 - 0.5; // push negative
+            }
+
+            let sentiment = "Neutral";
+            let color = "#888";
+            if (score > 0.3) { sentiment = "Positive"; color = "#00ff00"; }
+            else if (score < -0.3) { sentiment = "Negative"; color = "#ff3333"; }
+
+            el.innerHTML = `
+<div style="border: 1px dashed var(--link-color); padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: var(--link-color);">/// SENTIMENT ANALYSIS</h3>
+    <span style="color: var(--command-color);">Input:</span> "${text}"<br>
+    <span style="color: var(--command-color);">Result:</span> <span style="color: ${color}; font-weight: bold;">${sentiment}</span> (Score: ${score.toFixed(2)})
+</div>`;
+            const termDiv = document.getElementById('terminal');
+            if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+        }
+    }, 500);
+
+    return `<div id="${id}"><span style="color: #888;">[Analyzing text sentiment...]</span></div>`;
 }
