@@ -321,7 +321,7 @@ const commandRegistry = {
 };
 
 // Generate cmdList dynamically
-const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'gitlab', 'wikidata', 'pexels', 'workspace', 'photo', 'challenge', 'feedback', 'remember', 'recall', 'assist', 'voice', 'image', 'quests', 'avatar', 'geo', 'leaderboard', 'alias', 'parse', 'remind', 'news', 'convert', 'translate', 'analyze', 'issues', 'qr', 'fact', 'ajoke', 'longterm', 'docparse', 'daily', 'interact', 'suggest', 'automate', 'runflow', 'stock', 'review', 'trivia', 'shop', 'buy', 'inventory', 'dictionary', 'space', 'npm', 'rps', 'music', 'sentiment'];
+const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'gitlab', 'wikidata', 'pexels', 'workspace', 'photo', 'challenge', 'feedback', 'remember', 'recall', 'assist', 'voice', 'image', 'quests', 'avatar', 'geo', 'leaderboard', 'alias', 'parse', 'remind', 'news', 'convert', 'translate', 'analyze', 'issues', 'qr', 'fact', 'ajoke', 'longterm', 'docparse', 'daily', 'interact', 'suggest', 'automate', 'runflow', 'stock', 'review', 'trivia', 'shop', 'buy', 'inventory', 'dictionary', 'space', 'npm', 'rps', 'music', 'sentiment', 'focus', 'habit', 'achievements', 'books', 'podcast', 'featurerequest'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -2900,8 +2900,207 @@ if (commandLine) commandLine.addEventListener('keydown', function(e) {
     }
 });
 
+function handleFocusCommand(args) {
+    let minutes = 25;
+    if (args.length > 0 && !isNaN(parseInt(args[0]))) {
+        minutes = parseInt(args[0]);
+    }
+    const id = 'focus-' + Date.now();
+
+    // Simulate Pomodoro UI
+    return `
+        <div id="${id}" style="border: 1px solid var(--accent-color); padding: 15px; margin-top: 10px; border-radius: 5px; text-align: center;">
+            <div style="font-size: 2em; color: var(--accent-color); font-weight: bold;">[ ${minutes}:00 ]</div>
+            <div style="color: var(--text-color); margin-top: 5px;">Focus Mode Active</div>
+            <div style="margin-top: 10px;">
+                <button style="background: var(--accent-color); color: var(--bg-color); border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px;">Start</button>
+                <button style="background: transparent; color: var(--accent-color); border: 1px solid var(--accent-color); padding: 5px 10px; cursor: pointer; border-radius: 3px;">Pause</button>
+            </div>
+        </div>
+    `;
+}
+
+function handleHabitCommand(args) {
+    if (args.length === 0) {
+        let habits = [];
+        try {
+            const stored = localStorage.getItem('termHabits');
+            if (stored) habits = JSON.parse(stored);
+        } catch (e) {}
+
+        if (habits.length === 0) {
+            return "No habits tracked. Use: habit add [name]<br>Example: habit add Read 10 pages";
+        }
+
+        let html = '<div style="margin-top: 10px; border: 1px dashed var(--border-color); padding: 10px;">';
+        html += '<h4 style="margin: 0 0 10px 0; color: var(--accent-color);">Daily Habits Tracker</h4>';
+        habits.forEach((h, i) => {
+            html += `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <span>${h.name}</span>
+                    <div>
+                        <span style="color: var(--warning-color); margin-right: 10px;">Streak: ${h.streak}🔥</span>
+                        <button onclick="alert('Habit marked complete for today!')" style="background: var(--success-color); color: #fff; border: none; padding: 2px 8px; border-radius: 3px; cursor: pointer;">Done</button>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        return html;
+    }
+
+    if (args[0] === 'add' && args.length > 1) {
+        const name = args.slice(1).join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        let habits = [];
+        try {
+            const stored = localStorage.getItem('termHabits');
+            if (stored) habits = JSON.parse(stored);
+        } catch (e) {}
+
+        habits.push({ name, streak: 0, lastDone: null });
+        try {
+            localStorage.setItem('termHabits', JSON.stringify(habits));
+        } catch (e) {}
+
+        return `Added new habit: <span style="color:var(--accent-color);">${name}</span>`;
+    }
+
+    return "Usage: habit [add] [name]";
+}
+
+function handleAchievementsCommand() {
+    const data = getUserData();
+    const lvl = data.level;
+
+    let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 10px;">';
+
+    const badges = [
+        { name: "First Login", icon: "🚀", req: 1 },
+        { name: "Explorer", icon: "🗺️", req: 3 },
+        { name: "Power User", icon: "⚡", req: 5 },
+        { name: "AI Whisperer", icon: "🧠", req: 8 },
+        { name: "Terminal God", icon: "👑", req: 10 }
+    ];
+
+    badges.forEach(b => {
+        const unlocked = lvl >= b.req;
+        const opacity = unlocked ? "1" : "0.3";
+        const filter = unlocked ? "none" : "grayscale(100%)";
+        const lockIcon = unlocked ? "" : "<br><small>🔒 Lvl " + b.req + "</small>";
+
+        html += `
+            <div style="background: var(--panel-bg); border: 1px solid ${unlocked ? 'var(--accent-color)' : 'var(--border-color)'}; border-radius: 8px; padding: 15px; text-align: center; opacity: ${opacity}; filter: ${filter};">
+                <div style="font-size: 2em; margin-bottom: 5px;">${b.icon}</div>
+                <div style="font-size: 0.9em; font-weight: bold;">${b.name}</div>
+                ${lockIcon}
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    return html;
+}
+
+function handleBooksCommand(args) {
+    if (args.length === 0) {
+        return "Usage: books [query]<br>Example: books Neuromancer";
+    }
+    const query = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const id = 'books-' + Date.now();
+
+    fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=3`)
+        .then(res => res.json())
+        .then(data => {
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            if (data.docs && data.docs.length > 0) {
+                let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+                data.docs.forEach(b => {
+                    const title = b.title || "Unknown Title";
+                    const author = b.author_name ? b.author_name[0] : "Unknown Author";
+                    const year = b.first_publish_year || "N/A";
+                    html += `
+                        <div style="border-left: 3px solid var(--accent-color); padding-left: 10px; background: var(--panel-bg); padding: 10px;">
+                            <div style="font-weight: bold; color: var(--accent-color);">${title}</div>
+                            <div style="font-size: 0.9em; color: #888;">By ${author} (${year})</div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                el.innerHTML = html;
+            } else {
+                el.innerHTML = "No books found.";
+            }
+        })
+        .catch(err => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = "Error fetching books data.";
+        });
+
+    return `<div id="${id}">Searching for books: <span style="color:var(--accent-color);">${query}</span>...</div>`;
+}
+
+function handlePodcastCommand(args) {
+    if (args.length === 0) {
+        return "Usage: podcast [query]<br>Example: podcast Lex Fridman";
+    }
+    const query = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const id = 'podcast-' + Date.now();
+
+    fetch(`https://api.allorigins.win/raw?url=https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=podcast&limit=3`)
+        .then(res => res.json())
+        .then(data => {
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            if (data.results && data.results.length > 0) {
+                let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+                data.results.forEach(p => {
+                    html += `
+                        <div style="display: flex; align-items: center; gap: 10px; background: var(--panel-bg); padding: 10px; border-radius: 5px;">
+                            <img src="${p.artworkUrl60}" style="width: 50px; height: 50px; border-radius: 5px;">
+                            <div>
+                                <div style="font-weight: bold; color: var(--accent-color);">${p.collectionName}</div>
+                                <div style="font-size: 0.8em; color: #888;">${p.artistName}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                el.innerHTML = html;
+            } else {
+                el.innerHTML = "No podcasts found.";
+            }
+        })
+        .catch(err => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = "Error fetching podcast data.";
+        });
+
+    return `<div id="${id}">Searching for podcasts: <span style="color:var(--accent-color);">${query}</span>...</div>`;
+}
+
+function handleFeaturerequestCommand(args) {
+    if (args.length > 0) {
+        const idea = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        return `<div style="color: var(--success-color);">[✓] Feature request recorded: "${idea}". Our community-driven feedback loop will prioritize it!</div>`;
+    }
+
+    const id = 'fr-' + Date.now();
+    return `
+        <div id="${id}" style="background: var(--panel-bg); border: 1px dashed var(--accent-color); padding: 15px; margin-top: 10px; border-radius: 5px;">
+            <h4 style="margin: 0 0 10px 0; color: var(--accent-color);">1-Click Feature Request</h4>
+            <p style="font-size: 0.9em; margin-bottom: 10px;">Help shape the future of this ecosystem. What should we build next?</p>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" placeholder="Describe feature..." style="flex: 1; padding: 5px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 3px;">
+                <button onclick="this.parentNode.innerHTML='<span style=\'color:var(--success-color)\'>Thank you for the feedback!</span>'" style="background: var(--accent-color); color: var(--bg-color); border: none; padding: 5px 15px; cursor: pointer; border-radius: 3px;">Submit</button>
+            </div>
+        </div>
+    `;
+}
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { type, handleArrowUp, handleArrowDown, handleTab, handleEnter, handleMatrixCommand, handleCalcCommand, handleEchoCommand, handleNeofetchCommand, handleThemeCommand, handleBttfCommand, handleTimetravelCommand, handleFluxCommand, handleSysinfoCommand, handleWeatherCommand, handleGuessCommand, handleStarfieldCommand, handleTodoCommand, handleCowsayCommand, handleBase64Command, handleRollCommand, handleJokeCommand, handleCoinCommand, handlePasswordCommand, handlePingCommand, handleRememberCommand, handleRecallCommand, handleAssistCommand, handleVoiceCommand, handleImageCommand, handleQuestsCommand, handleAvatarCommand, handleGeoCommand, handleLeaderboardCommand, handleAliasCommand, handleParseCommand, handleRemindCommand, handleNewsCommand, handleConvertCommand, handleTranslateCommand, handleAnalyzeCommand, handleIssuesCommand, handleAutomateCommand, handleRunflowCommand, handleStockCommand, handleReviewCommand, handleTriviaCommand, handleShopCommand, handleBuyCommand, handleInventoryCommand, handleGitlabCommand, handleWikidataCommand, handlePexelsCommand, handleWorkspaceCommand, handleDictionaryCommand, handleSpaceCommand, handleNpmCommand, handleRpsCommand, handleMusicCommand, handleSentimentCommand };
+module.exports = { type, handleArrowUp, handleArrowDown, handleTab, handleEnter, handleMatrixCommand, handleCalcCommand, handleEchoCommand, handleNeofetchCommand, handleThemeCommand, handleBttfCommand, handleTimetravelCommand, handleFluxCommand, handleSysinfoCommand, handleWeatherCommand, handleGuessCommand, handleStarfieldCommand, handleTodoCommand, handleCowsayCommand, handleBase64Command, handleRollCommand, handleJokeCommand, handleCoinCommand, handlePasswordCommand, handlePingCommand, handleRememberCommand, handleRecallCommand, handleAssistCommand, handleVoiceCommand, handleImageCommand, handleQuestsCommand, handleAvatarCommand, handleGeoCommand, handleLeaderboardCommand, handleAliasCommand, handleParseCommand, handleRemindCommand, handleNewsCommand, handleConvertCommand, handleTranslateCommand, handleAnalyzeCommand, handleIssuesCommand, handleAutomateCommand, handleRunflowCommand, handleStockCommand, handleReviewCommand, handleTriviaCommand, handleShopCommand, handleBuyCommand, handleInventoryCommand, handleGitlabCommand, handleWikidataCommand, handlePexelsCommand, handleWorkspaceCommand, handleDictionaryCommand, handleSpaceCommand, handleNpmCommand, handleRpsCommand, handleMusicCommand, handleSentimentCommand, handleFocusCommand, handleHabitCommand, handleAchievementsCommand, handleBooksCommand, handlePodcastCommand, handleFeaturerequestCommand };
 }
 
 // Tab functionality
@@ -3015,6 +3214,7 @@ function updateIntelligence() {
     let factHtml = handleFactCommand('fact-preview');
     let suggestHtml = handleSuggestCommand();
     let runflowHtml = handleRunflowCommand([], 'runflow-preview');
+    let habitHtml = handleHabitCommand([]);
     let sentimentHtml = handleSentimentCommand(['This new tool is incredible!'], 'sentiment-preview');
 
     intelligenceData.innerHTML = `
@@ -3071,6 +3271,9 @@ function updateEcosystem() {
     let dictionaryHtml = handleDictionaryCommand(['cyberpunk'], 'dictionary-preview');
     let spaceHtml = handleSpaceCommand('space-preview');
     let npmHtml = handleNpmCommand(['react'], 'npm-preview');
+    let booksHtml = handleBooksCommand(['Neuromancer']);
+    let podcastHtml = handlePodcastCommand(['Lex Fridman']);
+    let featurerequestHtml = handleFeaturerequestCommand([]);
 
     ecosystemData.innerHTML = `
         <div class="ai-hub-card">
@@ -3131,6 +3334,7 @@ function updateEcosystem() {
         </div>
         <div class="ai-hub-card">
             <h3 class="ai-hub-title">Feedback & Future Iterations</h3>
+            ${featurerequestHtml}
             <div style="margin-top: 10px;">
                 Which integration should we add next? Let us know!<br>
                 <button onclick="window.logFeedback(true); alert('Thanks for the feedback!');" style="background: var(--panel-bg); color: var(--user-color); border: 1px solid var(--border-color); padding: 5px 10px; cursor: pointer; margin-top: 5px;">Spotify API</button>
@@ -3146,18 +3350,21 @@ function updateAiHub() {
     if (!aiHubData) return;
 
     let workspaceHtml = handleWorkspaceCommand();
+    let focusHtml = handleFocusCommand([]);
     let avatarHtml = handleAvatarCommand();
     let questsHtml = handleQuestsCommand();
     let memoryHtml = handleRecallCommand([]);
     let challengeHtml = handleChallengeCommand();
     let assistHtml = handleAssistCommand();
     let companionHtml = handleCompanionCommand();
+    let featurerequestHtml = handleFeaturerequestCommand([]);
     let musicHtml = handleMusicCommand(['play']);
 
     aiHubData.innerHTML = `
         <div class="ai-hub-card">
             <h3 class="ai-hub-title">Digital Workspace & Companion</h3>
             ${workspaceHtml}
+            <div style="margin-top: 15px;">${focusHtml}</div>
             ${avatarHtml}
             ${assistHtml}
             ${companionHtml}
@@ -3340,6 +3547,7 @@ function updateGames() {
     let shopHtml = handleShopCommand();
     let inventoryHtml = handleInventoryCommand();
     let rpsHtml = handleRpsCommand(['rock']);
+    let achievementsHtml = handleAchievementsCommand([]);
 
     gamesData.innerHTML = `
         <div class="games-card">
@@ -3350,6 +3558,10 @@ function updateGames() {
             <h3>System Shop & Inventory</h3>
             ${shopHtml}
             ${inventoryHtml}
+        </div>
+        <div class="games-card">
+            <h3>Achievements & Badges</h3>
+            ${achievementsHtml}
         </div>
         <div class="games-card">
             <h3>Dice Roller</h3>
