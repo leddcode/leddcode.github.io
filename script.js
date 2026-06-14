@@ -321,7 +321,7 @@ const commandRegistry = {
 };
 
 // Generate cmdList dynamically
-const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'gitlab', 'wikidata', 'pexels', 'workspace', 'photo', 'challenge', 'feedback', 'remember', 'recall', 'assist', 'voice', 'image', 'quests', 'avatar', 'geo', 'leaderboard', 'alias', 'parse', 'remind', 'news', 'convert', 'translate', 'analyze', 'issues', 'qr', 'fact', 'ajoke', 'longterm', 'docparse', 'daily', 'interact', 'suggest', 'automate', 'runflow', 'stock', 'review', 'trivia', 'shop', 'buy', 'inventory', 'dictionary', 'space', 'npm', 'rps', 'music', 'sentiment'];
+const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'gitlab', 'wikidata', 'pexels', 'workspace', 'photo', 'challenge', 'feedback', 'remember', 'recall', 'assist', 'voice', 'image', 'quests', 'avatar', 'geo', 'leaderboard', 'alias', 'parse', 'remind', 'news', 'convert', 'translate', 'analyze', 'issues', 'qr', 'fact', 'ajoke', 'longterm', 'docparse', 'daily', 'interact', 'suggest', 'automate', 'runflow', 'stock', 'review', 'trivia', 'shop', 'buy', 'inventory', 'dictionary', 'space', 'npm', 'rps', 'music', 'sentiment', 'cocktail', 'country', 'podcast', 'slots', 'hack'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -2840,7 +2840,18 @@ function handleEnter(e) {
             outputHTML = handleMusicCommand(args);
         } else if (cmdName === 'sentiment') {
             outputHTML = handleSentimentCommand(args, outId);
+        } else if (cmdName === 'cocktail') {
+            outputHTML = handleCocktailCommand(args, outId);
+        } else if (cmdName === 'country') {
+            outputHTML = handleCountryCommand(args, outId);
+        } else if (cmdName === 'podcast') {
+            outputHTML = handlePodcastCommand(args, outId);
+        } else if (cmdName === 'slots') {
+            outputHTML = handleSlotsCommand();
+        } else if (cmdName === 'hack') {
+            outputHTML = handleHackCommand(args, outId);
         } else if (command.startsWith('python3')) {
+
             outputHTML = `Command 'python3' not found, did you mean: command 'python' from deb python-is-python3?`;
         } else if (command.startsWith('bash')) {
             outputHTML = `Command 'bash' not found, did you mean: command 'sh'?`;
@@ -2901,7 +2912,7 @@ if (commandLine) commandLine.addEventListener('keydown', function(e) {
 });
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { type, handleArrowUp, handleArrowDown, handleTab, handleEnter, handleMatrixCommand, handleCalcCommand, handleEchoCommand, handleNeofetchCommand, handleThemeCommand, handleBttfCommand, handleTimetravelCommand, handleFluxCommand, handleSysinfoCommand, handleWeatherCommand, handleGuessCommand, handleStarfieldCommand, handleTodoCommand, handleCowsayCommand, handleBase64Command, handleRollCommand, handleJokeCommand, handleCoinCommand, handlePasswordCommand, handlePingCommand, handleRememberCommand, handleRecallCommand, handleAssistCommand, handleVoiceCommand, handleImageCommand, handleQuestsCommand, handleAvatarCommand, handleGeoCommand, handleLeaderboardCommand, handleAliasCommand, handleParseCommand, handleRemindCommand, handleNewsCommand, handleConvertCommand, handleTranslateCommand, handleAnalyzeCommand, handleIssuesCommand, handleAutomateCommand, handleRunflowCommand, handleStockCommand, handleReviewCommand, handleTriviaCommand, handleShopCommand, handleBuyCommand, handleInventoryCommand, handleGitlabCommand, handleWikidataCommand, handlePexelsCommand, handleWorkspaceCommand, handleDictionaryCommand, handleSpaceCommand, handleNpmCommand, handleRpsCommand, handleMusicCommand, handleSentimentCommand };
+    module.exports = { type, handleArrowUp, handleArrowDown, handleTab, handleEnter, handleMatrixCommand, handleCalcCommand, handleEchoCommand, handleNeofetchCommand, handleThemeCommand, handleBttfCommand, handleTimetravelCommand, handleFluxCommand, handleSysinfoCommand, handleWeatherCommand, handleGuessCommand, handleStarfieldCommand, handleTodoCommand, handleCowsayCommand, handleBase64Command, handleRollCommand, handleJokeCommand, handleCoinCommand, handlePasswordCommand, handlePingCommand, handleRememberCommand, handleRecallCommand, handleAssistCommand, handleVoiceCommand, handleImageCommand, handleQuestsCommand, handleAvatarCommand, handleGeoCommand, handleLeaderboardCommand, handleAliasCommand, handleParseCommand, handleRemindCommand, handleNewsCommand, handleConvertCommand, handleTranslateCommand, handleAnalyzeCommand, handleIssuesCommand, handleAutomateCommand, handleRunflowCommand, handleStockCommand, handleReviewCommand, handleTriviaCommand, handleShopCommand, handleBuyCommand, handleInventoryCommand, handleGitlabCommand, handleWikidataCommand, handlePexelsCommand, handleWorkspaceCommand, handleDictionaryCommand, handleSpaceCommand, handleNpmCommand, handleRpsCommand, handleMusicCommand, handleSentimentCommand, handleCocktailCommand, handleCountryCommand, handlePodcastCommand, handleSlotsCommand, handleHackCommand };
 }
 
 // Tab functionality
@@ -3016,6 +3027,7 @@ function updateIntelligence() {
     let suggestHtml = handleSuggestCommand();
     let runflowHtml = handleRunflowCommand([], 'runflow-preview');
     let sentimentHtml = handleSentimentCommand(['This new tool is incredible!'], 'sentiment-preview');
+    let podcastHtml = handlePodcastCommand(['javascript'], 'podcast-preview');
 
     intelligenceData.innerHTML = `
         <div class="ai-hub-card">
@@ -3050,6 +3062,10 @@ function updateIntelligence() {
             <h3 class="ai-hub-title">Sentiment Analysis</h3>
             ${sentimentHtml}
         </div>
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Media Processing (Podcast Search)</h3>
+            ${podcastHtml}
+        </div>
     `;
 }
 
@@ -3071,6 +3087,8 @@ function updateEcosystem() {
     let dictionaryHtml = handleDictionaryCommand(['cyberpunk'], 'dictionary-preview');
     let spaceHtml = handleSpaceCommand('space-preview');
     let npmHtml = handleNpmCommand(['react'], 'npm-preview');
+    let cocktailHtml = handleCocktailCommand(['margarita'], 'cocktail-preview');
+    let countryHtml = handleCountryCommand(['michael'], 'country-preview');
 
     ecosystemData.innerHTML = `
         <div class="ai-hub-card">
@@ -3082,14 +3100,16 @@ function updateEcosystem() {
                     ${geoHtml}
                 </div>
                 <div style="flex: 1; min-width: 200px;">
-                    <strong>Financial Markets:</strong><br>
+                    <strong>Financial Markets & Utilities:</strong><br>
                     ${cryptoHtml}
                     ${stockHtml}
+                    ${cocktailHtml}
                 </div>
                 <div style="flex: 1; min-width: 200px;">
                     <strong>Public Knowledge Graphs:</strong><br>
                     ${wikiHtml}
                     ${wikidataHtml}
+                    ${countryHtml}
                 </div>
             </div>
         </div>
@@ -3340,6 +3360,8 @@ function updateGames() {
     let shopHtml = handleShopCommand();
     let inventoryHtml = handleInventoryCommand();
     let rpsHtml = handleRpsCommand(['rock']);
+    let slotsHtml = handleSlotsCommand();
+    let hackHtml = handleHackCommand(['10.0.0.1'], 'hack-preview');
 
     gamesData.innerHTML = `
         <div class="games-card">
@@ -3371,6 +3393,14 @@ function updateGames() {
             <h3>Rock Paper Scissors</h3>
             ${rpsHtml}
         </div>
+        <div class="games-card">
+            <h3>Casino Slots</h3>
+            ${slotsHtml}
+        </div>
+        <div class="games-card">
+            <h3>Terminal Hacker</h3>
+            ${hackHtml}
+        </div>
     `;
 }
 
@@ -3398,6 +3428,254 @@ function updateSettings() {
         </div>
     `;
 }
+
+function handleCocktailCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: cocktail [name]<br>Example: cocktail margarita";
+    }
+    const query = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        fetch(`https://www.thecocktaildb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`)
+            .then(response => {
+                if (!response.ok) throw new Error("Not found");
+                return response.json();
+            })
+            .then(data => {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                if (data && data.drinks && data.drinks.length > 0) {
+                    const drink = data.drinks[0];
+                    const name = drink.strDrink;
+                    const category = drink.strCategory;
+                    const glass = drink.strGlass;
+                    const instructions = drink.strInstructions;
+
+                    let ingredients = [];
+                    for(let i = 1; i <= 15; i++) {
+                        if (drink[`strIngredient${i}`]) {
+                            let measure = drink[`strMeasure${i}`] ? drink[`strMeasure${i}`] : "";
+                            ingredients.push(`${measure} ${drink[`strIngredient${i}`]}`.trim());
+                        }
+                    }
+
+                    el.innerHTML = `
+<div style="border-left: 3px solid #ff007f; padding-left: 10px; margin: 10px 0;">
+    <span style="color: #ff007f; font-weight: bold;">[COCKTAIL DB]</span> ${name} <span style="color: #888; font-style: italic;">(${category})</span><br>
+    <span style="color: var(--command-color);">Glass:</span> ${glass}<br>
+    <span style="color: var(--command-color);">Ingredients:</span> ${ingredients.join(', ')}<br>
+    <span style="color: var(--text-color); font-style: italic;">${instructions}</span>
+</div>`;
+                } else {
+                    el.innerHTML = `<div style="color: #ffaa00;">[COCKTAIL DB] No cocktails found for '${query}'.</div>`;
+                }
+                const termDiv = document.getElementById('terminal');
+                if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            })
+            .catch(err => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch cocktail data for '${query}'.</div>`;
+            });
+    }, 100);
+
+    return `<div id="${id}"><span style="color: #888;">[Looking up cocktail '${query}'...]</span></div>`;
+}
+
+
+function handleCountryCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: country [name]<br>Example: country michael";
+    }
+    const query = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        fetch(`https://api.nationalize.io/?name=${encodeURIComponent(query)}`)
+            .then(response => {
+                if (!response.ok) throw new Error("Not found");
+                return response.json();
+            })
+            .then(data => {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                if (data && data.country && data.country.length > 0) {
+                    const country = data.country[0];
+                    const countryId = country.country_id;
+                    const prob = (country.probability * 100).toFixed(2);
+
+                    el.innerHTML = `
+<div style="border-left: 3px solid #00ffcc; padding-left: 10px; margin: 10px 0;">
+    <span style="color: #00ffcc; font-weight: bold;">[NAME ORIGIN DB]</span> ${data.name}<br>
+    <span style="color: var(--command-color);">Top Country:</span> ${countryId}<br>
+    <span style="color: var(--command-color);">Probability:</span> ${prob}%<br>
+</div>`;
+                } else {
+                    el.innerHTML = `<div style="color: #ffaa00;">[NAME ORIGIN DB] No origin data found for '${query}'.</div>`;
+                }
+                const termDiv = document.getElementById('terminal');
+                if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            })
+            .catch(err => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch origin data for '${query}'.</div>`;
+            });
+    }, 100);
+
+    return `<div id="${id}"><span style="color: #888;">[Looking up origin for name '${query}'...]</span></div>`;
+}
+
+
+function handlePodcastCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: podcast [query]<br>Example: podcast javascript";
+    }
+    const query = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=podcast&limit=5`)
+            .then(response => {
+                if (!response.ok) throw new Error("Not found");
+                return response.json();
+            })
+            .then(data => {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                if (data && data.results && data.results.length > 0) {
+                    let podcastsHtml = data.results.map(podcast => {
+                        return `<li><a href="${podcast.collectionViewUrl}" target="_blank" class="link">${podcast.collectionName}</a> by ${podcast.artistName}</li>`;
+                    }).join('');
+
+                    el.innerHTML = `
+<div style="border-left: 3px solid #b300ff; padding-left: 10px; margin: 10px 0;">
+    <span style="color: #b300ff; font-weight: bold;">[PODCAST SEARCH]</span> ${query}<br>
+    <ul style="margin: 0; padding-left: 20px;">
+        ${podcastsHtml}
+    </ul>
+</div>`;
+                } else {
+                    el.innerHTML = `<div style="color: #ffaa00;">[PODCAST SEARCH] No podcasts found for '${query}'.</div>`;
+                }
+                const termDiv = document.getElementById('terminal');
+                if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            })
+            .catch(err => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch podcast data for '${query}'.</div>`;
+            });
+    }, 100);
+
+    return `<div id="${id}"><span style="color: #888;">[Searching podcasts for '${query}'...]</span></div>`;
+}
+
+
+function handleSlotsCommand() {
+    const data = getUserData();
+    const cost = 10;
+
+    if (data.xp < cost) {
+        return `<span style="color: #ff3333;">Insufficient XP. You need ${cost} XP to play slots.</span>`;
+    }
+
+    data.xp -= cost;
+    saveUserData(data);
+
+    const symbols = ["🍒", "🍋", "🍉", "⭐", "💎", "7️⃣"];
+    const roll1 = symbols[Math.floor(getRandom() * symbols.length)];
+    const roll2 = symbols[Math.floor(getRandom() * symbols.length)];
+    const roll3 = symbols[Math.floor(getRandom() * symbols.length)];
+
+    let result = "";
+    let winMsg = "";
+    if (roll1 === roll2 && roll2 === roll3) {
+        let win = 100;
+        if (roll1 === "7️⃣") win = 500;
+        else if (roll1 === "💎") win = 300;
+
+        result = `<span style="color: #00ff00; font-weight: bold;">JACKPOT!</span>`;
+        winMsg = ` (+${win} XP)`;
+        addXP(win);
+    } else if (roll1 === roll2 || roll2 === roll3 || roll1 === roll3) {
+        let win = 20;
+        result = `<span style="color: #ffcc00; font-weight: bold;">Small Win!</span>`;
+        winMsg = ` (+${win} XP)`;
+        addXP(win);
+    } else {
+        result = `<span style="color: #ff3333;">You lose!</span>`;
+    }
+
+    return `
+<div style="border: 2px solid #ff00ff; padding: 15px; margin: 10px 0; text-align: center; border-radius: 8px; width: fit-content; background: rgba(0,0,0,0.5);">
+    <div style="color: #ff00ff; font-weight: bold; font-size: 1.2em; margin-bottom: 10px;">[ CASINO SLOTS ]</div>
+    <div style="font-size: 2em; letter-spacing: 10px; background: #222; padding: 10px; border: 2px inset #555; border-radius: 5px;">
+        [ ${roll1} | ${roll2} | ${roll3} ]
+    </div>
+    <div style="margin-top: 15px; font-size: 1.1em;">
+        ${result}${winMsg}
+    </div>
+    <div style="font-size: 0.8em; color: #888; margin-top: 5px;">(-${cost} XP per spin)</div>
+</div>`;
+}
+
+
+function handleHackCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: hack [target_ip]<br>Example: hack 192.168.1.5";
+    }
+    const target = args[0].replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+            let steps = [
+                "Initializing connection to " + target + "...",
+                "Bypassing ICE firewall...",
+                "Decrypting security protocols...",
+                "Accessing mainframe...",
+                "Extracting sensitive data..."
+            ];
+
+            el.innerHTML = `<div style="border-left: 3px solid #00ff00; padding-left: 10px; margin: 10px 0;">
+                <span style="color: #00ff00; font-weight: bold;">[HACK INITIATED]</span> Target: ${target}<br>
+                <div id="${id}-log" style="color: var(--command-color); font-family: monospace; margin-top: 10px;"></div>
+            </div>`;
+
+            const logEl = document.getElementById(`${id}-log`);
+
+            let currentStep = 0;
+            const hackInterval = setInterval(() => {
+                if (currentStep < steps.length) {
+                    let p = document.createElement("div");
+                    p.innerHTML = `> ${steps[currentStep]}`;
+                    logEl.appendChild(p);
+                    currentStep++;
+
+                    const termDiv = document.getElementById('terminal');
+                    if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+                } else {
+                    clearInterval(hackInterval);
+                    const success = getRandom() > 0.3; // 70% success rate
+
+                    let resultMsg = "";
+                    if (success) {
+                        resultMsg = `<div style="color: #00ff00; font-weight: bold; margin-top: 10px;">[SUCCESS] Root access granted. Extracted +50 XP.</div>`;
+                        addXP(50);
+                    } else {
+                        resultMsg = `<div style="color: #ff3333; font-weight: bold; margin-top: 10px;">[FAILED] Connection traced. Disconnecting to protect identity.</div>`;
+                    }
+
+                    logEl.innerHTML += resultMsg;
+                    const termDiv = document.getElementById('terminal');
+                    if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+                }
+            }, 800);
+        }
+    }, 100);
+
+    return `<div id="${id}"><span style="color: #888;">[Deploying hacking payload to '${target}'...]</span></div>`;
+}
+
 function handleDictionaryCommand(args, id) {
     if (args.length === 0) {
         return "Usage: dictionary [word]<br>Example: dictionary hello";
