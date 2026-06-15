@@ -3353,7 +3353,7 @@ function updateAiHub() {
     let assistHtml = handleAssistCommand();
     let companionHtml = handleCompanionCommand();
     let featurerequestHtml = handleFeaturerequestCommand([]);
-    let musicHtml = handleMusicCommand(['play']);
+    let musicHtml = handleMusicCommand(['play'], true);
 
     aiHubData.innerHTML = `
         <div class="ai-hub-card">
@@ -4013,26 +4013,76 @@ function handleRpsCommand(args) {
 </div>`;
 }
 
-function handleMusicCommand(args) {
+// Global Audio Player Variables
+let terminalAudioPlayer = null;
+let terminalAudioStreams = [
+    "https://streams.ilovemusic.de/iloveradio17.mp3", // Chillhop/Lofi
+    "https://streams.ilovemusic.de/iloveradio1.mp3",
+    "https://streams.ilovemusic.de/iloveradio2.mp3",
+    "https://streams.ilovemusic.de/iloveradio14.mp3"
+];
+let currentAudioStreamIndex = 0;
+
+function handleMusicCommand(args, isUiCall = false) {
     if (args.length === 0) {
         return "Usage: music [play|stop|next]<br>Example: music play";
     }
     const action = args[0].toLowerCase();
 
+    // Check if running in test environment
+    const isTestEnv = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
+
     if (action === 'play') {
         const tracks = ["Cyberpunk City", "Neon Nights", "Matrix Beats", "Synthwave Drift"];
         const track = tracks[Math.floor(getRandom() * tracks.length)];
+
+        // Actually play the audio if not just rendering UI
+        if (!isUiCall && !isTestEnv) {
+            if (!terminalAudioPlayer) {
+                terminalAudioPlayer = new Audio(terminalAudioStreams[currentAudioStreamIndex]);
+                terminalAudioPlayer.loop = true;
+                // Avoid mixed content issues if deployed on https, but these are https streams
+            }
+            try {
+                terminalAudioPlayer.play().catch(e => console.log("Audio play error:", e));
+            } catch (e) {
+                console.log("Audio API not supported.");
+            }
+        }
+
         return `
 <div style="border-left: 3px solid #ff00ff; padding-left: 10px; margin: 10px 0;">
     <span style="color: #ff00ff; font-weight: bold;">[TERMINAL MUSIC PLAYER]</span><br>
     <span style="color: var(--command-color);">Status:</span> Playing 🎵<br>
-    <span style="color: var(--user-color);">Track:</span> ${track}<br>
+    <span style="color: var(--user-color);">Stream:</span> Lofi Radio Beat ${currentAudioStreamIndex + 1}<br>
     <span style="color: #888; font-size: 0.9em;">[Visualizing audio data stream...]</span>
 </div>`;
     } else if (action === 'stop') {
+        if (!isUiCall && !isTestEnv && terminalAudioPlayer) {
+            try {
+                terminalAudioPlayer.pause();
+                terminalAudioPlayer.currentTime = 0;
+            } catch (e) {}
+        }
         return `<span style="color: #ffaa00;">[TERMINAL MUSIC PLAYER] Playback stopped.</span>`;
     } else if (action === 'next') {
-        return `<span style="color: #00ffcc;">[TERMINAL MUSIC PLAYER] Skipping to next track... Run 'music play' again.</span>`;
+        if (!isUiCall && !isTestEnv) {
+            if (terminalAudioPlayer) {
+                try {
+                    terminalAudioPlayer.pause();
+                } catch (e) {}
+            }
+            currentAudioStreamIndex = (currentAudioStreamIndex + 1) % terminalAudioStreams.length;
+            terminalAudioPlayer = new Audio(terminalAudioStreams[currentAudioStreamIndex]);
+            terminalAudioPlayer.loop = true;
+            try {
+                terminalAudioPlayer.play().catch(e => console.log("Audio play error:", e));
+            } catch (e) {}
+        } else if (isUiCall || isTestEnv) {
+            currentAudioStreamIndex = (currentAudioStreamIndex + 1) % terminalAudioStreams.length;
+        }
+
+        return `<span style="color: #00ffcc;">[TERMINAL MUSIC PLAYER] Skipping to stream ${currentAudioStreamIndex + 1}...</span>`;
     } else {
         return "Unknown action. Use 'play', 'stop', or 'next'.";
     }
