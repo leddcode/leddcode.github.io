@@ -52,9 +52,20 @@ function getUserData() {
     return data;
 }
 
+function updateUIProfile() {
+    const data = getUserData();
+    const lvlEl = document.getElementById('sidebar-level');
+    const xpEl = document.getElementById('sidebar-xp');
+    if (lvlEl && xpEl) {
+        lvlEl.textContent = data.level;
+        xpEl.textContent = `${data.xp} / ${data.level * 100}`;
+    }
+}
+
 function saveUserData(data) {
     try {
         localStorage.setItem('termUserData', JSON.stringify(data));
+        updateUIProfile();
     } catch (e) {}
 }
 
@@ -321,7 +332,7 @@ const commandRegistry = {
 };
 
 // Generate cmdList dynamically
-const customCommands = ['todo', 'cowsay', 'base64', 'roll', 'joke', 'coin', 'password', 'ping', 'theme', 'matrix', 'neofetch', 'echo', 'calc', 'bttf', 'timetravel', 'flux', 'sysinfo', 'weather', 'guess', 'stats', 'companion', 'crypto', 'wiki', 'github', 'gitlab', 'wikidata', 'pexels', 'workspace', 'photo', 'challenge', 'feedback', 'remember', 'recall', 'assist', 'voice', 'image', 'quests', 'avatar', 'geo', 'leaderboard', 'alias', 'parse', 'remind', 'news', 'convert', 'translate', 'analyze', 'issues', 'qr', 'fact', 'ajoke', 'longterm', 'docparse', 'daily', 'interact', 'suggest', 'automate', 'runflow', 'stock', 'review', 'trivia', 'shop', 'buy', 'inventory', 'dictionary', 'space', 'npm', 'rps', 'music', 'sentiment', 'focus', 'habit', 'achievements', 'books', 'podcast', 'featurerequest'];
+const customCommands = ['achievements', 'ajoke', 'alias', 'analyze', 'assist', 'automate', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'voice', 'weather', 'wiki', 'wikidata', 'workspace'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -2840,7 +2851,18 @@ function handleEnter(e) {
             outputHTML = handleMusicCommand(args);
         } else if (cmdName === 'sentiment') {
             outputHTML = handleSentimentCommand(args, outId);
+        } else if (cmdName === 'cocktail') {
+            outputHTML = handleCocktailCommand(args, outId);
+        } else if (cmdName === 'country') {
+            outputHTML = handleCountryCommand(args, outId);
+        } else if (cmdName === 'podcast') {
+            outputHTML = handlePodcastCommand(args, outId);
+        } else if (cmdName === 'slots') {
+            outputHTML = handleSlotsCommand();
+        } else if (cmdName === 'hack') {
+            outputHTML = handleHackCommand(args, outId);
         } else if (command.startsWith('python3')) {
+
             outputHTML = `Command 'python3' not found, did you mean: command 'python' from deb python-is-python3?`;
         } else if (command.startsWith('bash')) {
             outputHTML = `Command 'bash' not found, did you mean: command 'sh'?`;
@@ -3041,45 +3063,6 @@ function handleBooksCommand(args) {
     return `<div id="${id}">Searching for books: <span style="color:var(--accent-color);">${query}</span>...</div>`;
 }
 
-function handlePodcastCommand(args) {
-    if (args.length === 0) {
-        return "Usage: podcast [query]<br>Example: podcast Lex Fridman";
-    }
-    const query = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const id = 'podcast-' + Date.now();
-
-    fetch(`https://api.allorigins.win/raw?url=https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=podcast&limit=3`)
-        .then(res => res.json())
-        .then(data => {
-            const el = document.getElementById(id);
-            if (!el) return;
-
-            if (data.results && data.results.length > 0) {
-                let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
-                data.results.forEach(p => {
-                    html += `
-                        <div style="display: flex; align-items: center; gap: 10px; background: var(--panel-bg); padding: 10px; border-radius: 5px;">
-                            <img src="${p.artworkUrl60}" style="width: 50px; height: 50px; border-radius: 5px;">
-                            <div>
-                                <div style="font-weight: bold; color: var(--accent-color);">${p.collectionName}</div>
-                                <div style="font-size: 0.8em; color: #888;">${p.artistName}</div>
-                            </div>
-                        </div>
-                    `;
-                });
-                html += '</div>';
-                el.innerHTML = html;
-            } else {
-                el.innerHTML = "No podcasts found.";
-            }
-        })
-        .catch(err => {
-            const el = document.getElementById(id);
-            if (el) el.innerHTML = "Error fetching podcast data.";
-        });
-
-    return `<div id="${id}">Searching for podcasts: <span style="color:var(--accent-color);">${query}</span>...</div>`;
-}
 
 function handleFeaturerequestCommand(args) {
     if (args.length > 0) {
@@ -3100,7 +3083,7 @@ function handleFeaturerequestCommand(args) {
     `;
 }
 if (typeof module !== 'undefined' && module.exports) {
-module.exports = { type, handleArrowUp, handleArrowDown, handleTab, handleEnter, handleMatrixCommand, handleCalcCommand, handleEchoCommand, handleNeofetchCommand, handleThemeCommand, handleBttfCommand, handleTimetravelCommand, handleFluxCommand, handleSysinfoCommand, handleWeatherCommand, handleGuessCommand, handleStarfieldCommand, handleTodoCommand, handleCowsayCommand, handleBase64Command, handleRollCommand, handleJokeCommand, handleCoinCommand, handlePasswordCommand, handlePingCommand, handleRememberCommand, handleRecallCommand, handleAssistCommand, handleVoiceCommand, handleImageCommand, handleQuestsCommand, handleAvatarCommand, handleGeoCommand, handleLeaderboardCommand, handleAliasCommand, handleParseCommand, handleRemindCommand, handleNewsCommand, handleConvertCommand, handleTranslateCommand, handleAnalyzeCommand, handleIssuesCommand, handleAutomateCommand, handleRunflowCommand, handleStockCommand, handleReviewCommand, handleTriviaCommand, handleShopCommand, handleBuyCommand, handleInventoryCommand, handleGitlabCommand, handleWikidataCommand, handlePexelsCommand, handleWorkspaceCommand, handleDictionaryCommand, handleSpaceCommand, handleNpmCommand, handleRpsCommand, handleMusicCommand, handleSentimentCommand, handleFocusCommand, handleHabitCommand, handleAchievementsCommand, handleBooksCommand, handlePodcastCommand, handleFeaturerequestCommand };
+    module.exports = { handleAchievementsCommand, handleAliasCommand, handleAnalyzeCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleFeaturerequestCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHabitCommand, handleHackCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleMatrixCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleTriviaCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, type };
 }
 
 // Tab functionality
@@ -3170,8 +3153,10 @@ tabs.forEach(tab => {
             updateEcosystem();
         } else if (target === 'games') {
             updateGames();
+        } else if (target === 'tasks') {
+            updateTasksUI();
         } else if (target === 'settings') {
-            updateSettings();
+            updateSettingsUI();
         }
     });
     // Proactive Assistance Loop
@@ -3216,6 +3201,7 @@ function updateIntelligence() {
     let runflowHtml = handleRunflowCommand([], 'runflow-preview');
     let habitHtml = handleHabitCommand([]);
     let sentimentHtml = handleSentimentCommand(['This new tool is incredible!'], 'sentiment-preview');
+    let podcastHtml = handlePodcastCommand(['javascript'], 'podcast-preview');
 
     intelligenceData.innerHTML = `
         <div class="ai-hub-card">
@@ -3250,6 +3236,10 @@ function updateIntelligence() {
             <h3 class="ai-hub-title">Sentiment Analysis</h3>
             ${sentimentHtml}
         </div>
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Media Processing (Podcast Search)</h3>
+            ${podcastHtml}
+        </div>
     `;
 }
 
@@ -3274,6 +3264,9 @@ function updateEcosystem() {
     let booksHtml = handleBooksCommand(['Neuromancer']);
     let podcastHtml = handlePodcastCommand(['Lex Fridman']);
     let featurerequestHtml = handleFeaturerequestCommand([]);
+    let cocktailHtml = handleCocktailCommand(['margarita'], 'cocktail-preview');
+    let countryHtml = handleCountryCommand(['michael'], 'country-preview');
+
 
     ecosystemData.innerHTML = `
         <div class="ai-hub-card">
@@ -3285,14 +3278,16 @@ function updateEcosystem() {
                     ${geoHtml}
                 </div>
                 <div style="flex: 1; min-width: 200px;">
-                    <strong>Financial Markets:</strong><br>
+                    <strong>Financial Markets & Utilities:</strong><br>
                     ${cryptoHtml}
                     ${stockHtml}
+                    ${cocktailHtml}
                 </div>
                 <div style="flex: 1; min-width: 200px;">
                     <strong>Public Knowledge Graphs:</strong><br>
                     ${wikiHtml}
                     ${wikidataHtml}
+                    ${countryHtml}
                 </div>
             </div>
         </div>
@@ -3481,8 +3476,6 @@ lo: flags=73&lt;UP,LOOPBACK,RUNNING&gt;  mtu 65536
     `;
 }
 
-
-
 const fileContents = {
     "about.sh": "#!/bin/bash\necho 'Leddcode is a highly creative software engineer.'\necho 'Welcome to my terminal portfolio.'",
     "aranea.py": "def spin_web():\n    print('Spinning a delicate web...')\n    return True\n\nspin_web()",
@@ -3548,6 +3541,9 @@ function updateGames() {
     let inventoryHtml = handleInventoryCommand();
     let rpsHtml = handleRpsCommand(['rock']);
     let achievementsHtml = handleAchievementsCommand([]);
+    let slotsHtml = handleSlotsCommand();
+    let hackHtml = handleHackCommand(['10.0.0.1'], 'hack-preview');
+
 
     gamesData.innerHTML = `
         <div class="games-card">
@@ -3583,6 +3579,14 @@ function updateGames() {
             <h3>Rock Paper Scissors</h3>
             ${rpsHtml}
         </div>
+        <div class="games-card">
+            <h3>Casino Slots</h3>
+            ${slotsHtml}
+        </div>
+        <div class="games-card">
+            <h3>Terminal Hacker</h3>
+            ${hackHtml}
+        </div>
     `;
 }
 
@@ -3610,6 +3614,254 @@ function updateSettings() {
         </div>
     `;
 }
+
+function handleCocktailCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: cocktail [name]<br>Example: cocktail margarita";
+    }
+    const query = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        fetch(`https://www.thecocktaildb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`)
+            .then(response => {
+                if (!response.ok) throw new Error("Not found");
+                return response.json();
+            })
+            .then(data => {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                if (data && data.drinks && data.drinks.length > 0) {
+                    const drink = data.drinks[0];
+                    const name = drink.strDrink;
+                    const category = drink.strCategory;
+                    const glass = drink.strGlass;
+                    const instructions = drink.strInstructions;
+
+                    let ingredients = [];
+                    for(let i = 1; i <= 15; i++) {
+                        if (drink[`strIngredient${i}`]) {
+                            let measure = drink[`strMeasure${i}`] ? drink[`strMeasure${i}`] : "";
+                            ingredients.push(`${measure} ${drink[`strIngredient${i}`]}`.trim());
+                        }
+                    }
+
+                    el.innerHTML = `
+<div style="border-left: 3px solid #ff007f; padding-left: 10px; margin: 10px 0;">
+    <span style="color: #ff007f; font-weight: bold;">[COCKTAIL DB]</span> ${name} <span style="color: #888; font-style: italic;">(${category})</span><br>
+    <span style="color: var(--command-color);">Glass:</span> ${glass}<br>
+    <span style="color: var(--command-color);">Ingredients:</span> ${ingredients.join(', ')}<br>
+    <span style="color: var(--text-color); font-style: italic;">${instructions}</span>
+</div>`;
+                } else {
+                    el.innerHTML = `<div style="color: #ffaa00;">[COCKTAIL DB] No cocktails found for '${query}'.</div>`;
+                }
+                const termDiv = document.getElementById('terminal');
+                if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            })
+            .catch(err => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch cocktail data for '${query}'.</div>`;
+            });
+    }, 100);
+
+    return `<div id="${id}"><span style="color: #888;">[Looking up cocktail '${query}'...]</span></div>`;
+}
+
+
+function handleCountryCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: country [name]<br>Example: country michael";
+    }
+    const query = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        fetch(`https://api.nationalize.io/?name=${encodeURIComponent(query)}`)
+            .then(response => {
+                if (!response.ok) throw new Error("Not found");
+                return response.json();
+            })
+            .then(data => {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                if (data && data.country && data.country.length > 0) {
+                    const country = data.country[0];
+                    const countryId = country.country_id;
+                    const prob = (country.probability * 100).toFixed(2);
+
+                    el.innerHTML = `
+<div style="border-left: 3px solid #00ffcc; padding-left: 10px; margin: 10px 0;">
+    <span style="color: #00ffcc; font-weight: bold;">[NAME ORIGIN DB]</span> ${data.name}<br>
+    <span style="color: var(--command-color);">Top Country:</span> ${countryId}<br>
+    <span style="color: var(--command-color);">Probability:</span> ${prob}%<br>
+</div>`;
+                } else {
+                    el.innerHTML = `<div style="color: #ffaa00;">[NAME ORIGIN DB] No origin data found for '${query}'.</div>`;
+                }
+                const termDiv = document.getElementById('terminal');
+                if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            })
+            .catch(err => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch origin data for '${query}'.</div>`;
+            });
+    }, 100);
+
+    return `<div id="${id}"><span style="color: #888;">[Looking up origin for name '${query}'...]</span></div>`;
+}
+
+
+function handlePodcastCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: podcast [query]<br>Example: podcast javascript";
+    }
+    const query = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=podcast&limit=5`)
+            .then(response => {
+                if (!response.ok) throw new Error("Not found");
+                return response.json();
+            })
+            .then(data => {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                if (data && data.results && data.results.length > 0) {
+                    let podcastsHtml = data.results.map(podcast => {
+                        return `<li><a href="${podcast.collectionViewUrl}" target="_blank" class="link">${podcast.collectionName}</a> by ${podcast.artistName}</li>`;
+                    }).join('');
+
+                    el.innerHTML = `
+<div style="border-left: 3px solid #b300ff; padding-left: 10px; margin: 10px 0;">
+    <span style="color: #b300ff; font-weight: bold;">[PODCAST SEARCH]</span> ${query}<br>
+    <ul style="margin: 0; padding-left: 20px;">
+        ${podcastsHtml}
+    </ul>
+</div>`;
+                } else {
+                    el.innerHTML = `<div style="color: #ffaa00;">[PODCAST SEARCH] No podcasts found for '${query}'.</div>`;
+                }
+                const termDiv = document.getElementById('terminal');
+                if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            })
+            .catch(err => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch podcast data for '${query}'.</div>`;
+            });
+    }, 100);
+
+    return `<div id="${id}"><span style="color: #888;">[Searching podcasts for '${query}'...]</span></div>`;
+}
+
+
+function handleSlotsCommand() {
+    const data = getUserData();
+    const cost = 10;
+
+    if (data.xp < cost) {
+        return `<span style="color: #ff3333;">Insufficient XP. You need ${cost} XP to play slots.</span>`;
+    }
+
+    data.xp -= cost;
+    saveUserData(data);
+
+    const symbols = ["🍒", "🍋", "🍉", "⭐", "💎", "7️⃣"];
+    const roll1 = symbols[Math.floor(getRandom() * symbols.length)];
+    const roll2 = symbols[Math.floor(getRandom() * symbols.length)];
+    const roll3 = symbols[Math.floor(getRandom() * symbols.length)];
+
+    let result = "";
+    let winMsg = "";
+    if (roll1 === roll2 && roll2 === roll3) {
+        let win = 100;
+        if (roll1 === "7️⃣") win = 500;
+        else if (roll1 === "💎") win = 300;
+
+        result = `<span style="color: #00ff00; font-weight: bold;">JACKPOT!</span>`;
+        winMsg = ` (+${win} XP)`;
+        addXP(win);
+    } else if (roll1 === roll2 || roll2 === roll3 || roll1 === roll3) {
+        let win = 20;
+        result = `<span style="color: #ffcc00; font-weight: bold;">Small Win!</span>`;
+        winMsg = ` (+${win} XP)`;
+        addXP(win);
+    } else {
+        result = `<span style="color: #ff3333;">You lose!</span>`;
+    }
+
+    return `
+<div style="border: 2px solid #ff00ff; padding: 15px; margin: 10px 0; text-align: center; border-radius: 8px; width: fit-content; background: rgba(0,0,0,0.5);">
+    <div style="color: #ff00ff; font-weight: bold; font-size: 1.2em; margin-bottom: 10px;">[ CASINO SLOTS ]</div>
+    <div style="font-size: 2em; letter-spacing: 10px; background: #222; padding: 10px; border: 2px inset #555; border-radius: 5px;">
+        [ ${roll1} | ${roll2} | ${roll3} ]
+    </div>
+    <div style="margin-top: 15px; font-size: 1.1em;">
+        ${result}${winMsg}
+    </div>
+    <div style="font-size: 0.8em; color: #888; margin-top: 5px;">(-${cost} XP per spin)</div>
+</div>`;
+}
+
+
+function handleHackCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: hack [target_ip]<br>Example: hack 192.168.1.5";
+    }
+    const target = args[0].replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+            let steps = [
+                "Initializing connection to " + target + "...",
+                "Bypassing ICE firewall...",
+                "Decrypting security protocols...",
+                "Accessing mainframe...",
+                "Extracting sensitive data..."
+            ];
+
+            el.innerHTML = `<div style="border-left: 3px solid #00ff00; padding-left: 10px; margin: 10px 0;">
+                <span style="color: #00ff00; font-weight: bold;">[HACK INITIATED]</span> Target: ${target}<br>
+                <div id="${id}-log" style="color: var(--command-color); font-family: monospace; margin-top: 10px;"></div>
+            </div>`;
+
+            const logEl = document.getElementById(`${id}-log`);
+
+            let currentStep = 0;
+            const hackInterval = setInterval(() => {
+                if (currentStep < steps.length) {
+                    let p = document.createElement("div");
+                    p.innerHTML = `> ${steps[currentStep]}`;
+                    logEl.appendChild(p);
+                    currentStep++;
+
+                    const termDiv = document.getElementById('terminal');
+                    if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+                } else {
+                    clearInterval(hackInterval);
+                    const success = getRandom() > 0.3; // 70% success rate
+
+                    let resultMsg = "";
+                    if (success) {
+                        resultMsg = `<div style="color: #00ff00; font-weight: bold; margin-top: 10px;">[SUCCESS] Root access granted. Extracted +50 XP.</div>`;
+                        addXP(50);
+                    } else {
+                        resultMsg = `<div style="color: #ff3333; font-weight: bold; margin-top: 10px;">[FAILED] Connection traced. Disconnecting to protect identity.</div>`;
+                    }
+
+                    logEl.innerHTML += resultMsg;
+                    const termDiv = document.getElementById('terminal');
+                    if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+                }
+            }, 800);
+        }
+    }, 100);
+
+    return `<div id="${id}"><span style="color: #888;">[Deploying hacking payload to '${target}'...]</span></div>`;
+}
+
 function handleDictionaryCommand(args, id) {
     if (args.length === 0) {
         return "Usage: dictionary [word]<br>Example: dictionary hello";
@@ -3821,4 +4073,164 @@ function handleSentimentCommand(args, id) {
     }, 500);
 
     return `<div id="${id}"><span style="color: #888;">[Analyzing text sentiment...]</span></div>`;
+}
+document.addEventListener('DOMContentLoaded', () => {
+    updateUIProfile();
+
+    // CPU/MEM fluctuation
+    if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+        setInterval(() => {
+            const cpuEl = document.getElementById('sys-cpu');
+            const memEl = document.getElementById('sys-mem');
+            if (cpuEl && memEl) {
+                const cpu = Math.floor(Math.random() * 30) + 5;
+                const mem = Math.floor(Math.random() * 20) + 50;
+
+                cpuEl.textContent = `${cpu}%`;
+                cpuEl.className = `stat-val ${cpu > 25 ? 'warn' : 'good'}`;
+
+                memEl.textContent = `${mem}%`;
+                memEl.className = `stat-val ${mem > 60 ? 'warn' : 'good'}`;
+            }
+        }, 3000);
+    }
+});
+
+// Settings UI functions
+window.changeThemeFromUI = function(themeName) {
+    const validThemes = ['dracula', 'light', 'matrix', 'ocean'];
+    if (validThemes.includes(themeName)) {
+        document.body.className = 'theme-' + themeName;
+    } else {
+        document.body.className = '';
+    }
+    updateSettingsUI();
+};
+
+window.resetDataFromUI = function() {
+    if(confirm("Are you sure you want to reset all data? This cannot be undone.")) {
+        localStorage.removeItem('termUserData');
+        localStorage.removeItem('termTodo');
+        location.reload();
+    }
+};
+
+// Task UI functions
+window.toggleTaskFromUI = function(id) {
+    let todoList = [];
+    try {
+        const stored = localStorage.getItem('termTodo');
+        if (stored) todoList = JSON.parse(stored);
+
+        const task = todoList.find(t => t.id === id);
+        if (task) {
+            task.done = !task.done;
+            localStorage.setItem('termTodo', JSON.stringify(todoList));
+            updateTasksUI();
+        }
+    } catch (e) {}
+};
+
+window.deleteTaskFromUI = function(id) {
+    let todoList = [];
+    try {
+        const stored = localStorage.getItem('termTodo');
+        if (stored) todoList = JSON.parse(stored);
+
+        todoList = todoList.filter(t => t.id !== id);
+        localStorage.setItem('termTodo', JSON.stringify(todoList));
+        updateTasksUI();
+    } catch (e) {}
+};
+
+window.addTaskFromUI = function() {
+    const input = document.getElementById('new-task-input');
+    const taskText = input.value.trim();
+    if (!taskText) return;
+
+    // basic sanitize
+    const cleanTask = taskText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    let todoList = [];
+    try {
+        const stored = localStorage.getItem('termTodo');
+        if (stored) todoList = JSON.parse(stored);
+
+        todoList.push({ id: Date.now().toString(36), task: cleanTask, done: false });
+        localStorage.setItem('termTodo', JSON.stringify(todoList));
+        updateTasksUI();
+    } catch (e) {}
+};
+
+function updateTasksUI() {
+    const tasksData = document.getElementById('tasks-data');
+    if (!tasksData) return;
+
+    let todoList = [];
+    try {
+        const stored = localStorage.getItem('termTodo');
+        if (stored) todoList = JSON.parse(stored);
+    } catch (e) {}
+
+    let tasksHTML = '<div class="tasks-container">';
+
+    if (todoList.length === 0) {
+        tasksHTML += '<p style="color: #888; font-style: italic;">No tasks found. Add one below or use the "todo add" command.</p>';
+    } else {
+        tasksHTML += '<ul class="task-list">';
+        todoList.forEach(t => {
+            const checked = t.done ? 'checked' : '';
+            const textStyle = t.done ? 'text-decoration: line-through; color: #888;' : '';
+            tasksHTML += `
+                <li class="task-item">
+                    <input type="checkbox" ${checked} onchange="window.toggleTaskFromUI('${t.id}')">
+                    <span style="flex: 1; margin-left: 10px; ${textStyle}">${t.task}</span>
+                    <button class="task-del-btn" onclick="window.deleteTaskFromUI('${t.id}')">✖</button>
+                </li>
+            `;
+        });
+        tasksHTML += '</ul>';
+    }
+
+    tasksHTML += `
+        <div class="add-task-form">
+            <input type="text" id="new-task-input" placeholder="Enter new task..." onkeypress="if(event.key==='Enter') window.addTaskFromUI()">
+            <button onclick="window.addTaskFromUI()">Add Task</button>
+        </div>
+    </div>`;
+
+    tasksData.innerHTML = tasksHTML;
+}
+
+function updateSettingsUI() {
+    const settingsData = document.getElementById('settings-data');
+    if (!settingsData) return;
+
+    const currentTheme = document.body.className.replace('theme-', '') || 'default';
+
+    const themes = ['default', 'dracula', 'light', 'matrix', 'ocean'];
+    let themesHTML = '<div class="theme-grid">';
+    themes.forEach(t => {
+        const activeClass = t === currentTheme ? 'active-theme' : '';
+        themesHTML += `
+            <div class="theme-card ${activeClass}" onclick="window.changeThemeFromUI('${t}')">
+                <div class="theme-preview theme-preview-${t}"></div>
+                <div class="theme-name">${t}</div>
+            </div>
+        `;
+    });
+    themesHTML += '</div>';
+
+    settingsData.innerHTML = `
+        <div class="settings-section">
+            <h3>Appearance</h3>
+            <p>Select a theme to change the terminal's look and feel.</p>
+            ${themesHTML}
+        </div>
+        <div class="settings-section" style="margin-top: 30px;">
+            <h3>Data Management</h3>
+            <p>Resetting data will clear your XP, Level, command history, and tasks.</p>
+            <button class="danger-btn" onclick="window.resetDataFromUI()">Reset All Data</button>
+        </div>
+    `;
 }
