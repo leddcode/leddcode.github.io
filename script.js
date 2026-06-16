@@ -332,7 +332,7 @@ const commandRegistry = {
 };
 
 // Generate cmdList dynamically
-const customCommands = ['achievements', 'ajoke', 'alias', 'analyze', 'assist', 'automate', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'voice', 'weather', 'wiki', 'wikidata', 'workspace'];
+const customCommands = ['achievements', 'advice', 'ajoke', 'alias', 'analyze', 'assist', 'automate', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -624,6 +624,45 @@ function handleWikidataCommand(args, id) {
         });
 
     return `Querying Wikidata for ${query}...`;
+}
+
+function handleTvCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: tv [show_name]<br>Example: tv Mr. Robot";
+    }
+    const query = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    fetch(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(query)}`)
+        .then(response => {
+            if (!response.ok) throw new Error("Network response was not ok");
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.length > 0) {
+                const show = data[0].show;
+                const status = show.status ? show.status : 'Unknown';
+                const rating = show.rating && show.rating.average ? show.rating.average : 'N/A';
+                const genres = show.genres && show.genres.length > 0 ? show.genres.join(', ') : 'N/A';
+                const summary = show.summary ? show.summary.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...' : 'No summary available.';
+
+                const resultHtml = `
+<div style="border-left: 3px solid var(--accent-color); padding-left: 10px; margin: 10px 0;">
+    <span style="color: var(--accent-color); font-weight: bold;">[TV DATABASE]</span><br>
+    <span style="color: var(--user-color); font-weight: bold;">${show.name}</span> (${status})<br>
+    <span style="color: var(--command-color);">Rating:</span> ${rating} / 10<br>
+    <span style="color: var(--command-color);">Genres:</span> ${genres}<br>
+    <div style="margin-top: 5px; font-size: 0.9em; color: #ccc;">${summary}</div>
+</div>`;
+                document.getElementById(id).innerHTML = resultHtml;
+            } else {
+                document.getElementById(id).innerHTML = `<span style="color: #ff3333;">[NOT FOUND] No TV shows found for '${query}'.</span>`;
+            }
+        })
+        .catch(error => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = `<span style="color: #ff3333;">[ERROR] API request failed: ${error.message}</span>`;
+        });
+    return `<div id="${id}">Searching TVMaze database for '${query}'...</div>`;
 }
 
 function handleWikiCommand(args, id) {
@@ -1728,6 +1767,40 @@ function handlePexelsCommand(args, id) {
     return `<span style="color: var(--command-color);">Fetching Pexels media for '${query}'...</span>`;
 }
 
+function handleVisionCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: vision [image_url]<br>Example: vision https://example.com/image.png";
+    }
+    const url = args[0].replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+            const simulatedObjects = ['person', 'computer', 'coffee mug', 'desk', 'neon sign', 'cybernetic implant', 'skyscraper'];
+            const detected = [];
+            for(let i = 0; i < 3; i++) {
+                detected.push(simulatedObjects[Math.floor(getRandom() * simulatedObjects.length)]);
+            }
+
+            el.innerHTML = `
+<div style="border-left: 3px solid #8a2be2; padding-left: 10px; margin: 10px 0;">
+    <div style="color: #8a2be2; font-weight: bold; margin-bottom: 5px;">[VISION AI ANALYSIS]</div>
+    <div><span style="color: var(--command-color);">Source:</span> ${url}</div>
+    <div style="margin-top: 10px;">
+        <img src="${url}" alt="Vision Source" style="max-width: 200px; max-height: 150px; border: 1px solid var(--border-color); display: block;" onerror="this.onerror=null; this.src='https://loremflickr.com/200/150/cyberpunk'; this.alt='Fallback image';">
+    </div>
+    <div style="margin-top: 10px;">
+        <span style="color: var(--command-color);">Confidence:</span> ${(getRandom() * 20 + 80).toFixed(1)}%<br>
+        <span style="color: var(--command-color);">Detected Entities:</span> ${[...new Set(detected)].join(', ')}<br>
+        <span style="color: var(--command-color);">Scene Context:</span> Artificial illumination, high-tech environment.
+    </div>
+</div>`;
+        }
+    }, 1000);
+
+    return `<div id="${id}">Initializing Multi-Modal Vision Model... Parsing visual data stream...</div>`;
+}
+
 function handleImageCommand(args, id) {
     if (args.length === 0) {
         return "Usage: image [query]<br>Example: image cyberpunk city";
@@ -2237,6 +2310,29 @@ function handleSuggestCommand() {
 </div>`;
 }
 
+function handleAdviceCommand(id) {
+    fetch('https://api.adviceslip.com/advice')
+        .then(response => {
+            if (!response.ok) throw new Error("Network response was not ok");
+            return response.json();
+        })
+        .then(data => {
+            const advice = data.slip.advice;
+            const resultHtml = `
+<div style="border-left: 3px solid #00ffcc; padding-left: 10px; margin: 10px 0;">
+    <span style="color: #00ffcc; font-weight: bold;">[DAILY ADVICE]</span><br>
+    <em>"${advice}"</em>
+</div>`;
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = resultHtml;
+        })
+        .catch(error => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = `<span style="color: #ff3333;">[ERROR] Could not fetch advice: ${error.message}</span>`;
+        });
+    return `<div id="${id}">Fetching daily advice...</div>`;
+}
+
 function handleFactCommand(id) {
     fetch('https://uselessfacts.jsph.pl/api/v2/facts/random')
         .then(response => response.json())
@@ -2537,6 +2633,27 @@ function handleReviewCommand(args, id) {
     return `<div id="${id}"><span style="color: #888;">[AI analyzing code snippet...]</span></div>`;
 }
 
+function handleRiddleCommand() {
+    const riddles = [
+        { q: "I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?", a: "An echo" },
+        { q: "You measure my life in hours and I serve you by expiring. I'm quick when I'm thin and slow when I'm fat. The wind is my enemy. What am I?", a: "A candle" },
+        { q: "I have cities, but no houses. I have mountains, but no trees. I have water, but no fish. What am I?", a: "A map" },
+        { q: "What is seen in the middle of March and April that can't be seen at the beginning or end of either month?", a: "The letter 'R'" },
+        { q: "You see a boat filled with people. It has not sunk, but when you look again you don't see a single person on the boat. Why?", a: "All the people were married" }
+    ];
+    const riddle = riddles[Math.floor(getRandom() * riddles.length)];
+
+    // Add small XP reward for interacting
+    if (typeof addXP === 'function') addXP(5);
+
+    return `
+<div style="border: 1px solid var(--accent-color); padding: 10px; margin: 10px 0; border-radius: 4px;">
+    <h3 style="margin-top: 0; color: var(--accent-color);">/// DAILY ENIGMA</h3>
+    <div style="font-style: italic; margin-bottom: 10px;">"${riddle.q}"</div>
+    <div style="color: #666; font-size: 0.9em; cursor: pointer;" onclick="this.innerHTML='<span style=\\'color: var(--command-color);\\'>Answer:</span> ${riddle.a}'">[Click to reveal answer]</div>
+</div>`;
+}
+
 function handleTriviaCommand(id) {
     setTimeout(() => {
         const el = document.getElementById(id);
@@ -2777,12 +2894,20 @@ function handleEnter(e) {
             outputHTML = handleVoiceCommand();
         } else if (cmdName === 'image') {
             outputHTML = handleImageCommand(args, outId);
+        } else if (cmdName === 'vision') {
+            outputHTML = handleVisionCommand(args, outId);
         } else if (cmdName === 'quests') {
             outputHTML = handleQuestsCommand();
         } else if (cmdName === 'avatar') {
             outputHTML = handleAvatarCommand();
         } else if (cmdName === 'geo') {
             outputHTML = handleGeoCommand(args, outId);
+        } else if (cmdName === 'advice') {
+            outputHTML = handleAdviceCommand(outId);
+        } else if (cmdName === 'tv') {
+            outputHTML = handleTvCommand(args, outId);
+        } else if (cmdName === 'riddle') {
+            outputHTML = handleRiddleCommand();
         } else if (cmdName === 'leaderboard') {
             outputHTML = handleLeaderboardCommand();
         } else if (cmdName === 'alias') {
@@ -3083,7 +3208,7 @@ function handleFeaturerequestCommand(args) {
     `;
 }
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { handleAchievementsCommand, handleAliasCommand, handleAnalyzeCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleFeaturerequestCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHabitCommand, handleHackCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleMatrixCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleTriviaCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, type };
+    module.exports = { handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleFeaturerequestCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHabitCommand, handleHackCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleMatrixCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, type };
 }
 
 // Tab functionality
@@ -3194,6 +3319,7 @@ function updateIntelligence() {
     let vectorHtml = handleLongtermCommand(['search']);
     let docparseHtml = handleDocparseCommand(['https://leddcode.com/architecture.pdf']);
     let photoHtml = handleImageCommand(['cyberpunk', 'ai', 'hacker'], 'photo-preview');
+    let visionHtml = handleVisionCommand(['https://loremflickr.com/400/300/cyberpunk'], 'vision-preview');
     let voiceHtml = handleVoiceCommand();
 
     let factHtml = handleFactCommand('fact-preview');
@@ -3218,9 +3344,13 @@ function updateIntelligence() {
                 <strong>Voice Recognition Uplink:</strong><br>
                 ${voiceHtml}
             </div>
-            <div>
+            <div style="margin-bottom: 10px;">
                 <strong>Image Generation API:</strong><br>
                 ${photoHtml}
+            </div>
+            <div>
+                <strong>Vision Analysis Model:</strong><br>
+                ${visionHtml}
             </div>
         </div>
         <div class="ai-hub-card">
@@ -3266,6 +3396,8 @@ function updateEcosystem() {
     let featurerequestHtml = handleFeaturerequestCommand([]);
     let cocktailHtml = handleCocktailCommand(['margarita'], 'cocktail-preview');
     let countryHtml = handleCountryCommand(['michael'], 'country-preview');
+    let adviceHtml = handleAdviceCommand('advice-preview');
+    let tvHtml = handleTvCommand(['Mr. Robot'], 'tv-preview');
 
 
     ecosystemData.innerHTML = `
@@ -3310,6 +3442,14 @@ function updateEcosystem() {
         </div>
         <div class="ai-hub-card">
             <h3 class="ai-hub-title">Developer & Creator Tools</h3>
+            <div style="margin-bottom: 10px;">
+                <strong>Daily Advice API:</strong><br>
+                ${adviceHtml}
+            </div>
+            <div style="margin-bottom: 10px;">
+                <strong>TVMaze Database:</strong><br>
+                ${tvHtml}
+            </div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 250px;">
                     <strong>GitHub & GitLab:</strong><br>
@@ -3543,12 +3683,19 @@ function updateGames() {
     let achievementsHtml = handleAchievementsCommand([]);
     let slotsHtml = handleSlotsCommand();
     let hackHtml = handleHackCommand(['10.0.0.1'], 'hack-preview');
+    let riddleHtml = handleRiddleCommand();
 
 
     gamesData.innerHTML = `
-        <div class="games-card">
-            <h3>Trivia Challenge</h3>
-            ${triviaHtml}
+        <div class="games-card" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 300px;">
+                <h3>Trivia Challenge</h3>
+                ${triviaHtml}
+            </div>
+            <div style="flex: 1; min-width: 300px;">
+                <h3>Daily Enigma</h3>
+                ${riddleHtml}
+            </div>
         </div>
         <div class="games-card">
             <h3>System Shop & Inventory</h3>
