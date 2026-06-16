@@ -332,7 +332,7 @@ const commandRegistry = {
 };
 
 // Generate cmdList dynamically
-const customCommands = ['achievements', 'advice', 'ajoke', 'alias', 'analyze', 'assist', 'automate', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace'];
+const customCommands = ['achievements', 'hangman', 'movies', 'brainstorm', 'advice', 'ajoke', 'alias', 'analyze', 'assist', 'automate', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -452,6 +452,145 @@ window.gameState = {
     target: 0,
     attempts: 0
 };
+
+window.hangmanState = {
+    active: false,
+    word: '',
+    guessed: [],
+    attempts: 0,
+    maxAttempts: 6
+};
+
+
+
+function handleHangmanCommand(args) {
+    const words = ["CYBERPUNK", "HACKER", "TERMINAL", "MATRIX", "ENCRYPTION", "FIREWALL", "NETWORK", "PROTOCOL"];
+
+    if (!window.hangmanState.active || (args[0] && args[0].toLowerCase() === 'start')) {
+        window.hangmanState.active = true;
+        window.hangmanState.word = words[Math.floor(getRandom() * words.length)];
+        window.hangmanState.guessed = [];
+        window.hangmanState.attempts = 0;
+
+        // For UI previews where args[0] might be 'status' but game wasn't active
+        if (args[0] && args[0].toLowerCase() === 'status') {
+             // just let it show the initial state
+        } else {
+             return `<span style="color: #00ff00;">[HANGMAN STARTED]</span> Guess a letter to begin. Type 'quit' to exit.<br>` + renderHangman();
+        }
+    }
+
+    if (args.length > 0) {
+        let guess = args[0].toUpperCase();
+        if (guess === 'STATUS') {
+             // Just show status
+        } else if (guess.length === 1 && guess.match(/[A-Z]/)) {
+            if (!window.hangmanState.guessed.includes(guess)) {
+                window.hangmanState.guessed.push(guess);
+                if (!window.hangmanState.word.includes(guess)) {
+                    window.hangmanState.attempts++;
+                }
+            } else {
+                return `<span style="color: #ffaa00;">You already guessed '${guess}'.</span><br>` + renderHangman();
+            }
+        } else if (guess.length > 1) {
+            return `<span style="color: #ff3333;">Please guess only one letter at a time.</span><br>` + renderHangman();
+        }
+    }
+
+    let output = renderHangman();
+
+    // Check win/loss
+    if (window.hangmanState.attempts >= window.hangmanState.maxAttempts) {
+        output += `<br><span style="color: #ff3333; font-weight: bold;">GAME OVER.</span> The word was ${window.hangmanState.word}.`;
+        window.hangmanState.active = false;
+    } else {
+        const hasWon = window.hangmanState.word.split('').every(char => window.hangmanState.guessed.includes(char));
+        if (hasWon) {
+            output += `<br><span style="color: #00ff00; font-weight: bold;">YOU WIN!</span>`;
+            if (typeof addXP === 'function') {
+                addXP(30);
+                output += " (+30 XP)";
+            }
+            window.hangmanState.active = false;
+        }
+    }
+
+    return output;
+}
+
+function renderHangman() {
+    const s = window.hangmanState;
+    const stages = [
+        `
+  +---+
+  |   |
+      |
+      |
+      |
+      |
+=========`,
+        `
+  +---+
+  |   |
+  O   |
+      |
+      |
+      |
+=========`,
+        `
+  +---+
+  |   |
+  O   |
+  |   |
+      |
+      |
+=========`,
+        `
+  +---+
+  |   |
+  O   |
+ /|   |
+      |
+      |
+=========`,
+        `
+  +---+
+  |   |
+  O   |
+ /|\  |
+      |
+      |
+=========`,
+        `
+  +---+
+  |   |
+  O   |
+ /|\  |
+ /    |
+      |
+=========`,
+        `
+  +---+
+  |   |
+  O   |
+ /|\  |
+ / \  |
+      |
+=========`
+    ];
+
+    let wordDisplay = s.word.split('').map(char => s.guessed.includes(char) ? char : '_').join(' ');
+
+    return `
+<div style="border: 1px dashed var(--accent-color); padding: 10px; margin: 10px 0; width: fit-content;">
+<pre style="color: var(--command-color); margin: 0; font-weight: bold;">${stages[s.attempts]}</pre>
+<br>
+<span style="color: var(--user-color); font-size: 1.2em; letter-spacing: 2px;">${wordDisplay}</span><br><br>
+<span style="color: #888;">Guessed: ${s.guessed.join(', ')}</span><br>
+<span style="color: #ff3333;">Strikes: ${s.attempts} / ${s.maxAttempts}</span>
+</div>`;
+}
 
 function handleGuessCommand(args) {
     if (!window.gameState.active) {
@@ -2419,6 +2558,48 @@ function handleLongtermCommand(args) {
     }
 }
 
+
+function handleBrainstormCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: brainstorm [topic]<br>Example: brainstorm app features";
+    }
+    const topic = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+            const ideas = [
+                `Implement a real-time multiplayer mode for ${topic}.`,
+                `Add an AI-powered suggestions engine for ${topic}.`,
+                `Introduce gamification with XP and rewards for ${topic}.`,
+                `Integrate an advanced voice-to-text input system.`,
+                `Create a customizable dashboard widget for it.`
+            ];
+
+            // Randomly pick 3 ideas using the secure getRandom
+            let pickedIdeas = [];
+            while(pickedIdeas.length < 3) {
+                let idea = ideas[Math.floor(getRandom() * ideas.length)];
+                if(!pickedIdeas.includes(idea)) pickedIdeas.push(idea);
+            }
+
+            let ideasHtml = pickedIdeas.map(idea => `<li><span style="color: var(--command-color);">${idea}</span></li>`).join('');
+
+            el.innerHTML = `
+<div style="border-left: 3px solid #ffcc00; padding-left: 10px; margin: 10px 0;">
+    <span style="color: #ffcc00; font-weight: bold;">[AI BRAINSTORMING]</span> Ideas for "${topic}"<br>
+    <ul style="margin: 0; padding-left: 20px;">
+        ${ideasHtml}
+    </ul>
+</div>`;
+            const termDiv = document.getElementById('terminal');
+            if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+        }
+    }, 800);
+
+    return `<div id="${id}"><span style="color: #888;">[Brainstorming ideas for '${topic}'...]</span></div>`;
+}
+
 function handleDocparseCommand(args) {
     if (args.length === 0) {
         return "Usage: docparse [url]<br>Example: docparse https://example.com/doc.pdf";
@@ -2813,6 +2994,11 @@ function handleEnter(e) {
     } else if (window.gameState && window.gameState.active && command === 'quit') {
         window.gameState.active = false;
         outputHTML = "Game aborted.";
+    } else if (window.hangmanState && window.hangmanState.active && command !== 'quit') {
+        outputHTML = handleHangmanCommand([rawCommand]);
+    } else if (window.hangmanState && window.hangmanState.active && command === 'quit') {
+        window.hangmanState.active = false;
+        outputHTML = "Hangman game aborted.";
     } else {
         const args = rawCommand.split(' ').slice(1);
         const cmdName = command.split(' ')[0];
@@ -2972,6 +3158,12 @@ function handleEnter(e) {
             outputHTML = handleNpmCommand(args, outId);
         } else if (cmdName === 'rps') {
             outputHTML = handleRpsCommand(args);
+        } else if (cmdName === 'brainstorm') {
+            outputHTML = handleBrainstormCommand(args, outId);
+        } else if (cmdName === 'movies') {
+            outputHTML = handleMoviesCommand(args, outId);
+        } else if (cmdName === 'hangman') {
+            outputHTML = handleHangmanCommand(args);
         } else if (cmdName === 'music') {
             outputHTML = handleMusicCommand(args);
         } else if (cmdName === 'sentiment') {
@@ -3208,7 +3400,7 @@ function handleFeaturerequestCommand(args) {
     `;
 }
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleFeaturerequestCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHabitCommand, handleHackCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleMatrixCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, type };
+    module.exports = { handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleFeaturerequestCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, type };
 }
 
 // Tab functionality
@@ -3322,6 +3514,7 @@ function updateIntelligence() {
     let visionHtml = handleVisionCommand(['https://loremflickr.com/400/300/cyberpunk'], 'vision-preview');
     let voiceHtml = handleVoiceCommand();
 
+    let brainstormHtml = handleBrainstormCommand(['app features'], 'brainstorm-preview');
     let factHtml = handleFactCommand('fact-preview');
     let suggestHtml = handleSuggestCommand();
     let runflowHtml = handleRunflowCommand([], 'runflow-preview');
@@ -3352,6 +3545,10 @@ function updateIntelligence() {
                 <strong>Vision Analysis Model:</strong><br>
                 ${visionHtml}
             </div>
+        </div>
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">AI Brainstorming</h3>
+            ${brainstormHtml}
         </div>
         <div class="ai-hub-card">
             <h3 class="ai-hub-title">Automation Workflows</h3>
@@ -3393,6 +3590,7 @@ function updateEcosystem() {
     let npmHtml = handleNpmCommand(['react'], 'npm-preview');
     let booksHtml = handleBooksCommand(['Neuromancer']);
     let podcastHtml = handlePodcastCommand(['Lex Fridman']);
+    let moviesHtml = handleMoviesCommand(['matrix'], 'movies-preview');
     let featurerequestHtml = handleFeaturerequestCommand([]);
     let cocktailHtml = handleCocktailCommand(['margarita'], 'cocktail-preview');
     let countryHtml = handleCountryCommand(['michael'], 'country-preview');
@@ -3449,6 +3647,10 @@ function updateEcosystem() {
             <div style="margin-bottom: 10px;">
                 <strong>TVMaze Database:</strong><br>
                 ${tvHtml}
+            </div>
+            <div style="margin-bottom: 10px;">
+                <strong>Movie Search API:</strong><br>
+                ${moviesHtml}
             </div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 250px;">
@@ -3684,6 +3886,7 @@ function updateGames() {
     let slotsHtml = handleSlotsCommand();
     let hackHtml = handleHackCommand(['10.0.0.1'], 'hack-preview');
     let riddleHtml = handleRiddleCommand();
+    let hangmanHtml = handleHangmanCommand(['status']);
 
 
     gamesData.innerHTML = `
@@ -3691,6 +3894,11 @@ function updateGames() {
             <div style="flex: 1; min-width: 300px;">
                 <h3>Trivia Challenge</h3>
                 ${triviaHtml}
+            </div>
+            <div style="flex: 1; min-width: 300px;">
+                <h3>Hangman</h3>
+                ${hangmanHtml}
+                <div style="font-size: 0.8em; color: #888;">Type 'hangman start' in terminal to play.</div>
             </div>
             <div style="flex: 1; min-width: 300px;">
                 <h3>Daily Enigma</h3>
@@ -3858,6 +4066,52 @@ function handleCountryCommand(args, id) {
     return `<div id="${id}"><span style="color: #888;">[Looking up origin for name '${query}'...]</span></div>`;
 }
 
+
+
+function handleMoviesCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: movies [query]<br>Example: movies matrix";
+    }
+    const query = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=movie&limit=3`)
+            .then(response => {
+                if (!response.ok) throw new Error("Not found");
+                return response.json();
+            })
+            .then(data => {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                if (data && data.results && data.results.length > 0) {
+                    let moviesHtml = data.results.map(movie => {
+                        let shortDesc = movie.shortDescription || movie.longDescription || "No description available.";
+                        if (shortDesc.length > 100) shortDesc = shortDesc.substring(0, 100) + '...';
+                        return `<li><a href="${movie.trackViewUrl}" target="_blank" class="link">${movie.trackName}</a> (${movie.releaseDate ? movie.releaseDate.substring(0,4) : 'N/A'})<br><span style="font-size: 0.9em; color: #888;">${shortDesc}</span></li>`;
+                    }).join('');
+
+                    el.innerHTML = `
+<div style="border-left: 3px solid #e50914; padding-left: 10px; margin: 10px 0;">
+    <span style="color: #e50914; font-weight: bold;">[MOVIE SEARCH]</span> ${query}<br>
+    <ul style="margin: 0; padding-left: 20px;">
+        ${moviesHtml}
+    </ul>
+</div>`;
+                } else {
+                    el.innerHTML = `<div style="color: #ffaa00;">[MOVIE SEARCH] No movies found for '${query}'.</div>`;
+                }
+                const termDiv = document.getElementById('terminal');
+                if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            })
+            .catch(err => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch movie data for '${query}'.</div>`;
+            });
+    }, 100);
+
+    return `<div id="${id}"><span style="color: #888;">[Searching movies for '${query}'...]</span></div>`;
+}
 
 function handlePodcastCommand(args, id) {
     if (args.length === 0) {

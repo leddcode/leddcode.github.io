@@ -1,0 +1,30 @@
+from playwright.sync_api import sync_playwright
+import os
+import time
+
+def run():
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto('http://127.0.0.1:8000/index.html')
+
+        print("Testing hangman...")
+        page.fill('#command-line', 'hangman')
+        page.press('#command-line', 'Enter')
+        time.sleep(0.5)
+
+        print("Testing movies...")
+        page.fill('#command-line', 'movies The Matrix')
+        page.press('#command-line', 'Enter')
+        time.sleep(1.0)
+
+        print("Testing brainstorm...")
+        page.fill('#command-line', 'brainstorm new features')
+        page.press('#command-line', 'Enter')
+        time.sleep(1.0)
+
+        browser.close()
+        print("Success.")
+
+if __name__ == '__main__':
+    run()
