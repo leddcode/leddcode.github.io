@@ -332,7 +332,7 @@ const commandRegistry = {
 };
 
 // Generate cmdList dynamically
-const customCommands = ['achievements', 'hangman', 'movies', 'brainstorm', 'advice', 'ajoke', 'alias', 'analyze', 'assist', 'automate', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace'];
+const customCommands = ['achievements', 'games', 'snake', 'scramble', 'binary', 'hangman', 'movies', 'brainstorm', 'advice', 'ajoke', 'alias', 'analyze', 'assist', 'automate', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -453,6 +453,14 @@ window.gameState = {
     attempts: 0
 };
 
+
+window.gamesState = { active: false };
+window.snakeState = { active: false };
+window.scrambleState = { active: false };
+window.binaryState = { active: false };
+window.triviaState = { active: false };
+window.riddleState = { active: false };
+
 window.hangmanState = {
     active: false,
     word: '',
@@ -462,6 +470,154 @@ window.hangmanState = {
 };
 
 
+
+
+function handleGamesCommand(args) {
+    const gamesList = [
+        { name: 'hangman', desc: 'Classic word guessing game' },
+        { name: 'guess', desc: 'Number guessing game' },
+        { name: 'trivia', desc: 'Test your knowledge across categories' },
+        { name: 'riddle', desc: 'Solve the daily enigma' },
+        { name: 'slots', desc: 'Risk XP for a chance at a jackpot' },
+        { name: 'rps', desc: 'Rock, Paper, Scissors against the AI' },
+        { name: 'hack', desc: 'Simulate a network breach' },
+        { name: 'snake', desc: 'The classic snake game (terminal version)' },
+        { name: 'scramble', desc: 'Unscramble the technical term' },
+        { name: 'binary', desc: 'Convert decimal to binary challenge' }
+    ];
+
+    if (args.length === 0) {
+        window.gamesState.active = true;
+        let listHtml = gamesList.map((g, i) => `[${i + 1}] <span style="color: var(--command-color);">${g.name}</span> - ${g.desc}`).join('<br>');
+        return `
+<div style="border: 1px solid var(--accent-color); padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: var(--accent-color);">/// MINI-GAMES SELECTOR</h3>
+    <p>Please select a game by entering its number or name:</p>
+    ${listHtml}
+    <p style="margin-top: 10px; font-size: 0.8em; color: #888;">Type 'quit' to exit selector.</p>
+</div>`;
+    }
+
+    const selection = args[0].toLowerCase();
+    const gameByIndex = gamesList[parseInt(selection) - 1];
+    const gameByName = gamesList.find(g => g.name === selection);
+    const selectedGame = gameByIndex || gameByName;
+
+    if (selectedGame) {
+        window.gamesState.active = false;
+        switch (selectedGame.name) {
+            case 'hangman': return handleHangmanCommand(['start']);
+            case 'guess': return handleGuessCommand([]);
+            case 'trivia': return handleTriviaCommand('trivia-' + Date.now(), []);
+            case 'riddle': return handleRiddleCommand([]);
+            case 'slots': return handleSlotsCommand();
+            case 'rps': return handleRpsCommand([]);
+            case 'hack': return handleHackCommand(['127.0.0.1'], 'hack-' + Date.now());
+            case 'snake': return handleSnakeCommand([]);
+            case 'scramble': return handleScrambleCommand([]);
+            case 'binary': return handleBinaryCommand([]);
+            default: return "Game not implemented yet.";
+        }
+    }
+
+    return "Invalid selection. Please choose from the list or type 'quit'.";
+}
+
+function handleSnakeCommand(args) {
+    if (!window.snakeState.active) {
+        window.snakeState.active = true;
+        window.snakeState.snake = [{x: 5, y: 5}];
+        window.snakeState.food = {x: 10, y: 5};
+        window.snakeState.dx = 1;
+        window.snakeState.dy = 0;
+        window.snakeState.score = 0;
+        window.snakeState.width = 20;
+        window.snakeState.height = 10;
+        return renderSnake() + "<br>Use 'w', 'a', 's', 'd' to move. Type 'quit' to exit.";
+    }
+
+    if (args && args.length > 0) {
+        const move = args[0].toLowerCase();
+        if (move === 'w' && window.snakeState.dy === 0) { window.snakeState.dx = 0; window.snakeState.dy = -1; }
+        else if (move === 's' && window.snakeState.dy === 0) { window.snakeState.dx = 0; window.snakeState.dy = 1; }
+        else if (move === 'a' && window.snakeState.dx === 0) { window.snakeState.dx = -1; window.snakeState.dy = 0; }
+        else if (move === 'd' && window.snakeState.dx === 0) { window.snakeState.dx = 1; window.snakeState.dy = 0; }
+    }
+
+    const head = {x: window.snakeState.snake[0].x + window.snakeState.dx, y: window.snakeState.snake[0].y + window.snakeState.dy};
+
+    if (head.x < 0 || head.x >= window.snakeState.width || head.y < 0 || head.y >= window.snakeState.height ||
+        window.snakeState.snake.some(p => p.x === head.x && p.y === head.y)) {
+        window.snakeState.active = false;
+        return `<span style="color: #ff3333;">GAME OVER!</span> Score: ${window.snakeState.score}`;
+    }
+
+    window.snakeState.snake.unshift(head);
+
+    if (head.x === window.snakeState.food.x && head.y === window.snakeState.food.y) {
+        window.snakeState.score += 10;
+        addXP(5);
+        window.snakeState.food = {
+            x: Math.floor(getRandom() * window.snakeState.width),
+            y: Math.floor(getRandom() * window.snakeState.height)
+        };
+    } else {
+        window.snakeState.snake.pop();
+    }
+
+    return renderSnake() + "<br>Next move (w/a/s/d)?";
+}
+
+function renderSnake() {
+    let board = "";
+    for (let y = 0; y < window.snakeState.height; y++) {
+        for (let x = 0; x < window.snakeState.width; x++) {
+            if (window.snakeState.snake.some(p => p.x === x && p.y === y)) board += "O";
+            else if (window.snakeState.food.x === x && window.snakeState.food.y === y) board += "@";
+            else board += ".";
+        }
+        board += "\n";
+    }
+    return `<pre style="line-height: 1; font-family: monospace; color: #00ff00;">${board}</pre>Score: ${window.snakeState.score}`;
+}
+
+function handleScrambleCommand(args) {
+    const terms = ["JAVASCRIPT", "PYTHON", "CYBERSECURITY", "FRONTEND", "BACKEND", "ALGORITHM", "DATABASE", "FIREWALL"];
+    if (!window.scrambleState.active) {
+        const word = terms[Math.floor(getRandom() * terms.length)];
+        window.scrambleState.active = true;
+        window.scrambleState.original = word;
+        window.scrambleState.word = word.split('').sort(() => getRandom() - 0.5).join('');
+        return `<div style="border: 1px solid #00ffff; padding: 10px; margin: 10px 0;"><h3>/// WORD SCRAMBLE</h3><p>Unscramble: <strong>${window.scrambleState.word}</strong></p></div>`;
+    }
+    if (args && args.length > 0) {
+        if (args[0].toUpperCase() === window.scrambleState.original) {
+            window.scrambleState.active = false;
+            addXP(15);
+            return `<span style="color: #00ff00;">CORRECT!</span> (+15 XP)`;
+        }
+        return "Incorrect. Try again.";
+    }
+    return "Guess?";
+}
+
+function handleBinaryCommand(args) {
+    if (!window.binaryState.active) {
+        window.binaryState.active = true;
+        window.binaryState.decimal = Math.floor(getRandom() * 64) + 1;
+        return `<div style="border: 1px solid #ff00ff; padding: 10px; margin: 10px 0;"><h3>/// BINARY CHALLENGE</h3><p>Decimal: <strong>${window.binaryState.decimal}</strong></p></div>`;
+    }
+    if (args && args.length > 0) {
+        const target = window.binaryState.decimal.toString(2).padStart(8, '0');
+        if (args[0] === target) {
+            window.binaryState.active = false;
+            addXP(25);
+            return `<span style="color: #00ff00;">CORRECT!</span> (+25 XP)`;
+        }
+        return "Wrong binary.";
+    }
+    return "Binary?";
+}
 
 function handleHangmanCommand(args) {
     const words = ["CYBERPUNK", "HACKER", "TERMINAL", "MATRIX", "ENCRYPTION", "FIREWALL", "NETWORK", "PROTOCOL"];
@@ -2814,7 +2970,7 @@ function handleReviewCommand(args, id) {
     return `<div id="${id}"><span style="color: #888;">[AI analyzing code snippet...]</span></div>`;
 }
 
-function handleRiddleCommand() {
+function handleRiddleCommand(args) {
     const riddles = [
         { q: "I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?", a: "An echo" },
         { q: "You measure my life in hours and I serve you by expiring. I'm quick when I'm thin and slow when I'm fat. The wind is my enemy. What am I?", a: "A candle" },
@@ -2989,6 +3145,8 @@ function handleEnter(e) {
     let outputElement = null;
     let outputHTML = '';
 
+
+
     if (window.gameState && window.gameState.active && command !== 'quit') {
         outputHTML = handleGuessCommand([rawCommand]);
     } else if (window.gameState && window.gameState.active && command === 'quit') {
@@ -2999,7 +3157,39 @@ function handleEnter(e) {
     } else if (window.hangmanState && window.hangmanState.active && command === 'quit') {
         window.hangmanState.active = false;
         outputHTML = "Hangman game aborted.";
+    } else if (window.gamesState && window.gamesState.active && command !== 'quit') {
+        outputHTML = handleGamesCommand([rawCommand]);
+    } else if (window.gamesState && window.gamesState.active && command === 'quit') {
+        window.gamesState.active = false;
+        outputHTML = "Selector closed.";
+    } else if (window.snakeState && window.snakeState.active && command !== 'quit') {
+        outputHTML = handleSnakeCommand([rawCommand]);
+    } else if (window.snakeState && window.snakeState.active && command === 'quit') {
+        window.snakeState.active = false;
+        outputHTML = "Snake game aborted.";
+    } else if (window.scrambleState && window.scrambleState.active && command !== 'quit') {
+        outputHTML = handleScrambleCommand([rawCommand]);
+    } else if (window.scrambleState && window.scrambleState.active && command === 'quit') {
+        window.scrambleState.active = false;
+        outputHTML = "Scramble game aborted.";
+    } else if (window.binaryState && window.binaryState.active && command !== 'quit') {
+        outputHTML = handleBinaryCommand([rawCommand]);
+    } else if (window.binaryState && window.binaryState.active && command === 'quit') {
+        window.binaryState.active = false;
+        outputHTML = "Binary challenge aborted.";
+    } else if (window.triviaState && window.triviaState.active && command !== 'quit') {
+        outputHTML = handleTriviaCommand('trivia-' + Date.now(), [rawCommand]);
+    } else if (window.triviaState && window.triviaState.active && command === 'quit') {
+        window.triviaState.active = false;
+        outputHTML = "Trivia game aborted.";
+    } else if (window.riddleState && window.riddleState.active && command !== 'quit') {
+        outputHTML = handleRiddleCommand([rawCommand]);
+    } else if (window.riddleState && window.riddleState.active && command === 'quit') {
+        window.riddleState.active = false;
+        outputHTML = "Riddle aborted.";
     } else {
+
+
         const args = rawCommand.split(' ').slice(1);
         const cmdName = command.split(' ')[0];
 
@@ -3095,7 +3285,7 @@ function handleEnter(e) {
         } else if (cmdName === 'tv') {
             outputHTML = handleTvCommand(args, outId);
         } else if (cmdName === 'riddle') {
-            outputHTML = handleRiddleCommand();
+            outputHTML = handleRiddleCommand(args);
         } else if (cmdName === 'leaderboard') {
             outputHTML = handleLeaderboardCommand();
         } else if (cmdName === 'alias') {
@@ -3145,7 +3335,7 @@ function handleEnter(e) {
         } else if (cmdName === 'review') {
             outputHTML = `<div id="${outId}">${handleReviewCommand(args, outId)}</div>`;
         } else if (cmdName === 'trivia') {
-            outputHTML = `<div id="${outId}">${handleTriviaCommand(outId)}</div>`;
+            outputHTML = `<div id="${outId}">${handleTriviaCommand(outId, args)}</div>`;
         } else if (cmdName === 'shop') {
             outputHTML = handleShopCommand();
         } else if (cmdName === 'buy') {
@@ -3164,6 +3354,14 @@ function handleEnter(e) {
             outputHTML = handleBrainstormCommand(args, outId);
         } else if (cmdName === 'movies') {
             outputHTML = handleMoviesCommand(args, outId);
+                } else if (cmdName === 'games') {
+            outputHTML = handleGamesCommand(args);
+        } else if (cmdName === 'snake') {
+            outputHTML = handleSnakeCommand(args);
+        } else if (cmdName === 'scramble') {
+            outputHTML = handleScrambleCommand(args);
+        } else if (cmdName === 'binary') {
+            outputHTML = handleBinaryCommand(args);
         } else if (cmdName === 'hangman') {
             outputHTML = handleHangmanCommand(args);
         } else if (cmdName === 'music') {
@@ -3402,7 +3600,7 @@ function handleFeaturerequestCommand(args) {
     `;
 }
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleFeaturerequestCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHelpCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, type };
+    module.exports = { handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleFeaturerequestCommand, handleGamesCommand, handleSnakeCommand, handleScrambleCommand, handleBinaryCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHelpCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, type };
 }
 
 // Tab functionality
@@ -3887,7 +4085,7 @@ function updateGames() {
     let achievementsHtml = handleAchievementsCommand([]);
     let slotsHtml = handleSlotsCommand();
     let hackHtml = handleHackCommand(['10.0.0.1'], 'hack-preview');
-    let riddleHtml = handleRiddleCommand();
+    let riddleHtml = handleRiddleCommand(args);
     let hangmanHtml = handleHangmanCommand(['status']);
 
 
