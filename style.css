@@ -415,6 +415,7 @@ body.theme-bttf .bttf-title {
     padding: 15px;
     margin-bottom: 15px;
     background-color: var(--panel-bg);
+}
 /* Tasks UI Styles */
 .tasks-container {
     padding: 15px;
