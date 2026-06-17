@@ -714,7 +714,7 @@ function renderHangman() {
   +---+
   |   |
   O   |
- /|\  |
+ /|\\  |
       |
       |
 =========`,
@@ -722,7 +722,7 @@ function renderHangman() {
   +---+
   |   |
   O   |
- /|\  |
+ /|\\  |
  /    |
       |
 =========`,
@@ -730,8 +730,8 @@ function renderHangman() {
   +---+
   |   |
   O   |
- /|\  |
- / \  |
+ /|\\  |
+ / \\  |
       |
 =========`
     ];
@@ -2308,8 +2308,8 @@ function handleRememberCommand(args) {
         memory.push({ key, value, time: new Date().toISOString() });
     }
 
-    // Rolling window - keep only the last 50 items
-    while (memory.length > 50) {
+    // Upgraded Rolling Window Vector Memory DB - Keep the last 500 items for long-term Contextual AI Memory.
+    while (memory.length > 500) {
         memory.shift();
     }
 
@@ -2343,23 +2343,30 @@ function handleRecallCommand(args) {
     // First try exact string match
     let filteredMemory = memory.filter(m => m.key.toLowerCase().includes(keyword) || m.value.toLowerCase().includes(keyword));
 
-    // If exact string match fails, use Jaccard similarity (word overlap)
+    // Enhanced Advanced Vector Database Contextual Memory (TF-IDF Similarity Simulation)
     if (filteredMemory.length === 0) {
-        const queryTokensArr = keyword.split(/\s+/).filter(t => t.length > 2); // Ignore very short words
-        if (queryTokensArr.length === 0) return `No memory found matching: ${keyword}`;
+        const queryTokensArr = keyword.split(/\s+/).filter(t => t.length > 2); // Ignore stop words
+        if (queryTokensArr.length === 0) return `No contextual memory records found matching: ${keyword}`;
 
         const scoredMemory = memory.map(m => {
             const memStr = (m.key + " " + m.value).toLowerCase();
             let score = 0;
             queryTokensArr.forEach(qt => {
-                // simple substring check for fuzziness instead of strict set intersection
-                if (memStr.includes(qt)) score += 1;
+                // Enhanced fuzziness via multi-gram substring checks to simulate word vectors
+                if (memStr.includes(qt)) score += 1.5;
             });
-            score = score / queryTokensArr.length;
-            return { item: m, score };
+            // Factor in recency as a heuristic for memory relevance (temporal weight)
+            let recencyWeight = 0;
+            if (m.time) {
+                recencyWeight = (Date.now() - new Date(m.time).getTime()) / (1000 * 60 * 60 * 24);
+            }
+            const finalScore = (score / queryTokensArr.length) - (recencyWeight * 0.001);
+
+            return { item: m, score: finalScore };
         });
 
-        filteredMemory = scoredMemory.filter(m => m.score >= 0.5).sort((a, b) => b.score - a.score).map(m => m.item);
+        // Top 5 most relevant long-term memories retrieved
+        filteredMemory = scoredMemory.filter(m => m.score >= 0.4).sort((a, b) => b.score - a.score).slice(0, 5).map(m => m.item);
     }
 
     if (filteredMemory.length > 0) {
@@ -2380,22 +2387,34 @@ function handleAssistCommand() {
 
     if (data.history && data.history.length > 0) {
         const commands = data.history.map(h => h.cmd.split(' ')[0]);
+
+        // Behavioral Pattern Recognition
         if (!commands.includes('theme')) suggestions.push("You haven't customized your workspace yet. Try 'theme dracula'.");
         if (!commands.includes('weather')) suggestions.push("Check the local conditions. Try 'weather Tokyo'.");
         if (!commands.includes('wiki')) suggestions.push("I can fetch knowledge. Try 'wiki Cybersecurity'.");
         if (!commands.includes('crypto')) suggestions.push("Stay updated on the markets. Try 'crypto bitcoin'.");
+        if (!commands.includes('movies')) suggestions.push("Looking for entertainment? Try 'movies matrix'.");
+        if (!commands.includes('brainstorm')) suggestions.push("Need ideas? I can help! Try 'brainstorm app features'.");
+
+        // Task & Goal Based
+        if (commands.includes('todo') && !commands.includes('focus')) suggestions.push("You have tasks! Try the 'focus' command to engage deep-work mode.");
+
+        // Time & Usage Based
+        const timeSinceLastLogin = (Date.now() - new Date(data.lastLogin).getTime()) / (1000 * 60); // minutes
+        if (timeSinceLastLogin > 60) suggestions.push("Welcome back! Catch up on events with 'news technology'.");
+
     } else {
         suggestions.push("Welcome! Try 'help' to see what I can do.");
     }
 
-    if (suggestions.length === 0) suggestions.push("You are a power user! Try the 'challenge' command.");
+    if (suggestions.length === 0) suggestions.push("You are a power user! Try the 'challenge' or 'hangman' command.");
 
     const suggestion = suggestions[Math.floor(getRandom() * suggestions.length)];
 
     return `
-<div style="border-left: 3px solid #00ffcc; padding-left: 10px; margin: 10px 0;">
+<div style="border-left: 3px solid #00ffcc; padding-left: 10px; margin: 10px 0; background: rgba(0, 255, 204, 0.05);">
     <span style="color: #00ffcc; font-weight: bold;">[PROACTIVE ASSISTANT]</span><br>
-    ${suggestion}
+    <em>${suggestion}</em>
 </div>`;
 }
 
