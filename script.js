@@ -328,7 +328,7 @@ const commandRegistry = {
   'pwd': () => `/home/leddcode`,
   'date': () => new Date().toString(),
   'sudo': () => `Permission denied`,
-  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, todo, cowsay, base64, roll, joke, coin, password, ping, matrix, neofetch, echo, calc, bttf, timetravel, flux, sysinfo, weather, guess, stats, companion, crypto, wiki, github, gitlab, wikidata, pexels, workspace, photo, challenge, feedback, remember, recall, assist, voice, image, quests, avatar, geo, leaderboard, alias, parse, remind, news, convert, translate, analyze, issues`,
+  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, todo, cowsay, base64, roll, joke, coin, password, ping, matrix, neofetch, echo, calc, bttf, timetravel, flux, sysinfo, weather, guess, stats, companion, crypto, wiki, github, gitlab, wikidata, pexels, workspace, photo, challenge, feedback, remember, recall, assist, voice, image, quests, avatar, geo, leaderboard, alias, parse, remind, news, convert, translate, analyze, issues, music`,
 };
 
 // Generate cmdList dynamically
@@ -3005,7 +3005,9 @@ function handleEnter(e) {
 
         const outId = 'out-' + Date.now() + '-' + Math.floor(getRandom() * 1000);
 
-        if (commandRegistry[command]) {
+        if (cmdName === 'help') {
+            outputHTML = handleHelpCommand(args);
+        } else if (commandRegistry[command]) {
             outputHTML = commandRegistry[command]();
         } else if (cmdName === 'matrix') {
             outputHTML = handleMatrixCommand();
@@ -3400,7 +3402,7 @@ function handleFeaturerequestCommand(args) {
     `;
 }
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleFeaturerequestCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, type };
+    module.exports = { handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleFeaturerequestCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHelpCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, type };
 }
 
 // Tab functionality
@@ -3945,30 +3947,6 @@ function updateGames() {
     `;
 }
 
-function updateSettings() {
-    const settingsData = document.getElementById('settings-data');
-    if (!settingsData) return;
-
-    settingsData.innerHTML = `
-        <div class="settings-card">
-            <h3>Theme Selection</h3>
-            <button class="settings-btn" onclick="document.body.className='theme-dracula'">Dracula</button>
-            <button class="settings-btn" onclick="document.body.className='theme-ocean'">Ocean</button>
-            <button class="settings-btn" onclick="document.body.className='theme-matrix'">Matrix</button>
-            <button class="settings-btn" onclick="document.body.className='theme-light'">Light</button>
-            <button class="settings-btn" onclick="document.body.className=''">Default</button>
-        </div>
-        <div class="settings-card">
-            <h3>Visual Effects</h3>
-            <button class="settings-btn" onclick="handleMatrixCommand()">Toggle Matrix Effect</button>
-            <button class="settings-btn" onclick="handleStarfieldCommand()">Toggle Starfield</button>
-        </div>
-        <div class="settings-card">
-            <h3>System Management</h3>
-            <button class="settings-btn" style="border-color: #ff5555; color: #ff5555;" onclick="if(confirm('Clear all local storage?')) { localStorage.clear(); alert('Local storage cleared. Refreshing...'); location.reload(); }">Clear Local Storage & Reload</button>
-        </div>
-    `;
-}
 
 function handleCocktailCommand(args, id) {
     if (args.length === 0) {
@@ -4424,6 +4402,44 @@ let terminalAudioStreams = [
 ];
 let currentAudioStreamIndex = 0;
 
+function handleHelpCommand(args) {
+    if (args.length === 0) {
+        return commandRegistry['help']();
+    }
+
+    const subCommand = args[0].toLowerCase();
+
+    if (subCommand === 'games') {
+        return `
+<div style="border: 1px solid var(--accent-color); padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: var(--accent-color);">/// MINI-GAMES MANUAL</h3>
+    <p>The system includes several interactive modules for XP generation and entertainment:</p>
+    <ul>
+        <li><span style="color: var(--command-color);">hangman</span>: Classic word guessing game. (30 XP)</li>
+        <li><span style="color: var(--command-color);">guess</span>: Number guessing game.</li>
+        <li><span style="color: var(--command-color);">trivia</span>: Test your knowledge across categories.</li>
+        <li><span style="color: var(--command-color);">riddle</span>: Solve the daily enigma. (5 XP)</li>
+        <li><span style="color: var(--command-color);">slots</span>: Risk XP for a chance at a jackpot.</li>
+        <li><span style="color: var(--command-color);">rps</span>: Rock, Paper, Scissors against the AI. (20 XP)</li>
+        <li><span style="color: var(--command-color);">hack</span>: Simulate a network breach. (50 XP)</li>
+    </ul>
+    <p style="font-size: 0.9em; font-style: italic;">Note: Most games can be played directly from the 'games' tab as well.</p>
+</div>`;
+    }
+
+    if (subCommand === 'music') {
+        return `
+<div style="border-left: 3px solid #ff00ff; padding-left: 10px; margin: 10px 0;">
+    <span style="color: #ff00ff; font-weight: bold;">[MUSIC PLAYER HELP]</span><br>
+    <span style="color: var(--command-color);">Usage:</span> music [play|stop|next]<br>
+    <span style="color: var(--command-color);">play</span>: Starts the lo-fi radio stream.<br>
+    <span style="color: var(--command-color);">stop</span>: Pauses the current stream.<br>
+    <span style="color: var(--command-color);">next</span>: Cycles through available audio channels.
+</div>`;
+    }
+
+    return `No detailed help available for '${subCommand}'. Try 'help' for a list of commands.`;
+}
 function handleMusicCommand(args, isUiCall = false) {
     if (args.length === 0) {
         return "Usage: music [play|stop|next]<br>Example: music play";
@@ -4677,6 +4693,14 @@ function updateSettingsUI() {
             <h3>Appearance</h3>
             <p>Select a theme to change the terminal's look and feel.</p>
             ${themesHTML}
+        </div>
+        <div class="settings-section" style="margin-top: 30px;">
+            <h3>Visual Effects</h3>
+            <p>Toggle advanced visual overlays and system animations.</p>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="settings-btn" onclick="handleMatrixCommand(); updateSettingsUI();">Toggle Matrix Effect</button>
+                <button class="settings-btn" onclick="handleStarfieldCommand(); updateSettingsUI();">Toggle Starfield</button>
+            </div>
         </div>
         <div class="settings-section" style="margin-top: 30px;">
             <h3>Data Management</h3>
