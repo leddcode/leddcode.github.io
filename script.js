@@ -2082,12 +2082,17 @@ ${ascii}
 </div>`;
 }
 
+
 function handleAvatarCommand() {
     const data = getUserData();
     const lvl = data.level;
 
     let ascii = "";
     let status = "";
+    let accessory = "None";
+
+    if (lvl >= 10) accessory = "Cyber-Shades";
+    if (lvl >= 20) accessory = "Neural Link";
 
     if (lvl < 2) {
         ascii = `
@@ -2095,42 +2100,50 @@ function handleAvatarCommand() {
    (   )
     m m
 `;
-        status = "Egg Stage";
+        status = "Egg Stage (Level 1)";
     } else if (lvl < 5) {
         ascii = `
    /\_/\
   ( o.o )
    > ^ <
 `;
-        status = "Kitten Stage";
+        status = "Kitten Stage (Level 2-4)";
     } else if (lvl < 10) {
         ascii = `
-  /\___/\
- (  o o  )
- (  =^=  )
- (        )
- (         )
- (          ))))))))))
+   /\_/\
+  ( -.- )
+  (")(")
 `;
-        status = "Panther Stage";
+        status = "Cat Stage (Level 5-9)";
+    } else if (lvl < 20) {
+        ascii = `
+   /\_/\
+  ( o.o ) ===--
+  (")(")
+`;
+        status = "Cyborg Cat (Level 10-19)";
     } else {
         ascii = `
-        /| ________________
-  O|===|* >________________>
-        \|
+    /\_/\
+   ( o.o ) ~[OVERRIDE]
+   > ^ <
+  /  |  \
+ /___|___\
 `;
-        status = "Cyber-Knight Stage";
+        status = "AI Overlord (Level 20+)";
     }
 
     return `
-<div style="border: 1px solid var(--command-color); padding: 10px; display: inline-block; margin: 10px 0;">
-    <div style="color: var(--user-color); font-weight: bold; margin-bottom: 5px;">[DIGITAL COMPANION]</div>
-    <div style="color: var(--link-color);">Level: ${lvl} - ${status}</div>
-<pre style="color: var(--command-color); font-weight: bold;">
-${ascii}
-</pre>
+<div style="border: 1px solid var(--accent-color); padding: 15px; margin: 10px 0; width: fit-content;">
+    <h3 style="margin-top: 0; color: var(--accent-color);">/// AI COMPANION STATUS</h3>
+    <pre style="color: var(--command-color); margin: 0; font-weight: bold;">${ascii}</pre>
+    <br>
+    <span style="color: var(--user-color);">Evolution:</span> ${status}<br>
+    <span style="color: var(--user-color);">Accessory:</span> ${accessory}<br>
+    <span style="color: #888; font-size: 0.9em;">(Level up by playing games and exploring APIs!)</span>
 </div>`;
 }
+
 
 function handleRememberCommand(args) {
     if (args.length === 0) {
@@ -2218,30 +2231,45 @@ function handleRecallCommand(args) {
     }
 }
 
+
 function handleAssistCommand() {
     const data = getUserData();
     let suggestions = [];
 
+    // Analyze history to provide proactive workflows
     if (data.history && data.history.length > 0) {
         const commands = data.history.map(h => h.cmd.split(' ')[0]);
         if (!commands.includes('theme')) suggestions.push("You haven't customized your workspace yet. Try 'theme dracula'.");
         if (!commands.includes('weather')) suggestions.push("Check the local conditions. Try 'weather Tokyo'.");
         if (!commands.includes('wiki')) suggestions.push("I can fetch knowledge. Try 'wiki Cybersecurity'.");
         if (!commands.includes('crypto')) suggestions.push("Stay updated on the markets. Try 'crypto bitcoin'.");
+        if (!commands.includes('movies')) suggestions.push("Looking for entertainment? Try 'movies matrix'.");
+        if (!commands.includes('brainstorm')) suggestions.push("Need ideas? Let's brainstorm! Try 'brainstorm app features'.");
+        if (!commands.includes('avatar')) suggestions.push("Check your AI Companion evolution with 'avatar'.");
+
+        // Automation suggestions based on frequent usage
+        const freq = {};
+        commands.forEach(c => freq[c] = (freq[c] || 0) + 1);
+        for (const [cmd, count] of Object.entries(freq)) {
+            if (count > 3 && cmd !== 'ls' && cmd !== 'clear' && cmd !== 'help') {
+                suggestions.push(`I noticed you use '${cmd}' often. Consider creating an alias: 'alias mycmd ${cmd}'.`);
+            }
+        }
     } else {
         suggestions.push("Welcome! Try 'help' to see what I can do.");
     }
 
-    if (suggestions.length === 0) suggestions.push("You are a power user! Try the 'challenge' command.");
+    if (suggestions.length === 0) suggestions.push("You are a power user! Try the 'challenge' command or a 'trivia' game.");
 
     const suggestion = suggestions[Math.floor(getRandom() * suggestions.length)];
 
     return `
 <div style="border-left: 3px solid #00ffcc; padding-left: 10px; margin: 10px 0;">
     <span style="color: #00ffcc; font-weight: bold;">[PROACTIVE ASSISTANT]</span><br>
-    ${suggestion}
+    <span style="color: #ccc;">${suggestion}</span>
 </div>`;
 }
+
 
 function handleNewsCommand(args, id) {
     if (!id) return "Error: Missing output ID.";
@@ -3872,6 +3900,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
 function updateGames() {
     const gamesData = document.getElementById('games-data');
     if (!gamesData) return;
@@ -3879,73 +3909,100 @@ function updateGames() {
     let rollHtml = handleRollCommand(['20']);
     let coinHtml = handleCoinCommand();
     let leaderboardHtml = handleLeaderboardCommand();
-    let dailyHtml = handleDailyCommand();
-    let triviaHtml = handleTriviaCommand('trivia-preview');
     let shopHtml = handleShopCommand();
     let inventoryHtml = handleInventoryCommand();
     let rpsHtml = handleRpsCommand(['rock']);
     let achievementsHtml = handleAchievementsCommand([]);
-    let slotsHtml = handleSlotsCommand();
     let hackHtml = handleHackCommand(['10.0.0.1'], 'hack-preview');
     let riddleHtml = handleRiddleCommand();
     let hangmanHtml = handleHangmanCommand(['status']);
+    let dailyHtml = handleDailyCommand();
+    let slotsHtml = handleSlotsCommand();
 
+    // Create interactive buttons that trigger handleEnter with specific commands
+    const createInteractiveHTML = (title, command, helpText, renderedHtml) => `
+        <div class="games-card" style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>${title}</h3>
+                <button class="settings-btn" onclick="document.getElementById('command-line').value='${command}'; document.getElementById('command-line').focus();">Play in Terminal</button>
+            </div>
+            ${renderedHtml}
+            <div style="font-size: 0.8em; color: #888; margin-top: 10px;">${helpText}</div>
+        </div>
+    `;
 
     gamesData.innerHTML = `
-        <div class="games-card" style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 300px;">
-                <h3>Trivia Challenge</h3>
-                ${triviaHtml}
+                ${createInteractiveHTML('Trivia Challenge', 'trivia', "Test your knowledge. Type 'trivia' in terminal.", '<div id="trivia-preview">Loading...</div>')}
             </div>
             <div style="flex: 1; min-width: 300px;">
-                <h3>Hangman</h3>
-                ${hangmanHtml}
-                <div style="font-size: 0.8em; color: #888;">Type 'hangman start' in terminal to play.</div>
+                ${createInteractiveHTML('Hangman', 'hangman start', "Guess the word. Type 'hangman start' in terminal.", hangmanHtml)}
             </div>
             <div style="flex: 1; min-width: 300px;">
-                <h3>Daily Enigma</h3>
-                ${riddleHtml}
+                ${createInteractiveHTML('Daily Enigma', 'riddle', "Solve the riddle for XP. Type 'riddle' in terminal.", riddleHtml)}
             </div>
         </div>
-        <div class="games-card">
-            <h3>System Shop & Inventory</h3>
-            ${shopHtml}
-            ${inventoryHtml}
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 300px;">
+                ${createInteractiveHTML('System Hack Simulator', 'hack 192.168.1.1', "Breach systems for XP. Type 'hack [ip]' in terminal.", hackHtml)}
+            </div>
+             <div style="flex: 1; min-width: 300px;">
+                ${createInteractiveHTML('Rock Paper Scissors', 'rps rock', "Play against the AI. Type 'rps [rock|paper|scissors]' in terminal.", rpsHtml)}
+            </div>
         </div>
-        <div class="games-card">
+        <hr style="border: 1px solid var(--command-color); margin: 20px 0;">
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+             <div style="flex: 1; min-width: 300px;">
+                ${createInteractiveHTML('Dice Roller', 'roll 20', "Type 'roll [faces]' in terminal.", rollHtml)}
+            </div>
+            <div style="flex: 1; min-width: 300px;">
+                ${createInteractiveHTML('Coin Flipper', 'coin', "Type 'coin' in terminal.", coinHtml)}
+            </div>
+        </div>
+        <hr style="border: 1px solid var(--command-color); margin: 20px 0;">
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+             <div style="flex: 1; min-width: 300px;">
+                <div class="games-card">
+                    <h3>Daily Rewards</h3>
+                    ${dailyHtml}
+                    <div style="font-size: 0.8em; color: #888; margin-top: 10px;">Type 'daily' in terminal.</div>
+                </div>
+            </div>
+            <div style="flex: 1; min-width: 300px;">
+                ${createInteractiveHTML('Casino Slots', 'slots', "Risk XP for a jackpot. Type 'slots' in terminal.", slotsHtml)}
+            </div>
+        </div>
+        <hr style="border: 1px solid var(--command-color); margin: 20px 0;">
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+             <div style="flex: 1; min-width: 300px;">
+                <div class="games-card">
+                    <h3>System Shop</h3>
+                    ${shopHtml}
+                </div>
+            </div>
+            <div style="flex: 1; min-width: 300px;">
+                <div class="games-card">
+                    <h3>Your Inventory</h3>
+                    ${inventoryHtml}
+                </div>
+            </div>
+        </div>
+        <div class="games-card" style="margin-top: 20px;">
             <h3>Achievements & Badges</h3>
             ${achievementsHtml}
         </div>
-        <div class="games-card">
-            <h3>Dice Roller</h3>
-            ${rollHtml}
-        </div>
-        <div class="games-card">
-            <h3>Coin Flipper</h3>
-            ${coinHtml}
-        </div>
-        <div class="games-card">
+        <div class="games-card" style="margin-top: 20px;">
             <h3>Global Leaderboard</h3>
             ${leaderboardHtml}
         </div>
-        <div class="games-card">
-            <h3>Daily Rewards</h3>
-            ${dailyHtml}
-        </div>
-        <div class="games-card">
-            <h3>Rock Paper Scissors</h3>
-            ${rpsHtml}
-        </div>
-        <div class="games-card">
-            <h3>Casino Slots</h3>
-            ${slotsHtml}
-        </div>
-        <div class="games-card">
-            <h3>Terminal Hacker</h3>
-            ${hackHtml}
-        </div>
     `;
+
+    // Trigger async functions
+    handleTriviaCommand('trivia-preview');
 }
+
+
 
 
 function handleCocktailCommand(args, id) {
