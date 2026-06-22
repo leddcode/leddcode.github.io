@@ -4104,7 +4104,7 @@ function updateGames() {
     let achievementsHtml = handleAchievementsCommand([]);
     let slotsHtml = handleSlotsCommand();
     let hackHtml = handleHackCommand(['10.0.0.1'], 'hack-preview');
-    let riddleHtml = handleRiddleCommand(args);
+    let riddleHtml = handleRiddleCommand([]);
     let hangmanHtml = handleHangmanCommand(['status']);
 
 
