@@ -332,7 +332,7 @@ const commandRegistry = {
 };
 
 // Generate cmdList dynamically
-const customCommands = ['achievements', 'games', 'snake', 'scramble', 'binary', 'hangman', 'movies', 'brainstorm', 'advice', 'ajoke', 'alias', 'analyze', 'assist', 'automate', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace'];
+const customCommands = ['achievements', 'upload', 'learn', 'games', 'snake', 'scramble', 'binary', 'hangman', 'movies', 'brainstorm', 'advice', 'ajoke', 'alias', 'analyze', 'assist', 'automate', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -458,6 +458,7 @@ window.gamesState = { active: false };
 window.snakeState = { active: false };
 window.scrambleState = { active: false };
 window.binaryState = { active: false };
+window.learnState = { active: false };
 window.triviaState = { active: false };
 window.riddleState = { active: false };
 
@@ -1130,6 +1131,57 @@ function handleLeaderboardCommand() {
 
     html += `</table></div>`;
     return html;
+}
+
+
+function handleLearnCommand(args) {
+    const modules = [
+        { id: 'python', title: 'Python Basics', fact: 'Python was created by Guido van Rossum in 1991.', question: 'What keyword is used to define a function in Python?', answer: 'def' },
+        { id: 'cyber', title: 'Cybersecurity 101', fact: 'Phishing is the most common form of cyber attack.', question: 'What does VPN stand for? (3 words)', answer: 'virtual private network' },
+        { id: 'git', title: 'Git Mastery', fact: 'Git was created by Linus Torvalds for Linux kernel development.', question: 'Which command is used to save your changes to the local repository?', answer: 'commit' }
+    ];
+
+    if (!window.learnState.active) {
+        if (args.length === 0) {
+            let listHtml = modules.map(m => `- <span style="color: var(--command-color);">${m.id}</span>: ${m.title}`).join('<br>');
+            return `
+<div style="border: 1px solid var(--accent-color); padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: var(--accent-color);">/// LEARNING MODULES</h3>
+    <p>Select a topic to start a mini-lesson and earn XP!</p>
+    ${listHtml}
+    <p style="margin-top: 10px; font-size: 0.8em; color: #888;">Usage: learn [topic_id]</p>
+</div>`;
+        }
+
+        const topic = args[0].toLowerCase();
+        const module = modules.find(m => m.id === topic);
+        if (module) {
+            window.learnState.active = true;
+            window.learnState.module = module;
+            return `
+<div style="border-left: 3px solid #00ffcc; padding-left: 10px; margin: 10px 0; background: rgba(0, 255, 204, 0.05);">
+    <h3 style="margin-top: 0; color: #00ffcc;">/// ${module.title.toUpperCase()}</h3>
+    <p><strong>Fact:</strong> ${module.fact}</p>
+    <hr style="border: 0; border-top: 1px solid #333;">
+    <p><strong>Quiz:</strong> ${module.question}</p>
+    <div style="font-size: 0.8em; color: #888;">Type your answer below, or 'quit' to exit.</div>
+</div>`;
+        } else {
+            return `Topic '${topic}' not found. Type 'learn' to see available modules.`;
+        }
+    }
+
+    if (args && args.length > 0) {
+        const guess = args.join(' ').toLowerCase();
+        if (guess === window.learnState.module.answer.toLowerCase()) {
+            window.learnState.active = false;
+            addXP(30);
+            return `<span style="color: #00ff00; font-weight: bold;">CORRECT!</span> You completed the learning module. (+30 XP)`;
+        } else {
+            return `<span style="color: #ff3333;">Incorrect.</span> Keep trying, or type 'quit'.`;
+        }
+    }
+    return "Please provide an answer.";
 }
 
 function handleChallengeCommand() {
@@ -2514,6 +2566,87 @@ function handleRemindCommand(args, id) {
     return `Reminder set for ${timeStr}: "${message}"`;
 }
 
+
+function handleUploadCommand(args, id) {
+    if (args.length > 0 && args[0].toLowerCase() === 'help') {
+        return "Usage: upload<br>Opens a file picker to parse and analyze a local text or JSON file.";
+    }
+
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.txt,.json,.md,.csv';
+        input.style.display = 'none';
+
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const safeFileName = file.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const text = e.target.result;
+                const words = text.split(/\s+/).filter(w => w.length > 0);
+                const charCount = text.length;
+                const wordCount = words.length;
+
+                // Rudimentary keyword extraction (words > 5 chars, sorted by frequency)
+                const wordFreq = {};
+                words.forEach(w => {
+                    const cleanWord = w.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    if (cleanWord.length > 5) {
+                        wordFreq[cleanWord] = (wordFreq[cleanWord] || 0) + 1;
+                    }
+                });
+
+                const keywords = Object.entries(wordFreq)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5)
+                    .map(entry => entry[0])
+                    .join(', ') || 'None found';
+
+                el.innerHTML = `
+<div style="border: 1px solid var(--command-color); padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: var(--user-color);">/// DOCUMENT PARSED: ${safeFileName}</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="color: var(--command-color); padding-right: 20px;">SIZE</td>
+            <td>${(file.size / 1024).toFixed(2)} KB</td>
+        </tr>
+        <tr>
+            <td style="color: var(--command-color); padding-right: 20px;">WORDS</td>
+            <td>${wordCount}</td>
+        </tr>
+        <tr>
+            <td style="color: var(--command-color); padding-right: 20px;">CHARS</td>
+            <td>${charCount}</td>
+        </tr>
+        <tr>
+            <td style="color: var(--command-color); padding-right: 20px;">KEYWORDS</td>
+            <td>${keywords}</td>
+        </tr>
+    </table>
+    <div style="margin-top: 10px; font-size: 0.9em; color: #888;">Content indexed into memory matrix.</div>
+</div>`;
+                const termDiv = document.getElementById('terminal');
+                if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            };
+            reader.readAsText(file);
+        };
+
+        // Append to body, click, then remove
+        document.body.appendChild(input);
+        input.click();
+        document.body.removeChild(input);
+
+    }, 100);
+
+    return `<div id="${id}"><span style="color: #888;">[Awaiting file selection...]</span></div>`;
+}
+
 function handleParseCommand(args) {
     if (args.length === 0) {
         return "Usage: parse [text]<br>Example: parse The quick brown fox jumps over the lazy dog";
@@ -2811,25 +2944,41 @@ function handleDailyCommand() {
 
 function handleInteractCommand(args) {
     if (args.length === 0) {
-        return "Usage: interact [feed|play]<br>Example: interact feed";
+        return "Usage: interact [feed|play|train]<br>Example: interact feed";
     }
     const action = args[0].toLowerCase();
+
+    let companionStats = { affection: 0, intelligence: 0 };
+    try {
+        const stored = localStorage.getItem('termCompanionStats');
+        if (stored) companionStats = JSON.parse(stored);
+    } catch (e) {}
 
     let response = "";
     if (action === 'feed') {
         response = "(^・ω・^ ) Mmm, delicious data bytes! Thank you!";
+        companionStats.affection += 5;
         addXP(10);
     } else if (action === 'play') {
         response = "＼(≧▽≦)／ Yay! That was fun!";
+        companionStats.affection += 10;
         addXP(15);
+    } else if (action === 'train') {
+        response = "(⌐■_■) Processing new algorithms... I feel smarter!";
+        companionStats.intelligence += 10;
+        addXP(20);
     } else {
-        return "Your companion doesn't know how to do that. Try 'feed' or 'play'.";
+        return "Your companion doesn't know how to do that. Try 'feed', 'play', or 'train'.";
     }
+
+    try {
+        localStorage.setItem('termCompanionStats', JSON.stringify(companionStats));
+    } catch (e) {}
 
     return `<div style="border: 1px solid #ff99cc; padding: 10px; margin: 10px 0; border-radius: 5px;">
     <span style="color: #ff99cc; font-weight: bold;">[COMPANION]</span><br>
     ${response}<br>
-    <span style="color: #888; font-size: 0.9em;">Relationship improved! XP gained.</span>
+    <span style="color: #888; font-size: 0.9em;">Relationship improved! Affection: ${companionStats.affection} | INT: ${companionStats.intelligence}</span>
 </div>`;
 }
 
@@ -3191,6 +3340,11 @@ function handleEnter(e) {
     } else if (window.scrambleState && window.scrambleState.active && command === 'quit') {
         window.scrambleState.active = false;
         outputHTML = "Scramble game aborted.";
+    } else if (window.learnState && window.learnState.active && command !== 'quit') {
+        outputHTML = handleLearnCommand([rawCommand]);
+    } else if (window.learnState && window.learnState.active && command === 'quit') {
+        window.learnState.active = false;
+        outputHTML = "Learning module aborted.";
     } else if (window.binaryState && window.binaryState.active && command !== 'quit') {
         outputHTML = handleBinaryCommand([rawCommand]);
     } else if (window.binaryState && window.binaryState.active && command === 'quit') {
@@ -3287,6 +3441,8 @@ function handleEnter(e) {
             outputHTML = handleRecallCommand(args);
         } else if (cmdName === 'assist') {
             outputHTML = handleAssistCommand();
+        } else if (cmdName === 'upload') {
+            outputHTML = handleUploadCommand(args, outId);
         } else if (cmdName === 'voice') {
             outputHTML = handleVoiceCommand();
         } else if (cmdName === 'image') {
@@ -3619,7 +3775,7 @@ function handleFeaturerequestCommand(args) {
     `;
 }
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleFeaturerequestCommand, handleGamesCommand, handleSnakeCommand, handleScrambleCommand, handleBinaryCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHelpCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, type };
+    module.exports = { handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleFeaturerequestCommand, handleGamesCommand, handleSnakeCommand, handleScrambleCommand, handleBinaryCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHelpCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleLearnCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleUploadCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, type };
 }
 
 // Tab functionality
