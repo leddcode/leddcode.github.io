@@ -793,29 +793,16 @@ function handleWeatherCommand(args, id) {
     <span style="color: var(--user-color); font-weight: bold;">METEOROLOGICAL REPORT FOR:</span> ${city}<br>
     <span style="color: var(--command-color);">STATUS:</span> ${current.weatherDesc[0].value}<br>
     <span style="color: var(--command-color);">TEMP:</span> ${current.temp_C}°C / ${current.temp_F}°F<br>
-    <span style="color: var(--command-color);">HUMIDITY:</span> ${current.humidity}%
+    <span style="color: var(--command-color);">HUMIDITY:</span> ${current.humidity}%<br>
+    <span style="color: var(--command-color);">WIND:</span> ${current.windspeedKmph} km/h
 </div>`;
             document.getElementById(id).innerHTML = resultHtml;
         })
         .catch(err => {
-            // Fallback to simulated weather
-            const conditions = ['Acid Rain', 'Nuclear Fallout', 'Cybernetic Smog', 'Neon Showers', 'Clear Sky (Simulation)'];
-            const condition = conditions[Math.floor(getRandom() * conditions.length)];
-            const temp = Math.floor(getRandom() * 50) + 10;
-
-            const fallbackHtml = `
-<div style="border-left: 3px solid var(--link-color); padding-left: 10px;">
-    <span style="color: #ff3333; font-style: italic;">[API UPLINK FAILED - USING SIMULATION]</span><br>
-    <span style="color: var(--user-color); font-weight: bold;">METEOROLOGICAL REPORT FOR:</span> ${city}<br>
-    <span style="color: var(--command-color);">STATUS:</span> ${condition}<br>
-    <span style="color: var(--command-color);">TEMP:</span> ${temp}°C / ${Math.round(temp * 9/5 + 32)}°F<br>
-    <span style="color: var(--command-color);">RADIATION LEVEL:</span> ${(getRandom() * 5).toFixed(2)} Rad/h
-</div>`;
-            const el = document.getElementById(id);
-            if(el) el.innerHTML = fallbackHtml;
+            document.getElementById(id).innerHTML = `<div style="color: var(--warn-color);">Unable to fetch weather data for '${city}'. wttr.in might be rate-limiting.</div>`;
         });
 
-    return `Fetching meteorological data for ${city}...`;
+    return `Fetching meteorological data for ${city}... <span style="color: var(--warn-color);">(Connecting to satellite)</span>`;
 }
 
 function handleStatsCommand() {
@@ -855,34 +842,37 @@ function handleStatsCommand() {
 
 function handleCryptoCommand(args, id) {
     if (args.length === 0) {
-        return "Usage: crypto [coin_id]<br>Example: crypto bitcoin<br>Try: bitcoin, ethereum, dogecoin";
+        return "Usage: crypto [coin]<br>Example: crypto bitcoin";
     }
-    const coin = args.join('-').toLowerCase().replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const coin = args[0].toLowerCase().replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-    fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(coin)}&vs_currencies=usd`)
+    fetch(`https://api.coincap.io/v2/assets/${encodeURIComponent(coin)}`)
         .then(response => {
             if (!response.ok) throw new Error("Network response was not ok");
             return response.json();
         })
         .then(data => {
-            if (data[coin] && data[coin].usd) {
-                const price = data[coin].usd;
-                const resultHtml = `
-<div style="border-left: 3px solid #f7931a; padding-left: 10px;">
-    <span style="color: #f7931a; font-weight: bold;">[CRYPTO TRACKER]</span><br>
-    <span style="color: var(--user-color);">${coin.toUpperCase()}</span>: $${price.toLocaleString()} USD
+            if (data && data.data) {
+                const asset = data.data;
+                const price = parseFloat(asset.priceUsd).toFixed(2);
+                const change = parseFloat(asset.changePercent24Hr).toFixed(2);
+                const color = change >= 0 ? 'var(--success-color)' : 'var(--error-color)';
+
+                document.getElementById(id).innerHTML = `
+<div style="border-left: 3px solid var(--command-color); padding-left: 10px; margin: 10px 0;">
+    <span style="color: var(--user-color); font-weight: bold;">[CRYPTO TRACKER]</span> ${asset.name} (${asset.symbol})<br>
+    <span style="color: var(--command-color);">PRICE:</span> $${price}<br>
+    <span style="color: var(--command-color);">24H CHANGE:</span> <span style="color: ${color};">${change}%</span>
 </div>`;
-                document.getElementById(id).innerHTML = resultHtml;
             } else {
-                document.getElementById(id).innerHTML = `<div style="color: #ff3333;">Error: Coin '${coin}' not found on CoinGecko.</div>`;
+                 document.getElementById(id).innerHTML = `<div style="color: var(--warn-color);">Unable to fetch data for '${coin}'.</div>`;
             }
         })
         .catch(err => {
-            const el = document.getElementById(id);
-            if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch crypto data.</div>`;
+            document.getElementById(id).innerHTML = `<div style="color: var(--error-color);">Error fetching crypto data.</div>`;
         });
 
-    return `Fetching crypto data for ${coin}...`;
+    return `Fetching crypto data for '${coin}'... <span style="color: var(--warn-color);">(Connecting to market API)</span>`;
 }
 
 function handleWikidataCommand(args, id) {
@@ -973,26 +963,23 @@ function handleWikiCommand(args, id) {
             return response.json();
         })
         .then(data => {
-            if (data.type === "disambiguation") {
-                document.getElementById(id).innerHTML = `<div style="color: #ffaa00;">[WIKI] Multiple results found for '${data.title}'. Please be more specific.</div>`;
-            } else if (data.extract) {
-                const resultHtml = `
-<div style="border: 1px solid var(--command-color); padding: 10px; margin: 10px 0;">
-    <span style="color: var(--user-color); font-weight: bold;">[WIKIPEDIA EXTRACT]</span> ${data.title}<br><br>
-    <div style="font-size: 0.9em; line-height: 1.4;">${data.extract}</div>
-    ${data.content_urls ? `<br><a href="${data.content_urls.desktop.page}" target="_blank" class="link">Read more...</a>` : ''}
-</div>`;
-                document.getElementById(id).innerHTML = resultHtml;
-            } else {
-                document.getElementById(id).innerHTML = `<div style="color: #ff3333;">Error: No extract found for '${query}'.</div>`;
+            if (data.type === 'disambiguation') {
+                 document.getElementById(id).innerHTML = `<div style="color: var(--warn-color);">The term '${query}' is ambiguous. Try being more specific.</div>`;
+                 return;
             }
+            const extract = data.extract ? data.extract : "No summary available.";
+
+            document.getElementById(id).innerHTML = `
+<div style="border-left: 3px solid var(--command-color); padding-left: 10px; margin: 10px 0;">
+    <span style="color: var(--user-color); font-weight: bold;">[WIKIPEDIA GRAPH]</span> <a href="${data.content_urls.desktop.page}" target="_blank" style="color: var(--link-color); text-decoration: none;">${data.title}</a><br>
+    <div style="margin-top: 5px; font-size: 0.9em; line-height: 1.4;">${extract}</div>
+</div>`;
         })
         .catch(err => {
-            const el = document.getElementById(id);
-            if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch Wikipedia data for '${query}'.</div>`;
+            document.getElementById(id).innerHTML = `<div style="color: var(--error-color);">Could not find a Wikipedia page for '${query}'.</div>`;
         });
 
-    return `Querying Wikipedia for ${query}...`;
+    return `Querying public knowledge graph for '${query}'...`;
 }
 
 function handleGithubCommand(args, id) {
@@ -1029,7 +1016,7 @@ function handleGithubCommand(args, id) {
             if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch GitHub data for '${username}'. User might not exist or API rate limit exceeded.</div>`;
         });
 
-    return `Fetching GitHub repositories for ${username}...`;
+    return `Accessing GitHub API for '${username}'... <span style="color: var(--warn-color);">(Connecting)</span>`;
 }
 
 function handleGitlabCommand(args, id) {
@@ -2390,47 +2377,41 @@ function handleRecallCommand(args) {
     }
 
     const keyword = args.join(' ').toLowerCase();
-    const queryTokens = new Set(keyword.split(/\s+/));
 
     // First try exact string match
     let filteredMemory = memory.filter(m => m.key.toLowerCase().includes(keyword) || m.value.toLowerCase().includes(keyword));
 
     // Enhanced Advanced Vector Database Contextual Memory (TF-IDF Similarity Simulation)
     if (filteredMemory.length === 0) {
-        const queryTokensArr = keyword.split(/\s+/).filter(t => t.length > 2); // Ignore stop words
-        if (queryTokensArr.length === 0) return `No contextual memory records found matching: ${keyword}`;
+        const queryTokensArr = keyword.split(/\\s+/).filter(t => t.length > 2); // Ignore stop words
+        if (queryTokensArr.length > 0) {
+            const queryTokens = new Set(queryTokensArr);
+            let scoredMemory = memory.map(m => {
+                const docText = (m.key + " " + m.value).toLowerCase();
+                let score = 0;
+                for (const token of queryTokens) {
+                    if (docText.includes(token)) score++;
+                }
+                // Temporal Recency Heuristic: add slight weight to more recent items
+                const ageMs = Date.now() - new Date(m.time).getTime();
+                const recencyBoost = Math.max(0, 1 - (ageMs / (1000 * 60 * 60 * 24 * 30))); // Boost over 30 days
 
-        const scoredMemory = memory.map(m => {
-            const memStr = (m.key + " " + m.value).toLowerCase();
-            let score = 0;
-            queryTokensArr.forEach(qt => {
-                // Enhanced fuzziness via multi-gram substring checks to simulate word vectors
-                if (memStr.includes(qt)) score += 1.5;
+                return { item: m, score: score + (recencyBoost * 0.1) };
             });
-            // Factor in recency as a heuristic for memory relevance (temporal weight)
-            let recencyWeight = 0;
-            if (m.time) {
-                recencyWeight = (Date.now() - new Date(m.time).getTime()) / (1000 * 60 * 60 * 24);
-            }
-            const finalScore = (score / queryTokensArr.length) - (recencyWeight * 0.001);
 
-            return { item: m, score: finalScore };
-        });
-
-        // Top 5 most relevant long-term memories retrieved
-        filteredMemory = scoredMemory.filter(m => m.score >= 0.4).sort((a, b) => b.score - a.score).slice(0, 5).map(m => m.item);
-    }
-
-    if (filteredMemory.length > 0) {
-        let html = `<div style="border: 1px solid var(--command-color); padding: 10px; margin: 10px 0;"><h3 style="margin-top: 0; color: var(--user-color);">/// SEARCH RESULTS FOR '${keyword}'</h3><table style="width: 100%; border-collapse: collapse;">`;
-        for (const item of filteredMemory) {
-            html += `<tr><td style="color: var(--command-color); padding-right: 20px;">${item.key}</td><td>${item.value} <span style="font-size:0.8em;color:#888;">[${new Date(item.time).toLocaleTimeString()}]</span></td></tr>`;
+            scoredMemory = scoredMemory.filter(sm => sm.score > 0).sort((a, b) => b.score - a.score);
+            filteredMemory = scoredMemory.map(sm => sm.item);
         }
-        html += `</table></div>`;
-        return html;
-    } else {
-        return `No memory found matching: ${keyword}`;
     }
+
+    if (filteredMemory.length === 0) return `No memories found matching '${keyword}'.`;
+
+    let html = `<div style="border: 1px solid var(--command-color); padding: 10px; margin: 10px 0;"><h3 style="margin-top: 0; color: var(--user-color);">/// SEARCH RESULTS</h3><table style="width: 100%; border-collapse: collapse;">`;
+    for (const item of filteredMemory) {
+        html += `<tr><td style="color: var(--command-color); padding-right: 20px;">${item.key}</td><td>${item.value} <span style="font-size:0.8em;color:#888;">[${new Date(item.time).toLocaleTimeString()}]</span></td></tr>`;
+    }
+    html += `</table></div>`;
+    return html;
 }
 
 function handleAssistCommand() {
@@ -2438,33 +2419,34 @@ function handleAssistCommand() {
     let suggestions = [];
 
     if (data.history && data.history.length > 0) {
-        const commands = data.history.map(h => h.cmd.split(' ')[0]);
+        const commands = data.history.map(h => typeof h === 'string' ? h.split(' ')[0] : (h.cmd ? h.cmd.split(' ')[0] : ''));
 
-        // Behavioral Pattern Recognition
-        if (!commands.includes('theme')) suggestions.push("You haven't customized your workspace yet. Try 'theme dracula'.");
+        // Advanced Behavioral Pattern Recognition
+        if (!commands.includes('theme')) suggestions.push("You haven't customized your workspace yet. Try 'theme dracula' or 'theme light'.");
         if (!commands.includes('weather')) suggestions.push("Check the local conditions. Try 'weather Tokyo'.");
-        if (!commands.includes('wiki')) suggestions.push("I can fetch knowledge. Try 'wiki Cybersecurity'.");
+        if (!commands.includes('wiki') && !commands.includes('wikidata')) suggestions.push("I can fetch knowledge. Try 'wiki Cybersecurity' or 'wikidata Earth'.");
         if (!commands.includes('crypto')) suggestions.push("Stay updated on the markets. Try 'crypto bitcoin'.");
-        if (!commands.includes('movies')) suggestions.push("Looking for entertainment? Try 'movies matrix'.");
+        if (!commands.includes('movies') && !commands.includes('tv')) suggestions.push("Looking for entertainment? Try 'movies matrix' or 'tv mr robot'.");
         if (!commands.includes('brainstorm')) suggestions.push("Need ideas? I can help! Try 'brainstorm app features'.");
+        if (!commands.includes('games')) suggestions.push("Take a break! Try running 'games' to see the available mini-games.");
+        if (!commands.includes('companion') && !commands.includes('interact')) suggestions.push("You can talk to your digital companion. Try 'companion' or 'interact play'.");
 
-        // Task & Goal Based
-        if (commands.includes('todo') && !commands.includes('focus')) suggestions.push("You have tasks! Try the 'focus' command to engage deep-work mode.");
-
-        // Time & Usage Based
-        const timeSinceLastLogin = (Date.now() - new Date(data.lastLogin).getTime()) / (1000 * 60); // minutes
-        if (timeSinceLastLogin > 60) suggestions.push("Welcome back! Catch up on events with 'news technology'.");
-
+        const devCommands = ['github', 'gitlab', 'issues', 'npm', 'parse'];
+        const usedDevCommands = devCommands.filter(c => commands.includes(c));
+        if (usedDevCommands.length > 0 && !commands.includes('review')) {
+            suggestions.push("Since you use developer tools, try the 'review' command for code reviews.");
+        }
     } else {
-        suggestions.push("Welcome! Try 'help' to see what I can do.");
+        suggestions.push("Welcome! Try running 'help' to see a list of available commands.");
     }
 
-    if (suggestions.length === 0) suggestions.push("You are a power user! Try the 'challenge' or 'hangman' command.");
+    if (suggestions.length === 0) {
+        suggestions.push("You're a power user! Try building a 'runflow' or playing 'snake'.");
+    }
 
     const suggestion = suggestions[Math.floor(getRandom() * suggestions.length)];
 
-    return `
-<div style="border-left: 3px solid #00ffcc; padding-left: 10px; margin: 10px 0; background: rgba(0, 255, 204, 0.05);">
+    return `<div style="border: 1px dashed #00ffcc; padding: 10px; margin: 10px 0; background: rgba(0,0,0,0.2);">
     <span style="color: #00ffcc; font-weight: bold;">[PROACTIVE ASSISTANT]</span><br>
     <em>${suggestion}</em>
 </div>`;
@@ -2840,30 +2822,28 @@ function handleLongtermCommand(args) {
     } catch (e) {}
 
     if (action === 'store') {
-        vectorDb.push({ data, embedding: Array.from({length: 3}, () => (getRandom() * 2 - 1).toFixed(2)) });
+        const embedding = Array.from({length: 3}, () => (getRandom() * 2 - 1).toFixed(2));
+        vectorDb.push({ data, embedding: embedding, time: new Date().toISOString() });
         try {
             localStorage.setItem('termVectorDb', JSON.stringify(vectorDb));
         } catch (e) {}
-        return `<div style="color: #00ffcc;">[VECTOR DB] Stored successfully with embedding [${vectorDb[vectorDb.length-1].embedding.join(', ')}]</div>`;
+        return `<div style="color: #00ffcc;">[VECTOR DB] Stored successfully with embedding [${embedding.join(', ')}]</div>`;
     } else if (action === 'search') {
         if (vectorDb.length === 0) return "Vector DB is empty.";
         // Mock semantic search returning up to 3 results
-        let html = `<div style="border-left: 3px solid #00ffcc; padding-left: 10px;">
-    <span style="color: #00ffcc; font-weight: bold;">[VECTOR DB SEARCH] Top Matches:</span><br>`;
-
-        let numResults = Math.min(3, vectorDb.length);
-        let results = [...vectorDb].sort(() => getRandom() - 0.5).slice(0, numResults);
-
-        for (let i = 0; i < results.length; i++) {
-            let result = results[i];
-            let similarity = (getRandom() * 0.3 + 0.7 - (i * 0.1)).toFixed(2);
-            html += `${i+1}. ${result.data} <span style="color: #666;">[Sim: ${similarity}]</span><br>`;
-        }
+        let results = vectorDb.slice(-3).reverse();
+        let html = `<div style="border: 1px dashed var(--command-color); padding: 10px; margin: 10px 0;"><h3 style="margin-top: 0; color: var(--command-color);">/// SEMANTIC SEARCH RESULTS</h3>`;
+        results.forEach(res => {
+            html += `<div style="margin-bottom: 10px;">
+                <span style="color: var(--link-color);">Data:</span> ${res.data}<br>
+                <span style="color: #888;">Vector: [${res.embedding.join(', ')}]</span><br>
+                <span style="color: #888; font-size: 0.8em;">Timestamp: ${new Date(res.time).toLocaleTimeString()}</span>
+            </div>`;
+        });
         html += `</div>`;
         return html;
-    } else {
-        return "Invalid action. Use 'store' or 'search'.";
     }
+    return "Invalid action. Use 'store' or 'search'.";
 }
 
 
@@ -2913,19 +2893,31 @@ function handleDocparseCommand(args) {
         return "Usage: docparse [url]<br>Example: docparse https://example.com/doc.pdf";
     }
     const url = args[0].replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const id = 'docparse-' + Date.now();
+
+    // Mock an async process to simulate document downloading and multi-modal AI processing
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        const topics = ["Security", "APIs", "AI infrastructure", "Growth metrics", "System logs"];
+        const foundTopics = [topics[Math.floor(getRandom() * topics.length)], topics[Math.floor(getRandom() * topics.length)]];
+
+        el.innerHTML = `<div style="display: flex; gap: 10px; align-items: flex-start;">
+            <img src="https://loremflickr.com/320/240" alt="Parsed Visuals" style="width: 150px; height: auto; border: 1px solid var(--border-color);">
+            <div>
+                <span style="color: var(--link-color);">Extracted Text Summary:</span><br>
+                This document contains ${Math.floor(getRandom() * 100) + 10} pages. Key topics identified: ${foundTopics.join(", ")}.<br>
+                <span style="color: #888;">Visual contents detected. Simulated OCR active.</span><br>
+                Confidence score: ${(getRandom() * 20 + 80).toFixed(1)}%
+            </div>
+        </div>`;
+    }, 1500);
 
     return `<div style="border: 1px dashed var(--command-color); padding: 10px; margin: 10px 0;">
     <span style="color: var(--user-color); font-weight: bold;">[MULTI-MODAL PARSER]</span> Analyzing ${url}...<br>
     <br>
-    <div style="display: flex; gap: 10px; align-items: flex-start;">
-        <img src="https://loremflickr.com/320/240" alt="Parsed Visuals" style="width: 150px; height: auto; border: 1px solid var(--border-color);">
-        <div>
-            <span style="color: var(--link-color);">Extracted Text Summary:</span><br>
-            This document contains ${Math.floor(getRandom() * 100) + 10} pages. Key topics identified: Security, APIs, AI infrastructure.<br>
-            <span style="color: #888;">Visual contents detected. Simulated OCR active.</span><br>
-            Confidence score: ${(getRandom() * 20 + 80).toFixed(1)}%
-        </div>
-    </div>
+    <div id="${id}">Downloading document... <span style="color: var(--warn-color);">(Processing)</span></div>
 </div>`;
 }
 
@@ -2944,14 +2936,14 @@ function handleDailyCommand() {
 
 function handleInteractCommand(args) {
     if (args.length === 0) {
-        return "Usage: interact [feed|play|train]<br>Example: interact feed";
+        return "Usage: interact [feed|play|train|name]<br>Example: interact feed";
     }
     const action = args[0].toLowerCase();
 
-    let companionStats = { affection: 0, intelligence: 0 };
+    let companionStats = { affection: 0, intelligence: 0, name: "Companion AI" };
     try {
         const stored = localStorage.getItem('termCompanionStats');
-        if (stored) companionStats = JSON.parse(stored);
+        if (stored) companionStats = { ...companionStats, ...JSON.parse(stored) };
     } catch (e) {}
 
     let response = "";
@@ -2967,8 +2959,13 @@ function handleInteractCommand(args) {
         response = "(⌐■_■) Processing new algorithms... I feel smarter!";
         companionStats.intelligence += 10;
         addXP(20);
+    } else if (action === 'name') {
+        if (args.length < 2) return "Please provide a name. Example: interact name Jarvis";
+        const newName = args.slice(1).join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        companionStats.name = newName;
+        response = `(✧ω✧) I love my new name, ${newName}!`;
     } else {
-        return "Your companion doesn't know how to do that. Try 'feed', 'play', or 'train'.";
+        return "Your companion doesn't know how to do that. Try 'feed', 'play', 'train', or 'name'.";
     }
 
     try {
@@ -2976,7 +2973,7 @@ function handleInteractCommand(args) {
     } catch (e) {}
 
     return `<div style="border: 1px solid #ff99cc; padding: 10px; margin: 10px 0; border-radius: 5px;">
-    <span style="color: #ff99cc; font-weight: bold;">[COMPANION]</span><br>
+    <span style="color: #ff99cc; font-weight: bold;">[${companionStats.name.toUpperCase()}]</span><br>
     ${response}<br>
     <span style="color: #888; font-size: 0.9em;">Relationship improved! Affection: ${companionStats.affection} | INT: ${companionStats.intelligence}</span>
 </div>`;
