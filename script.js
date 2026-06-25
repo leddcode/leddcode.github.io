@@ -3538,6 +3538,18 @@ function handleEnter(e) {
             outputHTML = handleHangmanCommand(args);
         } else if (cmdName === 'music') {
             outputHTML = handleMusicCommand(args);
+        } else if (cmdName === 'achievements') {
+            outputHTML = handleAchievementsCommand();
+        } else if (cmdName === 'learn') {
+            outputHTML = handleLearnCommand(args);
+        } else if (cmdName === 'books') {
+            outputHTML = handleBooksCommand(args);
+        } else if (cmdName === 'featurerequest') {
+            outputHTML = handleFeaturerequestCommand(args);
+        } else if (cmdName === 'focus') {
+            outputHTML = handleFocusCommand(args);
+        } else if (cmdName === 'habit') {
+            outputHTML = handleHabitCommand(args);
         } else if (cmdName === 'sentiment') {
             outputHTML = handleSentimentCommand(args, outId);
         } else if (cmdName === 'cocktail') {
