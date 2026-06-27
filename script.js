@@ -460,6 +460,9 @@ window.scrambleState = { active: false };
 window.binaryState = { active: false };
 window.learnState = { active: false };
 window.triviaState = { active: false };
+window.snakeState = { active: false };
+window.scrambleState = { active: false };
+window.binaryState = { active: false };
 window.riddleState = { active: false };
 
 window.hangmanState = {
@@ -474,7 +477,7 @@ window.hangmanState = {
 
 
 function handleGamesCommand(args) {
-    const gamesList = [
+        const gamesList = [
         { name: 'hangman', desc: 'Classic word guessing game' },
         { name: 'guess', desc: 'Number guessing game' },
         { name: 'trivia', desc: 'Test your knowledge across categories' },
@@ -507,6 +510,9 @@ function handleGamesCommand(args) {
     if (selectedGame) {
         window.gamesState.active = false;
         switch (selectedGame.name) {
+            case "snake": return handleSnakeCommand([]);
+            case "scramble": return handleScrambleCommand([]);
+            case "binary": return handleBinaryCommand([]);
             case 'hangman': return handleHangmanCommand(['start']);
             case 'guess': return handleGuessCommand([]);
             case 'trivia': return handleTriviaCommand('trivia-' + Date.now(), []);
@@ -519,6 +525,139 @@ function handleGamesCommand(args) {
             case 'binary': return handleBinaryCommand([]);
             default: return "Game not implemented yet.";
         }
+
+window.snakeState = {
+    active: false,
+    snake: [{x: 5, y: 5}],
+    food: {x: 10, y: 5},
+    dx: 1,
+    dy: 0,
+    score: 0,
+    width: 20,
+    height: 10
+};
+
+function handleSnakeCommand(args) {
+    if (!window.snakeState.active) {
+        window.snakeState.active = true;
+        window.snakeState.snake = [{x: 5, y: 5}];
+        window.snakeState.food = {x: 10, y: 5};
+        window.snakeState.dx = 1;
+        window.snakeState.dy = 0;
+        window.snakeState.score = 0;
+        return renderSnake() + "<br>Use 'w', 'a', 's', 'd' to move. Type 'quit' to exit.";
+    }
+
+    if (args && args.length > 0) {
+        const move = args[0].toLowerCase();
+        if (move === 'w' && window.snakeState.dy === 0) { window.snakeState.dx = 0; window.snakeState.dy = -1; }
+        else if (move === 's' && window.snakeState.dy === 0) { window.snakeState.dx = 0; window.snakeState.dy = 1; }
+        else if (move === 'a' && window.snakeState.dx === 0) { window.snakeState.dx = -1; window.snakeState.dy = 0; }
+        else if (move === 'd' && window.snakeState.dx === 0) { window.snakeState.dx = 1; window.snakeState.dy = 0; }
+    }
+
+    const head = {x: window.snakeState.snake[0].x + window.snakeState.dx, y: window.snakeState.snake[0].y + window.snakeState.dy};
+
+    if (head.x < 0 || head.x >= window.snakeState.width || head.y < 0 || head.y >= window.snakeState.height ||
+        window.snakeState.snake.some(p => p.x === head.x && p.y === head.y)) {
+        window.snakeState.active = false;
+        return `<span style="color: #ff3333;">GAME OVER!</span> Score: ${window.snakeState.score}`;
+    }
+
+    window.snakeState.snake.unshift(head);
+
+    if (head.x === window.snakeState.food.x && head.y === window.snakeState.food.y) {
+        window.snakeState.score += 10;
+        addXP(5);
+        window.snakeState.food = {
+            x: Math.floor(getRandom() * window.snakeState.width),
+            y: Math.floor(getRandom() * window.snakeState.height)
+        };
+    } else {
+        window.snakeState.snake.pop();
+    }
+
+    return renderSnake() + "<br>Next move (w/a/s/d)?";
+}
+
+function renderSnake() {
+    let board = "";
+    for (let y = 0; y < window.snakeState.height; y++) {
+        for (let x = 0; x < window.snakeState.width; x++) {
+            if (window.snakeState.snake.some(p => p.x === x && p.y === y)) board += "O";
+            else if (window.snakeState.food.x === x && window.snakeState.food.y === y) board += "@";
+            else board += ".";
+        }
+        board += "\n";
+    }
+    return `<pre style="line-height: 1; font-family: monospace; color: #00ff00;">${board}</pre>Score: ${window.snakeState.score}`;
+}
+
+window.scrambleState = {
+    active: false,
+    word: '',
+    original: ''
+};
+
+function handleScrambleCommand(args) {
+    const terms = ["JAVASCRIPT", "PYTHON", "CYBERSECURITY", "FRONTEND", "BACKEND", "ALGORITHM", "DATABASE", "FIREWALL"];
+
+    if (!window.scrambleState.active) {
+        const word = terms[Math.floor(getRandom() * terms.length)];
+        window.scrambleState.active = true;
+        window.scrambleState.original = word;
+        window.scrambleState.word = word.split('').sort(() => getRandom() - 0.5).join('');
+
+        return `
+<div style="border: 1px solid #00ffff; padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: #00ffff;">/// WORD SCRAMBLE</h3>
+    <p>Unscramble this term: <strong style="letter-spacing: 2px;">${window.scrambleState.word}</strong></p>
+    <div style="font-size: 0.8em; color: #888;">Type your guess in the terminal.</div>
+</div>`;
+    }
+
+    if (args && args.length > 0) {
+        if (args[0].toUpperCase() === window.scrambleState.original) {
+            window.scrambleState.active = false;
+            addXP(15);
+            return `<span style="color: #00ff00; font-weight: bold;">CORRECT!</span> (+15 XP)`;
+        } else {
+            return `<span style="color: #ff3333;">Incorrect.</span> Keep trying or type 'quit'.`;
+        }
+    }
+    return "Please provide a guess.";
+}
+
+window.binaryState = {
+    active: false,
+    decimal: 0
+};
+
+function handleBinaryCommand(args) {
+    if (!window.binaryState.active) {
+        window.binaryState.active = true;
+        window.binaryState.decimal = Math.floor(getRandom() * 64) + 1;
+        return `
+<div style="border: 1px solid #ff00ff; padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: #ff00ff;">/// BINARY CHALLENGE</h3>
+    <p>Convert this decimal to 8-bit binary: <strong>${window.binaryState.decimal}</strong></p>
+    <div style="font-size: 0.8em; color: #888;">Example format: 00010101</div>
+</div>`;
+    }
+
+    if (args && args.length > 0) {
+        const target = window.binaryState.decimal.toString(2).padStart(8, '0');
+        if (args[0] === target) {
+            window.binaryState.active = false;
+            addXP(25);
+            return `<span style="color: #00ff00; font-weight: bold;">CORRECT!</span> Mastery of the machine achieved. (+25 XP)`;
+        } else {
+            return `<span style="color: #ff3333;">Incorrect.</span> The binary representation of ${window.binaryState.decimal} is not that. Try again.`;
+        }
+    }
+    return "Please provide binary answer.";
+}
+
     }
 
     return "Invalid selection. Please choose from the list or type 'quit'.";
@@ -3513,6 +3652,21 @@ function handleEnter(e) {
         outputHTML = "Trivia game aborted.";
     } else if (window.riddleState && window.riddleState.active && command !== 'quit') {
         outputHTML = handleRiddleCommand([rawCommand]);
+    } else if (window.snakeState && window.snakeState.active && command !== 'quit') {
+        outputHTML = handleSnakeCommand([rawCommand]);
+    } else if (window.snakeState && window.snakeState.active && command === 'quit') {
+        window.snakeState.active = false;
+        outputHTML = "Snake game aborted.";
+    } else if (window.scrambleState && window.scrambleState.active && command !== 'quit') {
+        outputHTML = handleScrambleCommand([rawCommand]);
+    } else if (window.scrambleState && window.scrambleState.active && command === 'quit') {
+        window.scrambleState.active = false;
+        outputHTML = "Scramble game aborted.";
+    } else if (window.binaryState && window.binaryState.active && command !== 'quit') {
+        outputHTML = handleBinaryCommand([rawCommand]);
+    } else if (window.binaryState && window.binaryState.active && command === 'quit') {
+        window.binaryState.active = false;
+        outputHTML = "Binary challenge aborted.";
     } else if (window.riddleState && window.riddleState.active && command === 'quit') {
         window.riddleState.active = false;
         outputHTML = "Riddle aborted.";
@@ -4473,6 +4627,9 @@ function updateGames() {
     let hackHtml = handleHackCommand(['10.0.0.1'], 'hack-preview');
     let riddleHtml = handleRiddleCommand([]);
     let hangmanHtml = handleHangmanCommand(['status']);
+    let snakeHtml = handleSnakeCommand([]);
+    let scrambleHtml = handleScrambleCommand([]);
+    let binaryHtml = handleBinaryCommand([]);
 
 
     gamesData.innerHTML = `
@@ -4485,6 +4642,21 @@ function updateGames() {
                 <h3>Hangman</h3>
                 ${hangmanHtml}
                 <div style="font-size: 0.8em; color: #888;">Type 'hangman start' in terminal to play.</div>
+            </div>
+            <div style="flex: 1; min-width: 300px;">
+                <h3>Snake</h3>
+                <div style="background: #000; padding: 10px; border-radius: 5px; font-family: monospace;">${snakeHtml}</div>
+                <div style="font-size: 0.8em; color: #888; margin-top: 5px;">Type 'snake' in terminal to play.</div>
+            </div>
+            <div style="flex: 1; min-width: 300px;">
+                <h3>Word Scramble</h3>
+                ${scrambleHtml}
+                <div style="font-size: 0.8em; color: #888;">Type 'scramble' in terminal to play.</div>
+            </div>
+            <div style="flex: 1; min-width: 300px;">
+                <h3>Binary Challenge</h3>
+                ${binaryHtml}
+                <div style="font-size: 0.8em; color: #888;">Type 'binary' in terminal to play.</div>
             </div>
             <div style="flex: 1; min-width: 300px;">
                 <h3>Daily Enigma</h3>
