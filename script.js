@@ -332,7 +332,7 @@ const commandRegistry = {
 };
 
 // Generate cmdList dynamically
-const customCommands = ['achievements', 'upload', 'learn', 'games', 'snake', 'scramble', 'binary', 'hangman', 'movies', 'brainstorm', 'advice', 'ajoke', 'alias', 'analyze', 'analyzememory', 'assist', 'automate', 'workflow', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'exchange', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace'];
+const customCommands = ['achievements', 'upload', 'learn', 'games', 'snake', 'scramble', 'binary', 'hangman', 'movies', 'brainstorm', 'advice', 'ajoke', 'alias', 'analyze', 'analyzememory', 'assist', 'automate', 'workflow', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'exchange', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace', 'summary', 'math'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -455,6 +455,7 @@ window.gameState = {
 
 
 window.gamesState = { active: false };
+window.mathState = { active: false, answer: 0 };
 window.snakeState = { active: false };
 window.scrambleState = { active: false };
 window.binaryState = { active: false };
@@ -3572,6 +3573,97 @@ function handleAnalyzeMemoryCommand(args, id) {
     return "Analyzing long-term vector storage... <span style='color: var(--warn-color);'>(Processing)</span>";
 }
 
+
+function handleSummaryCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: summary [topic]<br>Example: summary Artificial Intelligence";
+    }
+    const topic = args.join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topic)}`)
+        .then(response => {
+            if (!response.ok) throw new Error("Not found");
+            return response.json();
+        })
+        .then(data => {
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            if (data.type === 'standard' || data.type === 'disambiguation') {
+                const extract = data.extract || "No summary available for this topic.";
+                const html = `
+<div style="border-left: 3px solid var(--success-color); padding-left: 10px; margin: 10px 0;">
+    <span style="color: var(--success-color); font-weight: bold;">[AI SUMMARY GENERATED]</span><br>
+    <span style="color: var(--user-color); font-weight: bold;">Topic:</span> ${data.title}<br>
+    <p style="margin-top: 5px;">${extract}</p>
+    <a href="${data.content_urls.desktop.page}" target="_blank" class="link" style="font-size: 0.9em;">[Read more on Wikipedia]</a>
+</div>`;
+                el.innerHTML = html;
+            } else {
+                el.innerHTML = `<span style="color: var(--error-color);">Could not summarize the requested topic.</span>`;
+            }
+        })
+        .catch(err => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = `<span style="color: var(--error-color);">Summary error: ${err.message}. Try another topic.</span>`;
+        });
+
+    return `<span style="color: #ffaa00; font-style: italic;">Parsing and summarizing data for '${topic}'...</span>`;
+}
+
+
+function handleMathCommand(args) {
+    if (!window.mathState.active) {
+        window.mathState.active = true;
+
+        // Generate a random math problem
+        const operators = ['+', '-', '*'];
+        const op = operators[Math.floor(getRandom() * operators.length)];
+        let num1, num2;
+
+        if (op === '*') {
+            num1 = Math.floor(getRandom() * 15) + 2;
+            num2 = Math.floor(getRandom() * 15) + 2;
+        } else {
+            num1 = Math.floor(getRandom() * 100) + 1;
+            num2 = Math.floor(getRandom() * 100) + 1;
+        }
+
+        // Ensure positive result for subtraction to keep it simpler
+        if (op === '-' && num2 > num1) {
+            const temp = num1;
+            num1 = num2;
+            num2 = temp;
+        }
+
+        let answer;
+        if (op === '+') answer = num1 + num2;
+        else if (op === '-') answer = num1 - num2;
+        else if (op === '*') answer = num1 * num2;
+
+        window.mathState.answer = answer;
+
+        return `
+<div style="border: 1px solid #ff00ff; padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: #ff00ff;">/// MATH CHALLENGE</h3>
+    <p>Solve this equation: <strong style="font-size: 1.2em;">${num1} ${op} ${num2}</strong></p>
+    <div style="font-size: 0.8em; color: #888;">Type your numerical answer in the terminal. Type 'quit' to exit.</div>
+</div>`;
+    }
+
+    if (args && args.length > 0) {
+        const guess = parseInt(args[0]);
+        if (!isNaN(guess) && guess === window.mathState.answer) {
+            window.mathState.active = false;
+            addXP(15);
+            return `<span style="color: #00ff00; font-weight: bold;">CORRECT!</span> That's some rapid computation. (+15 XP)`;
+        } else {
+            return `<span style="color: #ff3333;">Incorrect.</span> Keep trying or type 'quit'.`;
+        }
+    }
+    return "Please provide a numerical answer.";
+}
+
 function handleEnter(e) {
     if (typeof resetIdleTimer === 'function') resetIdleTimer();
     let command = commandLine.value.trim().toLowerCase();
@@ -3625,6 +3717,11 @@ function handleEnter(e) {
     } else if (window.gamesState && window.gamesState.active && command === 'quit') {
         window.gamesState.active = false;
         outputHTML = "Selector closed.";
+    } else if (window.mathState && window.mathState.active && command !== 'quit') {
+        outputHTML = handleMathCommand([rawCommand]);
+    } else if (window.mathState && window.mathState.active && command === 'quit') {
+        window.mathState.active = false;
+        outputHTML = "Math challenge aborted.";
     } else if (window.snakeState && window.snakeState.active && command !== 'quit') {
         outputHTML = handleSnakeCommand([rawCommand]);
     } else if (window.snakeState && window.snakeState.active && command === 'quit') {
@@ -3724,6 +3821,10 @@ function handleEnter(e) {
             outputHTML = handleCompanionCommand();
         } else if (cmdName === 'challenge') {
             outputHTML = handleChallengeCommand();
+        } else if (cmdName === 'summary') {
+            outputHTML = handleSummaryCommand(args, id);
+        } else if (cmdName === 'math') {
+            outputHTML = handleMathCommand(args);
         } else if (cmdName === 'todo') {
             outputHTML = handleTodoCommand(args);
         } else if (cmdName === 'cowsay') {
@@ -4140,7 +4241,7 @@ function handleFeaturerequestCommand(args) {
     `;
 }
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleAnalyzeMemoryCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleWorkflowCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleExchangeCommand, handleFeaturerequestCommand, handleGamesCommand, handleSnakeCommand, handleScrambleCommand, handleBinaryCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHelpCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleLearnCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleUploadCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, type };
+    module.exports = { handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleAnalyzeMemoryCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleWorkflowCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleExchangeCommand, handleFeaturerequestCommand, handleGamesCommand, handleSnakeCommand, handleScrambleCommand, handleBinaryCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHelpCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleLearnCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleUploadCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, handleSummaryCommand, handleMathCommand, type };
 }
 
 // Tab functionality
