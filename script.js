@@ -332,7 +332,7 @@ const commandRegistry = {
 };
 
 // Generate cmdList dynamically
-const customCommands = ['achievements', 'upload', 'learn', 'games', 'snake', 'scramble', 'binary', 'hangman', 'movies', 'brainstorm', 'advice', 'ajoke', 'alias', 'analyze', 'analyzememory', 'assist', 'automate', 'workflow', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'exchange', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace', 'summary', 'math'];
+const customCommands = ['achievements', 'upload', 'learn', 'games', 'snake', 'scramble', 'binary', 'hangman', 'movies', 'brainstorm', 'advice', 'ajoke', 'alias', 'analyze', 'analyzememory', 'assist', 'automate', 'workflow', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'exchange', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace', 'summary', 'math', 'recipe', 'apod', 'ip', 'activity'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -3664,6 +3664,119 @@ function handleMathCommand(args) {
     return "Please provide a numerical answer.";
 }
 
+
+function handleRecipeCommand(id) {
+    const safeId = id || 'recipe-' + Date.now();
+    setTimeout(() => {
+        fetch('https://www.themealdb.com/api/json/v1/1/random.php')
+            .then(response => {
+                if (!response.ok) throw new Error("Network response was not ok");
+                return response.json();
+            })
+            .then(data => {
+                const meal = data.meals[0];
+                const el = document.getElementById(safeId);
+                if (el) {
+                    el.innerHTML = `<div style="border-left: 3px solid var(--user-color); padding-left: 10px;">
+                        <span style="color: var(--user-color); font-weight: bold;">RECIPE FOUND:</span> ${meal.strMeal}<br>
+                        <span style="color: var(--command-color);">CATEGORY:</span> ${meal.strCategory}<br>
+                        <span style="color: var(--command-color);">AREA:</span> ${meal.strArea}<br>
+                        <a href="${meal.strSource}" target="_blank" style="color: var(--link-color);">View Full Recipe</a>
+                    </div>`;
+                }
+            })
+            .catch(err => {
+                const el = document.getElementById(safeId);
+                if (el) {
+                    el.innerHTML = `<span style="color: red;">[ERROR] Failed to fetch recipe. API might be down.</span>`;
+                }
+            });
+    }, 100);
+    return `<div id="${safeId}"><span style="color: #888;">[Fetching random recipe...]</span></div>`;
+}
+
+function handleApodCommand(id) {
+    const safeId = id || 'apod-' + Date.now();
+    setTimeout(() => {
+        fetch('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY')
+            .then(response => {
+                if (!response.ok) throw new Error("Network response was not ok");
+                return response.json();
+            })
+            .then(data => {
+                const el = document.getElementById(safeId);
+                if (el) {
+                    el.innerHTML = `<div style="border-left: 3px solid var(--user-color); padding-left: 10px;">
+                        <span style="color: var(--user-color); font-weight: bold;">ASTRONOMY PICTURE OF THE DAY:</span><br>
+                        <span style="color: var(--command-color);">TITLE:</span> ${data.title}<br>
+                        <span style="color: var(--command-color);">DATE:</span> ${data.date}<br>
+                        <a href="${data.url}" target="_blank" style="color: var(--link-color);">View Image</a>
+                    </div>`;
+                }
+            })
+            .catch(err => {
+                const el = document.getElementById(safeId);
+                if (el) {
+                    el.innerHTML = `<span style="color: red;">[ERROR] Failed to fetch APOD. Rate limit may be exceeded.</span>`;
+                }
+            });
+    }, 100);
+    return `<div id="${safeId}"><span style="color: #888;">[Fetching Astronomy Picture of the Day...]</span></div>`;
+}
+
+function handleIpCommand(args, id) {
+    const safeId = id || 'ip-' + Date.now();
+    const query = args.length > 0 ? encodeURIComponent(args[0]) : '';
+    setTimeout(() => {
+        fetch(`https://ipapi.co/${query ? query + '/' : ''}json/`)
+            .then(response => {
+                if (!response.ok) throw new Error("Network response was not ok");
+                return response.json();
+            })
+            .then(data => {
+                const el = document.getElementById(safeId);
+                if (el) {
+                    if (data.error) {
+                         el.innerHTML = `<span style="color: red;">[ERROR] ${data.reason}</span>`;
+                         return;
+                    }
+                    el.innerHTML = `<div style="border-left: 3px solid var(--user-color); padding-left: 10px;">
+                        <span style="color: var(--user-color); font-weight: bold;">IP INFO ${query ? 'FOR ' + data.ip : '(YOUR IP)'}:</span><br>
+                        <span style="color: var(--command-color);">IP:</span> ${data.ip}<br>
+                        <span style="color: var(--command-color);">CITY:</span> ${data.city || 'N/A'}<br>
+                        <span style="color: var(--command-color);">REGION:</span> ${data.region || 'N/A'}<br>
+                        <span style="color: var(--command-color);">COUNTRY:</span> ${data.country_name || 'N/A'}<br>
+                        <span style="color: var(--command-color);">ORG:</span> ${data.org || 'N/A'}
+                    </div>`;
+                }
+            })
+            .catch(err => {
+                const el = document.getElementById(safeId);
+                if (el) {
+                    el.innerHTML = `<span style="color: red;">[ERROR] Failed to fetch IP info.</span>`;
+                }
+            });
+    }, 100);
+    return `<div id="${safeId}"><span style="color: #888;">[Fetching IP ${query ? query : 'info'}...]</span></div>`;
+}
+
+function handleActivityCommand() {
+    const activities = [
+        "Learn a new programming language.",
+        "Take a 15-minute walk outside.",
+        "Read a chapter of a book.",
+        "Do 20 pushups.",
+        "Drink a glass of water.",
+        "Write down three things you are grateful for.",
+        "Clean your workspace.",
+        "Try meditating for 5 minutes.",
+        "Call or text a friend you haven't spoken to in a while.",
+        "Watch a documentary on a topic you know nothing about."
+    ];
+    const activity = activities[Math.floor(getRandom() * activities.length)];
+    return `Suggestion: <span style="color: var(--user-color);">${activity}</span>`;
+}
+
 function handleEnter(e) {
     if (typeof resetIdleTimer === 'function') resetIdleTimer();
     let command = commandLine.value.trim().toLowerCase();
@@ -3777,7 +3890,15 @@ function handleEnter(e) {
 
         if (cmdName === 'help') {
             outputHTML = handleHelpCommand(args);
-        } else if (commandRegistry[command]) {
+                } else if (cmdName === 'recipe') {
+            outputHTML = handleRecipeCommand(outId);
+        } else if (cmdName === 'apod') {
+            outputHTML = handleApodCommand(outId);
+        } else if (cmdName === 'ip') {
+            outputHTML = handleIpCommand(args, outId);
+        } else if (cmdName === 'activity') {
+            outputHTML = handleActivityCommand();
+} else if (commandRegistry[command]) {
             outputHTML = commandRegistry[command]();
         } else if (cmdName === 'matrix') {
             outputHTML = handleMatrixCommand();
@@ -4241,7 +4362,7 @@ function handleFeaturerequestCommand(args) {
     `;
 }
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleAnalyzeMemoryCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleWorkflowCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleExchangeCommand, handleFeaturerequestCommand, handleGamesCommand, handleSnakeCommand, handleScrambleCommand, handleBinaryCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHelpCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleLearnCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleUploadCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, handleSummaryCommand, handleMathCommand, type };
+    module.exports = { handleRecipeCommand, handleApodCommand, handleIpCommand, handleActivityCommand, handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleAnalyzeMemoryCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleWorkflowCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleExchangeCommand, handleFeaturerequestCommand, handleGamesCommand, handleSnakeCommand, handleScrambleCommand, handleBinaryCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHelpCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleLearnCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleUploadCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, handleSummaryCommand, handleMathCommand, type };
 }
 
 // Tab functionality
