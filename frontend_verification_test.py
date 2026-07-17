@@ -39,6 +39,21 @@ async def run():
         await page.keyboard.press('Enter')
         await page.wait_for_timeout(1000)
 
+        # Type "interact chat" and enter
+        await page.fill('#command-line', 'interact chat')
+        await page.keyboard.press('Enter')
+        await page.wait_for_timeout(1000)
+
+        # Type "triviaapi start" and enter
+        await page.fill('#command-line', 'triviaapi start')
+        await page.keyboard.press('Enter')
+        await page.wait_for_timeout(1000)
+
+        # Type "stocks TSLA" and enter
+        await page.fill('#command-line', 'stocks TSLA')
+        await page.keyboard.press('Enter')
+        await page.wait_for_timeout(2000)
+
         # Take screenshot
         await page.screenshot(path="/home/jules/verification/screenshots/verification.png")
 
