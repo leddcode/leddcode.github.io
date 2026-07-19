@@ -67,8 +67,8 @@ function handleMemoryBankCommand(args) {
 
     if (action === 'store') {
         if (!data) return "Please provide data to store.";
-        memoryBank.push({ data, timestamp: new Date().toISOString() });
-        if (memoryBank.length > 50) memoryBank.shift();
+        memoryBank.push({ data, timestamp: new Date().toISOString(), recencyScore: Date.now(), tfidfScore: getRandom() });
+        if (memoryBank.length > 500) memoryBank.shift();
         try {
             localStorage.setItem('termMemoryBank', JSON.stringify(memoryBank));
         } catch (e) {}
@@ -5835,6 +5835,9 @@ window.toggleTaskFromUI = function(id) {
             task.done = !task.done;
             localStorage.setItem('termTodo', JSON.stringify(todoList));
             updateTasksUI();
+            if (task.done) {
+                addXP(10);
+            }
         }
     } catch (e) {}
 };
@@ -5867,6 +5870,7 @@ window.addTaskFromUI = function() {
         todoList.push({ id: Date.now().toString(36), task: cleanTask, done: false });
         localStorage.setItem('termTodo', JSON.stringify(todoList));
         updateTasksUI();
+        addXP(5);
     } catch (e) {}
 };
 
