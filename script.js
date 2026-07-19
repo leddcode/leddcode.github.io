@@ -592,7 +592,7 @@ const commandRegistry = {
 };
 
 // Generate cmdList dynamically
-const customCommands = ['achievements', 'upload', 'learn', 'games', 'snake', 'scramble', 'binary', 'hangman', 'movies', 'brainstorm', 'advice', 'ajoke', 'alias', 'analyze', 'analyzememory', 'assist', 'automate', 'workflow', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'exchange', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'pomodoro', 'mindmap', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace', 'summary', 'math', 'memorybank', 'speech', 'imagegen', 'proactive', 'exchangerates', 'spotify', 'codechallenge'];
+const customCommands = ['stocks', 'triviaapi', 'achievements', 'upload', 'learn', 'games', 'snake', 'scramble', 'binary', 'hangman', 'movies', 'brainstorm', 'advice', 'ajoke', 'alias', 'analyze', 'analyzememory', 'assist', 'automate', 'workflow', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'exchange', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'pomodoro', 'mindmap', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace', 'summary', 'math', 'memorybank', 'speech', 'imagegen', 'proactive', 'exchangerates', 'spotify', 'codechallenge'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -3336,7 +3336,7 @@ function handleDailyCommand() {
 
 function handleInteractCommand(args) {
     if (args.length === 0) {
-        return "Usage: interact [status|feed|play|train|name]<br>Example: interact feed";
+        return "Usage: interact [status|feed|play|train|chat|name]<br>Example: interact feed";
     }
     const action = args[0].toLowerCase();
 
@@ -3373,13 +3373,29 @@ function handleInteractCommand(args) {
         response = "(⌐■_■) Processing new algorithms... I feel smarter!";
         companionStats.intelligence += 10;
         addXP(20);
+    } else if (action === 'chat') {
+        if (companionStats.energy < 10) {
+            return "<div style='color: var(--warn-color);'>Your companion is too tired to chat! Try 'interact feed'.</div>";
+        }
+        companionStats.energy -= 10;
+        companionStats.affection += 2;
+        companionStats.intelligence += 5;
+        if (typeof addXP === 'function') addXP(10);
+
+        if (companionStats.affection < 20) {
+            response = "(・_・) Hello... I am learning to speak.";
+        } else if (companionStats.affection < 50) {
+            response = "(* ^ ω ^) It's nice to chat with you! Tell me more.";
+        } else {
+            response = "(♡-_-♡) I always love hearing from you! You're my favorite human.";
+        }
     } else if (action === 'name') {
         if (args.length < 2) return "Please provide a name. Example: interact name Jarvis";
         const newName = args.slice(1).join(' ').replace(/</g, "&lt;").replace(/>/g, "&gt;");
         companionStats.name = newName;
         response = `(✧ω✧) I love my new name, ${newName}!`;
     } else {
-        return "Your companion doesn't know how to do that. Try 'status', 'feed', 'play', 'train', or 'name'.";
+        return "Your companion doesn't know how to do that. Try 'status', 'feed', 'play', 'train', 'chat', or 'name'.";
     }
 
     try {
@@ -3568,6 +3584,69 @@ function handleRiddleCommand(args) {
     <div style="font-style: italic; margin-bottom: 10px;">"${riddle.q}"</div>
     <div style="color: #666; font-size: 0.9em; cursor: pointer;" onclick="this.innerHTML='<span style=\\'color: var(--command-color);\\'>Answer:</span> ${riddle.a}'">[Click to reveal answer]</div>
 </div>`;
+}
+
+
+
+function handleStocksCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: stocks [symbol]<br>Example: stocks AAPL";
+    }
+    const symbol = args[0].toUpperCase().replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+            // Mocked MVP since real-time stock APIs require keys
+            const basePrice = Math.random() * 500 + 50;
+            const change = (Math.random() * 10 - 5).toFixed(2);
+            const color = change >= 0 ? 'var(--success-color)' : 'var(--error-color)';
+
+            el.innerHTML = `
+<div style="border: 1px solid var(--command-color); padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: var(--command-color);">/// STOCK TICKER MVP</h3>
+    <span style="color: var(--user-color); font-weight: bold;">[${symbol}]</span>: $${basePrice.toFixed(2)}<br>
+    <span style="color: ${color};">24h Change: ${change}%</span>
+    <div style="margin-top: 5px; font-style: italic; color: #888;">(Simulated market data for MVP demonstration)</div>
+</div>`;
+            const termDiv = document.getElementById('terminal');
+            if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+        }
+    }, 400);
+
+    return `<div id="${id}"><span style="color: #888;">[Connecting to simulated stock exchange for ${symbol}...]</span></div>`;
+}
+
+function handleTriviaApiCommand(args, id) {
+    if (args.length === 0) {
+        return "Usage: triviaapi [start]<br>Example: triviaapi start";
+    }
+
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+            // Mocked MVP since OpenTDB might rate limit or block without keys
+            const questions = [
+                {q: "What does HTML stand for?", a: "Hyper Text Markup Language"},
+                {q: "What is the main language of the web?", a: "JavaScript"},
+                {q: "Which company created React?", a: "Facebook"},
+                {q: "What does CSS stand for?", a: "Cascading Style Sheets"}
+            ];
+            const randQ = questions[Math.floor(Math.random() * questions.length)];
+
+            el.innerHTML = `
+<div style="border: 1px solid #ffcc00; padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: #ffcc00;">/// TRIVIA API CHALLENGE (MVP)</h3>
+    <p><strong>${randQ.q}</strong></p>
+    <div style="color: var(--command-color); margin-top: 5px;">Answer: <span class="blur-text" style="filter: blur(4px); cursor: pointer;" onclick="this.style.filter='none'">${randQ.a}</span></div>
+    <div style="margin-top: 10px; font-style: italic; color: #888;">(Click the blurred text to reveal the answer!)</div>
+</div>`;
+            const termDiv = document.getElementById('terminal');
+            if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+        }
+    }, 300);
+
+    return `<div id="${id}"><span style="color: #888;">[Fetching API trivia question...]</span></div>`;
 }
 
 function handleTriviaCommand(id) {
@@ -4089,6 +4168,10 @@ function handleEnter(e) {
             outputHTML = handleProactiveCommand();
         } else if (cmdName === 'exchangerates') {
             outputHTML = handleExchangeRatesCommand(args, outId);
+        } else if (cmdName === 'triviaapi') {
+            outputHTML = `<div id="${outId}">${handleTriviaApiCommand(args, outId)}</div>`;
+        } else if (cmdName === 'stocks') {
+            outputHTML = `<div id="${outId}">${handleStocksCommand(args, outId)}</div>`;
         } else if (cmdName === 'spotify') {
             outputHTML = handleSpotifyCommand(args);
         } else if (cmdName === 'pomodoro') {
@@ -4519,7 +4602,7 @@ function handleFeaturerequestCommand(args) {
     `;
 }
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { handlePomodoroCommand, handleMindmapCommand, handleMemoryBankCommand, handleSpeechCommand, handleImageGenCommand, handleProactiveCommand, handleExchangeRatesCommand, handleSpotifyCommand, handleCodeChallengeCommand, handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleAnalyzeMemoryCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleWorkflowCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleExchangeCommand, handleFeaturerequestCommand, handleGamesCommand, handleSnakeCommand, handleScrambleCommand, handleBinaryCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHelpCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleLearnCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleUploadCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, handleSummaryCommand, handleMathCommand, type };
+    module.exports = { handlePomodoroCommand, handleMindmapCommand, handleMemoryBankCommand, handleSpeechCommand, handleImageGenCommand, handleProactiveCommand, handleExchangeRatesCommand, handleSpotifyCommand, handleCodeChallengeCommand, handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleAnalyzeMemoryCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleWorkflowCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleExchangeCommand, handleFeaturerequestCommand, handleGamesCommand, handleSnakeCommand, handleScrambleCommand, handleBinaryCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHelpCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleLearnCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleUploadCommand, handleStocksCommand, handleTriviaApiCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, handleSummaryCommand, handleMathCommand, type };
 }
 
 // Tab functionality
