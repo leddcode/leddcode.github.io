@@ -592,7 +592,7 @@ const commandRegistry = {
 };
 
 // Generate cmdList dynamically
-const customCommands = ['stocks', 'triviaapi', 'achievements', 'upload', 'learn', 'games', 'snake', 'scramble', 'binary', 'hangman', 'movies', 'brainstorm', 'advice', 'ajoke', 'alias', 'analyze', 'analyzememory', 'assist', 'automate', 'workflow', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'exchange', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'pomodoro', 'mindmap', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace', 'summary', 'math', 'memorybank', 'speech', 'imagegen', 'proactive', 'exchangerates', 'spotify', 'codechallenge'];
+const customCommands = ['stocks', 'triviaapi', 'achievements', 'upload', 'learn', 'games', 'snake', 'scramble', 'binary', 'hangman', 'movies', 'brainstorm', 'advice', 'ajoke', 'alias', 'analyze', 'analyzememory', 'assist', 'automate', 'workflow', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'exchange', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'pomodoro', 'mindmap', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace', 'summary', 'math', 'memorybank', 'speech', 'imagegen', 'proactive', 'exchangerates', 'spotify', 'codechallenge', 'recipe'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -736,6 +736,55 @@ window.hangmanState = {
 
 
 
+
+
+function handleRecipeCommand(id) {
+    setTimeout(() => {
+        fetch('https://www.themealdb.com/api/json/v1/1/random.php')
+            .then(response => {
+                if (!response.ok) throw new Error("Network response was not ok");
+                return response.json();
+            })
+            .then(data => {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                if (data && data.meals && data.meals.length > 0) {
+                    const meal = data.meals[0];
+                    const name = meal.strMeal;
+                    const category = meal.strCategory;
+                    const area = meal.strArea;
+                    const instructions = meal.strInstructions.substring(0, 200) + '...';
+
+                    let ingredients = [];
+                    for(let i = 1; i <= 20; i++) {
+                        if (meal[`strIngredient${i}`]) {
+                            let measure = meal[`strMeasure${i}`] ? meal[`strMeasure${i}`] : "";
+                            ingredients.push(`${measure} ${meal[`strIngredient${i}`]}`.trim());
+                        }
+                    }
+
+                    el.innerHTML = `
+<div style="border-left: 3px solid #ff7f00; padding-left: 10px; margin: 10px 0;">
+    <span style="color: #ff7f00; font-weight: bold;">[RECIPE DB]</span> ${name} <span style="color: #888; font-style: italic;">(${category}, ${area})</span><br>
+    <span style="color: var(--command-color);">Ingredients:</span> ${ingredients.slice(0, 5).join(', ')}...<br>
+    <span style="color: var(--text-color); font-style: italic;">${instructions}</span>
+    <br><a href="${meal.strSource || meal.strYoutube || '#'}" target="_blank" class="link" style="font-size: 0.9em;">[View full recipe]</a>
+</div>`;
+                } else {
+                    el.innerHTML = `<div style="color: #ffaa00;">[RECIPE DB] No recipe found.</div>`;
+                }
+                const termDiv = document.getElementById('terminal');
+                if (termDiv) termDiv.scrollTop = termDiv.scrollHeight;
+            })
+            .catch(err => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<div style="color: #ff3333;">[API UPLINK FAILED] Unable to fetch recipe data.</div>`;
+            });
+    }, 100);
+
+    return `<div id="${id}"><span style="color: #888;">[Fetching random recipe...]</span></div>`;
+}
 
 function handleGamesCommand(args) {
         const gamesList = [
@@ -4283,6 +4332,8 @@ function handleEnter(e) {
             outputHTML = handleRunflowCommand(args, outId);
         } else if (cmdName === 'exchange') {
             outputHTML = `<div id="${outId}">${handleExchangeCommand(args, outId)}</div>`;
+        } else if (cmdName === 'recipe') {
+            outputHTML = `<div id="${outId}">${handleRecipeCommand(outId)}</div>`;
         } else if (cmdName === 'stock') {
             outputHTML = `<div id="${outId}">${handleStockCommand(args, outId)}</div>`;
         } else if (cmdName === 'review') {
@@ -4602,7 +4653,7 @@ function handleFeaturerequestCommand(args) {
     `;
 }
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { handlePomodoroCommand, handleMindmapCommand, handleMemoryBankCommand, handleSpeechCommand, handleImageGenCommand, handleProactiveCommand, handleExchangeRatesCommand, handleSpotifyCommand, handleCodeChallengeCommand, handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleAnalyzeMemoryCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleWorkflowCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleExchangeCommand, handleFeaturerequestCommand, handleGamesCommand, handleSnakeCommand, handleScrambleCommand, handleBinaryCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHelpCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleLearnCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleUploadCommand, handleStocksCommand, handleTriviaApiCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, handleSummaryCommand, handleMathCommand, type };
+    module.exports = { handlePomodoroCommand, handleMindmapCommand, handleMemoryBankCommand, handleSpeechCommand, handleImageGenCommand, handleProactiveCommand, handleExchangeRatesCommand, handleSpotifyCommand, handleCodeChallengeCommand, handleRecipeCommand, handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleAnalyzeMemoryCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleWorkflowCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleExchangeCommand, handleFeaturerequestCommand, handleGamesCommand, handleSnakeCommand, handleScrambleCommand, handleBinaryCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHelpCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleLearnCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleUploadCommand, handleStocksCommand, handleTriviaApiCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, handleSummaryCommand, handleMathCommand, type };
 }
 
 // Tab functionality
@@ -4816,6 +4867,7 @@ function updateEcosystem() {
     let adviceHtml = handleAdviceCommand('advice-preview');
     let tvHtml = handleTvCommand(['Mr. Robot'], 'tv-preview');
     let exchangeRatesHtml = handleExchangeRatesCommand(['USD'], 'exchangerates-preview');
+    let recipeHtml = handleRecipeCommand('recipe-preview');
     let spotifyHtml = handleSpotifyCommand(['lofi hip hop']);
 
     ecosystemData.innerHTML = `
@@ -4833,6 +4885,7 @@ function updateEcosystem() {
                     ${stockHtml}
                     ${exchangeRatesHtml}
                     ${cocktailHtml}
+                    ${recipeHtml}
                 </div>
                 <div style="flex: 1; min-width: 200px;">
                     <strong>Public Knowledge Graphs:</strong><br>
