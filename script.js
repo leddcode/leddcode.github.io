@@ -3380,7 +3380,22 @@ function handleDailyCommand() {
 
     localStorage.setItem('termLastDaily', today);
     const xpMsg = addXP(50);
-    return `<div style='color: #00ff00; font-weight: bold;'>[DAILY CHALLENGE] Completed! +50 XP awarded.</div>${xpMsg}`;
+
+    const challenges = [
+        "What is the time complexity of binary search? (Log it via 'feedback')",
+        "Write a one-line function to reverse a string. (Log it via 'feedback')",
+        "Explain the difference between TCP and UDP. (Log it via 'feedback')",
+        "Play a game of 'hangman' and win.",
+        "Use the 'calc' command to calculate 42 * 1337."
+    ];
+    const challenge = challenges[Math.floor(getRandom() * challenges.length)];
+
+    return `
+<div style="border: 1px dashed var(--user-color); padding: 10px; margin: 10px 0;">
+    <div style="color: var(--user-color); font-weight: bold; margin-bottom: 5px;">🔥 DAILY MICRO-CHALLENGE 🔥</div>
+    <div style="color: var(--command-color);">${challenge}</div>
+    <div style="margin-top: 10px; font-size: 0.9em; color: #888;">[Completing this locally and logging it via 'feedback' grants bonus XP]</div>
+</div><div style='color: #00ff00; font-weight: bold;'>[DAILY CHECK-IN] Completed! +50 XP awarded.</div>${xpMsg}`;
 }
 
 function handleInteractCommand(args) {
@@ -3392,7 +3407,9 @@ function handleInteractCommand(args) {
     let companionStats = { affection: 0, intelligence: 0, energy: 100, name: "Companion AI" };
     try {
         const stored = localStorage.getItem('termCompanionStats');
-        if (stored) companionStats = { ...companionStats, ...JSON.parse(stored) };
+        if (stored) {
+            companionStats = { ...companionStats, ...JSON.parse(stored) };
+        }
     } catch (e) {}
 
     let response = "";
@@ -3400,12 +3417,12 @@ function handleInteractCommand(args) {
         let mood = "Happy";
         if (companionStats.affection < 10) mood = "Lonely";
         if (companionStats.energy < 30) mood = "Tired";
-        response = `(°◡°♡) Mood: ${mood} | Energy: ${companionStats.energy}%`;
+        response = `(°◡°♡) Mood: ${mood} | Energy: ${companionStats.energy}%<br>Affection: ${companionStats.affection} | Intelligence: ${companionStats.intelligence}`;
     } else if (action === 'feed') {
         companionStats.energy = Math.min(100, companionStats.energy + 20);
         response = "(^・ω・^ ) Mmm, delicious data bytes! Thank you!";
         companionStats.affection += 5;
-        addXP(10);
+        if (typeof addXP === 'function') addXP(10);
     } else if (action === 'play') {
         if (companionStats.energy < 15) {
             return "<div style='color: var(--warn-color);'>Your companion is too tired to play! Try 'interact feed'.</div>";
@@ -3413,7 +3430,7 @@ function handleInteractCommand(args) {
         companionStats.energy -= 15;
         response = "＼(≧▽≦)／ Yay! That was fun!";
         companionStats.affection += 10;
-        addXP(15);
+        if (typeof addXP === 'function') addXP(15);
     } else if (action === 'train') {
         if (companionStats.energy < 20) {
             return "<div style='color: var(--warn-color);'>Your companion is too tired to train! Try 'interact feed'.</div>";
@@ -3421,7 +3438,7 @@ function handleInteractCommand(args) {
         companionStats.energy -= 20;
         response = "(⌐■_■) Processing new algorithms... I feel smarter!";
         companionStats.intelligence += 10;
-        addXP(20);
+        if (typeof addXP === 'function') addXP(20);
     } else if (action === 'chat') {
         if (companionStats.energy < 10) {
             return "<div style='color: var(--warn-color);'>Your companion is too tired to chat! Try 'interact feed'.</div>";
@@ -3453,8 +3470,7 @@ function handleInteractCommand(args) {
 
     return `<div style="border: 1px solid #ff99cc; padding: 10px; margin: 10px 0; border-radius: 5px;">
     <span style="color: #ff99cc; font-weight: bold;">[${companionStats.name.toUpperCase()}]</span><br>
-    ${response}<br>
-    <span style="color: #888; font-size: 0.9em;">Relationship improved! Affection: ${companionStats.affection} | INT: ${companionStats.intelligence}</span>
+    ${response}
 </div>`;
 }
 
@@ -4761,203 +4777,153 @@ function updateIntelligence() {
     const intelligenceData = document.getElementById('intelligence-data');
     if (!intelligenceData) return;
 
-    let vectorHtml = handleLongtermCommand(['search']);
-    let memoryBankHtml = handleMemoryBankCommand(['search']);
-    let docparseHtml = handleDocparseCommand(['https://leddcode.com/architecture.pdf']);
-    let photoHtml = handleImageCommand(['cyberpunk', 'ai', 'hacker'], 'photo-preview');
-    let imageGenHtml = handleImageGenCommand(['synthwave sunset'], 'imagegen-preview');
-    let visionHtml = handleVisionCommand(['https://loremflickr.com/400/300/cyberpunk'], 'vision-preview');
-    let voiceHtml = handleVoiceCommand();
-    let speechHtml = handleSpeechCommand(['5'], 'speech-preview');
-
-    let brainstormHtml = handleBrainstormCommand(['app features'], 'brainstorm-preview');
-    let factHtml = handleFactCommand('fact-preview');
-    let suggestHtml = handleSuggestCommand();
-    let proactiveHtml = handleProactiveCommand();
-    let runflowHtml = handleRunflowCommand([], 'runflow-preview');
-    let habitHtml = handleHabitCommand([]);
-    let sentimentHtml = handleSentimentCommand(['This new tool is incredible!'], 'sentiment-preview');
-    let podcastHtml = handlePodcastCommand(['javascript'], 'podcast-preview');
-
+    // Create the structure first so IDs exist in the DOM for async handlers
     intelligenceData.innerHTML = `
         <div class="ai-hub-card">
             <h3 class="ai-hub-title">Advanced Contextual Memory (Vector DB)</h3>
-            ${vectorHtml}
+            <div id="vector-container"></div>
             <div style="margin-top: 10px;">
                 <strong>Long-Term Memory Bank:</strong><br>
-                ${memoryBankHtml}
+                <div id="memorybank-container"></div>
             </div>
         </div>
         <div class="ai-hub-card">
-            <h3 class="ai-hub-title">Multi-Modal Capabilities</h3>
-            <div style="margin-bottom: 10px;">
-                <strong>Document Parser:</strong><br>
-                ${docparseHtml}
+            <h3 class="ai-hub-title">Multi-Modal Document Parsing</h3>
+            <div id="docparse-container"></div>
+        </div>
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Proactive Intelligence & Suggestions</h3>
+            <div id="suggest-container"></div>
+            <div style="margin-top: 10px;">
+                <strong>Brainstorming Session:</strong><br>
+                <div id="brainstorm-preview"></div>
             </div>
-            <div style="margin-bottom: 10px;">
-                <strong>Voice Recognition Uplink:</strong><br>
-                ${voiceHtml}
-            </div>
-            <div style="margin-bottom: 10px;">
-                <strong>Voice-to-Text Analysis:</strong><br>
-                ${speechHtml}
-            </div>
-            <div style="margin-bottom: 10px;">
-                <strong>Legacy Image Generation API:</strong><br>
-                ${photoHtml}
-            </div>
-            <div style="margin-bottom: 10px;">
-                <strong>Advanced Image Generation:</strong><br>
-                ${imageGenHtml}
-            </div>
-            <div>
-                <strong>Vision Analysis Model:</strong><br>
-                ${visionHtml}
+            <div style="margin-top: 10px;">
+                <strong>System Fact:</strong><br>
+                <div id="fact-preview"></div>
             </div>
         </div>
         <div class="ai-hub-card">
-            <h3 class="ai-hub-title">AI Brainstorming</h3>
-            ${brainstormHtml}
+            <h3 class="ai-hub-title">Proactive Workflows</h3>
+            <div id="runflow-preview"></div>
+            <div style="margin-top: 10px;">
+                <strong>Daily Habit Tracking:</strong><br>
+                <div id="habit-container"></div>
+            </div>
         </div>
         <div class="ai-hub-card">
-            <h3 class="ai-hub-title">Automation Workflows</h3>
-            ${runflowHtml}
+            <h3 class="ai-hub-title">Vision & Media Processing</h3>
+            <div id="photo-preview"></div>
+            <div style="margin-top: 10px;" id="vision-preview"></div>
+            <div style="margin-top: 10px;" id="imagegen-preview"></div>
         </div>
         <div class="ai-hub-card">
-            <h3 class="ai-hub-title">Proactive Assistance & Facts</h3>
-            ${suggestHtml}
-            <div style="margin-top: 10px;">${proactiveHtml}</div>
-            <div id="fact-preview" style="margin-top: 10px;">${factHtml}</div>
+            <h3 class="ai-hub-title">Voice & Sentiment Analysis</h3>
+            <div id="voice-container"></div>
+            <div style="margin-top: 10px;" id="speech-preview"></div>
+            <div style="margin-top: 10px;" id="sentiment-preview"></div>
         </div>
         <div class="ai-hub-card">
-            <h3 class="ai-hub-title">Sentiment Analysis</h3>
-            ${sentimentHtml}
-        </div>
-        <div class="ai-hub-card">
-            <h3 class="ai-hub-title">Media Processing (Podcast Search)</h3>
-            ${podcastHtml}
+            <h3 class="ai-hub-title">Podcasts & Audio Learning</h3>
+            <div id="podcast-preview"></div>
         </div>
     `;
+
+    document.getElementById('vector-container').innerHTML = handleLongtermCommand(['search']);
+    document.getElementById('memorybank-container').innerHTML = handleMemoryBankCommand(['search']);
+    document.getElementById('docparse-container').innerHTML = handleDocparseCommand(['https://leddcode.com/architecture.pdf']);
+    document.getElementById('suggest-container').innerHTML = handleSuggestCommand();
+    handleBrainstormCommand(['app features'], 'brainstorm-preview');
+    handleFactCommand('fact-preview');
+    handleRunflowCommand([], 'runflow-preview');
+    document.getElementById('habit-container').innerHTML = handleHabitCommand([]);
+    document.getElementById('photo-preview').innerHTML = handleImageCommand(['cyberpunk', 'ai', 'hacker'], 'photo-preview');
+    handleVisionCommand(['https://loremflickr.com/400/300/cyberpunk'], 'vision-preview');
+    handleImageGenCommand(['synthwave sunset'], 'imagegen-preview');
+    document.getElementById('voice-container').innerHTML = handleVoiceCommand();
+    handleSpeechCommand(['5'], 'speech-preview');
+    handleSentimentCommand(['This new tool is incredible!'], 'sentiment-preview');
+    handlePodcastCommand(['javascript'], 'podcast-preview');
 }
 
 function updateEcosystem() {
     const ecosystemData = document.getElementById('ecosystem-data');
     if (!ecosystemData) return;
 
-    let weatherHtml = handleWeatherCommand(['Tokyo'], 'weather-preview');
-    let geoHtml = handleGeoCommand(['me'], 'geo-preview');
-    let cryptoHtml = handleCryptoCommand(['bitcoin'], 'crypto-preview');
-    let stockHtml = handleStockCommand(['AAPL'], 'stock-preview');
-    let githubHtml = handleGithubCommand(['leddcode'], 'github-preview');
-    let gitlabHtml = handleGitlabCommand(['leddcode'], 'gitlab-preview');
-    let issuesHtml = handleIssuesCommand(['leddcode/Oculus'], 'issues-preview');
-    let wikiHtml = handleWikiCommand(['Cybersecurity'], 'wiki-preview');
-    let wikidataHtml = handleWikidataCommand(['Earth'], 'wikidata-preview');
-    let pexelsHtml = handlePexelsCommand(['cyberpunk'], 'pexels-preview');
-    let reviewHtml = handleReviewCommand(['function add(a,b){return a+b;}'], 'review-preview');
-    let dictionaryHtml = handleDictionaryCommand(['cyberpunk'], 'dictionary-preview');
-    let spaceHtml = handleSpaceCommand('space-preview');
-    let npmHtml = handleNpmCommand(['react'], 'npm-preview');
-    let booksHtml = handleBooksCommand(['Neuromancer']);
-    let podcastHtml = handlePodcastCommand(['Lex Fridman']);
-    let moviesHtml = handleMoviesCommand(['matrix'], 'movies-preview');
-    let featurerequestHtml = handleFeaturerequestCommand([]);
-    let cocktailHtml = handleCocktailCommand(['margarita'], 'cocktail-preview');
-    let countryHtml = handleCountryCommand(['michael'], 'country-preview');
-    let adviceHtml = handleAdviceCommand('advice-preview');
-    let tvHtml = handleTvCommand(['Mr. Robot'], 'tv-preview');
-    let exchangeRatesHtml = handleExchangeRatesCommand(['USD'], 'exchangerates-preview');
-    let recipeHtml = handleRecipeCommand('recipe-preview');
-    let spotifyHtml = handleSpotifyCommand(['lofi hip hop']);
-
     ecosystemData.innerHTML = `
         <div class="ai-hub-card">
-            <h3 class="ai-hub-title">Data & Productivity APIs</h3>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 200px;">
-                    <strong>Weather & Geolocation:</strong><br>
-                    ${weatherHtml}
-                    ${geoHtml}
-                </div>
-                <div style="flex: 1; min-width: 200px;">
-                    <strong>Financial Markets & Utilities:</strong><br>
-                    ${cryptoHtml}
-                    ${stockHtml}
-                    ${exchangeRatesHtml}
-                    ${cocktailHtml}
-                    ${recipeHtml}
-                </div>
-                <div style="flex: 1; min-width: 200px;">
-                    <strong>Public Knowledge Graphs:</strong><br>
-                    ${wikiHtml}
-                    ${wikidataHtml}
-                    ${countryHtml}
-                </div>
-            </div>
+            <h3 class="ai-hub-title">Global Weather Network</h3>
+            <div id="weather-preview"></div>
         </div>
         <div class="ai-hub-card">
-            <h3 class="ai-hub-title">External Intelligence APIs</h3>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 250px;">
-                    <strong>Dictionary API:</strong><br>
-                    ${dictionaryHtml}
-                </div>
-                <div style="flex: 1; min-width: 250px;">
-                    <strong>NPM Registry:</strong><br>
-                    ${npmHtml}
-                </div>
-                <div style="flex: 1; min-width: 250px;">
-                    <strong>Space API:</strong><br>
-                    ${spaceHtml}
-                </div>
-            </div>
+            <h3 class="ai-hub-title">Financial & Crypto Markets</h3>
+            <div id="crypto-preview"></div>
+            <div style="margin-top: 10px;" id="stock-preview"></div>
+            <div style="margin-top: 10px;" id="exchangerates-preview"></div>
+        </div>
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Knowledge Graphs</h3>
+            <div id="wiki-preview"></div>
+            <div style="margin-top: 10px;" id="wikidata-preview"></div>
+            <div style="margin-top: 10px;" id="dictionary-preview"></div>
+            <div style="margin-top: 10px;" id="country-preview"></div>
         </div>
         <div class="ai-hub-card">
             <h3 class="ai-hub-title">Developer & Creator Tools</h3>
-            <div style="margin-bottom: 10px;">
-                <strong>Spotify Integration (MVP):</strong><br>
-                ${spotifyHtml}
+            <div id="github-preview"></div>
+            <div style="margin-top: 10px;" id="gitlab-preview"></div>
+            <div style="margin-top: 10px;" id="issues-preview"></div>
+            <div style="margin-top: 10px;" id="review-preview"></div>
+            <div style="margin-top: 10px;" id="npm-preview"></div>
+        </div>
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Media Integrations</h3>
+            <div id="pexels-preview"></div>
+            <div style="margin-top: 10px;" id="tv-preview"></div>
+            <div style="margin-top: 10px;" id="movies-preview"></div>
+            <div style="margin-top: 10px;" id="recipe-preview"></div>
+            <div style="margin-top: 10px;" id="cocktail-preview"></div>
+            <div style="margin-top: 10px;">
+                <strong>Spotify Embed:</strong><br>
+                <div id="spotify-container"></div>
             </div>
-            <div style="margin-bottom: 10px;">
-                <strong>Daily Advice API:</strong><br>
-                ${adviceHtml}
-            </div>
-            <div style="margin-bottom: 10px;">
-                <strong>TVMaze Database:</strong><br>
-                ${tvHtml}
-            </div>
-            <div style="margin-bottom: 10px;">
-                <strong>Movie Search API:</strong><br>
-                ${moviesHtml}
-            </div>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 250px;">
-                    <strong>GitHub & GitLab:</strong><br>
-                    ${githubHtml}
-                    ${gitlabHtml}
-                </div>
-                <div style="flex: 1; min-width: 250px;">
-                    <strong>Issue Tracker & Code Review:</strong><br>
-                    ${issuesHtml}
-                    ${reviewHtml}
-                </div>
-                <div style="flex: 1; min-width: 250px;">
-                    <strong>Media (Pexels):</strong><br>
-                    ${pexelsHtml}
-                </div>
+            <div style="margin-top: 10px;">
+                <strong>Books Embed:</strong><br>
+                <div id="books-container"></div>
             </div>
         </div>
         <div class="ai-hub-card">
-            <h3 class="ai-hub-title">Feedback & Future Iterations</h3>
-            ${featurerequestHtml}
-            <div style="margin-top: 10px;">
-                Which integration should we add next? Let us know!<br>
-                <button onclick="window.logFeedback(true); alert('Thanks for the feedback!');" style="background: var(--panel-bg); color: var(--user-color); border: 1px solid var(--border-color); padding: 5px 10px; cursor: pointer; margin-top: 5px;">Spotify API</button>
-                <button onclick="window.logFeedback(true); alert('Thanks for the feedback!');" style="background: var(--panel-bg); color: var(--user-color); border: 1px solid var(--border-color); padding: 5px 10px; cursor: pointer; margin-top: 5px; margin-left: 5px;">News API</button>
-                <button onclick="window.logFeedback(true); alert('Thanks for the feedback!');" style="background: var(--panel-bg); color: var(--user-color); border: 1px solid var(--border-color); padding: 5px 10px; cursor: pointer; margin-top: 5px; margin-left: 5px;">Google Maps</button>
-            </div>
+            <h3 class="ai-hub-title">Astronomy API</h3>
+            <div id="space-preview"></div>
+        </div>
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Geolocation</h3>
+            <div id="geo-preview"></div>
         </div>
     `;
+
+    handleWeatherCommand(['Tokyo'], 'weather-preview');
+    handleGeoCommand(['me'], 'geo-preview');
+    handleCryptoCommand(['bitcoin'], 'crypto-preview');
+    handleStockCommand(['AAPL'], 'stock-preview');
+    handleExchangeRatesCommand(['USD'], 'exchangerates-preview');
+    handleWikiCommand(['Cybersecurity'], 'wiki-preview');
+    handleWikidataCommand(['Earth'], 'wikidata-preview');
+    handleDictionaryCommand(['cyberpunk'], 'dictionary-preview');
+    handleCountryCommand(['michael'], 'country-preview');
+    handleGithubCommand(['leddcode'], 'github-preview');
+    handleGitlabCommand(['leddcode'], 'gitlab-preview');
+    handleIssuesCommand(['leddcode/Oculus'], 'issues-preview');
+    handleReviewCommand(['function add(a,b){return a+b;}'], 'review-preview');
+    handleNpmCommand(['react'], 'npm-preview');
+    handlePexelsCommand(['cyberpunk'], 'pexels-preview');
+    handleTvCommand(['Mr. Robot'], 'tv-preview');
+    handleMoviesCommand(['matrix'], 'movies-preview');
+    handleRecipeCommand('recipe-preview');
+    handleCocktailCommand(['margarita'], 'cocktail-preview');
+    document.getElementById('spotify-container').innerHTML = handleSpotifyCommand(['lofi hip hop']);
+    document.getElementById('books-container').innerHTML = handleBooksCommand(['Neuromancer']);
+    handleSpaceCommand('space-preview');
 }
 
 function updateAiHub() {
@@ -4971,9 +4937,15 @@ function updateAiHub() {
     let memoryHtml = handleRecallCommand([]);
     let challengeHtml = handleChallengeCommand();
     let assistHtml = handleAssistCommand();
-    let companionHtml = handleCompanionCommand();
+
+    // Simulate companion status command to get rich output
+    let companionHtml = handleInteractCommand(['status']);
+
     let featurerequestHtml = handleFeaturerequestCommand([]);
     let musicHtml = handleMusicCommand(['play'], true);
+
+    // Simulate daily command to fetch the micro-challenge
+    let dailyHtml = handleDailyCommand();
 
     aiHubData.innerHTML = `
         <div class="ai-hub-card">
@@ -4981,24 +4953,48 @@ function updateAiHub() {
             ${workspaceHtml}
             <div style="margin-top: 15px;">${focusHtml}</div>
             ${avatarHtml}
-            ${assistHtml}
-            ${companionHtml}
-            <div style="margin-top: 10px; font-size: 0.9em; color: var(--text-color);">
-                <em>Tip: Use <span style="color: var(--command-color);">interact feed</span> in the terminal to feed your companion!</em>
+            <div style="margin-top: 15px;">
+                <strong>Companion Status:</strong><br>
+                ${companionHtml}
+                <div style="margin-top: 5px;">
+                    <button onclick="window.commandLine.value='interact feed'; window.handleEnter({key: 'Enter', preventDefault: () => {}});" style="background: var(--panel-bg); color: var(--user-color); border: 1px solid var(--border-color); padding: 5px 10px; cursor: pointer; margin-right: 5px;">Feed</button>
+                    <button onclick="window.commandLine.value='interact train'; window.handleEnter({key: 'Enter', preventDefault: () => {}});" style="background: var(--panel-bg); color: var(--user-color); border: 1px solid var(--border-color); padding: 5px 10px; cursor: pointer; margin-right: 5px;">Train</button>
+                    <button onclick="window.commandLine.value='interact chat'; window.handleEnter({key: 'Enter', preventDefault: () => {}});" style="background: var(--panel-bg); color: var(--user-color); border: 1px solid var(--border-color); padding: 5px 10px; cursor: pointer;">Chat</button>
+                </div>
             </div>
         </div>
         <div class="ai-hub-card">
-            <h3 class="ai-hub-title">Active Quests & Challenges</h3>
+            <h3 class="ai-hub-title">Daily Micro-Challenge</h3>
+            ${dailyHtml}
+        </div>
+        <div class="ai-hub-card">
+            <h3 class="ai-hub-title">Active Quests & Progression</h3>
             ${questsHtml}
-            ${challengeHtml}
+            <div style="margin-top: 15px;">
+                <strong>Memory Recall:</strong><br>
+                ${memoryHtml}
+            </div>
+            <div style="margin-top: 15px;">
+                <strong>Coding Challenge:</strong><br>
+                ${challengeHtml}
+            </div>
         </div>
         <div class="ai-hub-card">
-            <h3 class="ai-hub-title">Contextual Memory</h3>
-            ${memoryHtml}
+            <h3 class="ai-hub-title">Proactive Assistance & Media</h3>
+            ${assistHtml}
+            <div style="margin-top: 15px;">
+                ${musicHtml}
+            </div>
         </div>
         <div class="ai-hub-card">
-            <h3 class="ai-hub-title">Terminal Music Player</h3>
-            ${musicHtml}
+            <h3 class="ai-hub-title">Feedback & Future Iterations</h3>
+            ${featurerequestHtml}
+            <div style="margin-top: 10px;">
+                Which integration should we add next? Let us know!<br>
+                <button onclick="window.logFeedback(true); alert('Thanks for the feedback!');" style="background: var(--panel-bg); color: var(--user-color); border: 1px solid var(--border-color); padding: 5px 10px; cursor: pointer; margin-top: 5px;">Spotify API</button>
+                <button onclick="window.logFeedback(true); alert('Thanks for the feedback!');" style="background: var(--panel-bg); color: var(--user-color); border: 1px solid var(--border-color); padding: 5px 10px; cursor: pointer; margin-top: 5px; margin-left: 5px;">News API</button>
+                <button onclick="window.logFeedback(true); alert('Thanks for the feedback!');" style="background: var(--panel-bg); color: var(--user-color); border: 1px solid var(--border-color); padding: 5px 10px; cursor: pointer; margin-top: 5px; margin-left: 5px;">Google Maps</button>
+            </div>
         </div>
     `;
 }
@@ -5152,93 +5148,97 @@ function updateGames() {
     const gamesData = document.getElementById('games-data');
     if (!gamesData) return;
 
-    let rollHtml = handleRollCommand(['20']);
-    let coinHtml = handleCoinCommand();
-    let leaderboardHtml = handleLeaderboardCommand();
-    let dailyHtml = handleDailyCommand();
-    let triviaHtml = handleTriviaCommand('trivia-preview');
-    let shopHtml = handleShopCommand();
-    let inventoryHtml = handleInventoryCommand();
-    let rpsHtml = handleRpsCommand(['rock']);
-    let achievementsHtml = handleAchievementsCommand([]);
-    let slotsHtml = handleSlotsCommand();
-    let hackHtml = handleHackCommand(['10.0.0.1'], 'hack-preview');
-    let riddleHtml = handleRiddleCommand([]);
-    let hangmanHtml = handleHangmanCommand(['status']);
-    let snakeHtml = handleSnakeCommand([]);
-    let scrambleHtml = handleScrambleCommand([]);
-    let binaryHtml = handleBinaryCommand([]);
-
-
     gamesData.innerHTML = `
         <div class="games-card" style="display: flex; gap: 10px; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 300px;">
                 <h3>Trivia Challenge</h3>
-                ${triviaHtml}
+                <div id="trivia-preview"></div>
             </div>
             <div style="flex: 1; min-width: 300px;">
                 <h3>Hangman</h3>
-                ${hangmanHtml}
-                <div style="font-size: 0.8em; color: #888;">Type 'hangman start' in terminal to play.</div>
-            </div>
-            <div style="flex: 1; min-width: 300px;">
-                <h3>Snake</h3>
-                <div style="background: #000; padding: 10px; border-radius: 5px; font-family: monospace;">${snakeHtml}</div>
-                <div style="font-size: 0.8em; color: #888; margin-top: 5px;">Type 'snake' in terminal to play.</div>
+                <div id="hangman-container"></div>
             </div>
             <div style="flex: 1; min-width: 300px;">
                 <h3>Word Scramble</h3>
-                ${scrambleHtml}
-                <div style="font-size: 0.8em; color: #888;">Type 'scramble' in terminal to play.</div>
+                <div id="scramble-container"></div>
             </div>
             <div style="flex: 1; min-width: 300px;">
-                <h3>Binary Challenge</h3>
-                ${binaryHtml}
-                <div style="font-size: 0.8em; color: #888;">Type 'binary' in terminal to play.</div>
-            </div>
-            <div style="flex: 1; min-width: 300px;">
-                <h3>Daily Enigma</h3>
-                ${riddleHtml}
+                <h3>Binary Translator Game</h3>
+                <div id="binary-container"></div>
             </div>
         </div>
         <div class="games-card">
-            <h3>System Shop & Inventory</h3>
-            ${shopHtml}
-            ${inventoryHtml}
+            <h3 class="ai-hub-title">Terminal Games</h3>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <strong>Snake / Retro:</strong><br>
+                    <div id="snake-container"></div>
+                    <div style="margin-top: 5px;">
+                        <strong>Hack Simulator:</strong><br>
+                        <div id="hack-preview"></div>
+                    </div>
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <strong>Casino & RNG:</strong><br>
+                    <div id="roll-container"></div>
+                    <div style="margin-top: 5px;" id="coin-container"></div>
+                    <div style="margin-top: 5px;" id="slots-container"></div>
+                    <div style="margin-top: 5px;" id="rps-container"></div>
+                </div>
+            </div>
         </div>
         <div class="games-card">
-            <h3>Achievements & Badges</h3>
-            ${achievementsHtml}
+            <h3 class="ai-hub-title">Gamification & Economy</h3>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <strong>Global Leaderboard:</strong><br>
+                    <div id="leaderboard-container"></div>
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <strong>Daily Challenges & XP:</strong><br>
+                    <div id="daily-container"></div>
+                </div>
+            </div>
         </div>
         <div class="games-card">
-            <h3>Dice Roller</h3>
-            ${rollHtml}
+            <h3 class="ai-hub-title">Economy & Store</h3>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <strong>Shop:</strong><br>
+                    <div id="shop-container"></div>
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <strong>Inventory:</strong><br>
+                    <div id="inventory-container"></div>
+                </div>
+            </div>
         </div>
         <div class="games-card">
-            <h3>Coin Flipper</h3>
-            ${coinHtml}
+            <h3 class="ai-hub-title">Achievements</h3>
+            <div id="achievements-container"></div>
         </div>
         <div class="games-card">
-            <h3>Global Leaderboard</h3>
-            ${leaderboardHtml}
-        </div>
-        <div class="games-card">
-            <h3>Daily Rewards</h3>
-            ${dailyHtml}
-        </div>
-        <div class="games-card">
-            <h3>Rock Paper Scissors</h3>
-            ${rpsHtml}
-        </div>
-        <div class="games-card">
-            <h3>Casino Slots</h3>
-            ${slotsHtml}
-        </div>
-        <div class="games-card">
-            <h3>Terminal Hacker</h3>
-            ${hackHtml}
+            <h3 class="ai-hub-title">Riddle Me This</h3>
+            <div id="riddle-container"></div>
         </div>
     `;
+
+    handleTriviaCommand('trivia-preview');
+    document.getElementById('hangman-container').innerHTML = handleHangmanCommand(['status']);
+    document.getElementById('scramble-container').innerHTML = handleScrambleCommand([]);
+    document.getElementById('binary-container').innerHTML = handleBinaryCommand([]);
+    document.getElementById('snake-container').innerHTML = handleSnakeCommand([]);
+    handleHackCommand(['10.0.0.1'], 'hack-preview');
+    document.getElementById('roll-container').innerHTML = handleRollCommand(['20']);
+    document.getElementById('coin-container').innerHTML = handleCoinCommand();
+    document.getElementById('slots-container').innerHTML = handleSlotsCommand();
+    document.getElementById('rps-container').innerHTML = handleRpsCommand(['rock']);
+    document.getElementById('leaderboard-container').innerHTML = handleLeaderboardCommand();
+    document.getElementById('daily-container').innerHTML = handleDailyCommand();
+    document.getElementById('shop-container').innerHTML = handleShopCommand();
+    document.getElementById('inventory-container').innerHTML = handleInventoryCommand();
+    document.getElementById('achievements-container').innerHTML = handleAchievementsCommand([]);
+    document.getElementById('riddle-container').innerHTML = handleRiddleCommand([]);
 }
 
 
