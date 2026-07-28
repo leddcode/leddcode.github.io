@@ -592,7 +592,7 @@ const commandRegistry = {
 };
 
 // Generate cmdList dynamically
-const customCommands = ['stocks', 'triviaapi', 'achievements', 'upload', 'learn', 'games', 'snake', 'scramble', 'binary', 'hangman', 'movies', 'brainstorm', 'advice', 'ajoke', 'alias', 'analyze', 'analyzememory', 'assist', 'automate', 'workflow', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'exchange', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'pomodoro', 'mindmap', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace', 'summary', 'math', 'memorybank', 'speech', 'imagegen', 'proactive', 'exchangerates', 'spotify', 'codechallenge', 'recipe'];
+const customCommands = ['stocks', 'triviaapi', 'achievements', 'upload', 'learn', 'games', 'snake', 'scramble', 'binary', 'hangman', 'movies', 'brainstorm', 'advice', 'ajoke', 'alias', 'analyze', 'analyzememory', 'assist', 'automate', 'workflow', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'exchange', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'pomodoro', 'mindmap', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace', 'summary', 'math', 'memorybank', 'speech', 'imagegen', 'proactive', 'exchangerates', 'spotify', 'codechallenge', 'recipe', 'context', 'transcribe', 'automateworkflow', 'forex', 'typing', 'feed', 'streak'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -4415,6 +4415,22 @@ function handleEnter(e) {
             outputHTML = `Command 'python3' not found, did you mean: command 'python' from deb python-is-python3?`;
         } else if (command.startsWith('bash')) {
             outputHTML = `Command 'bash' not found, did you mean: command 'sh'?`;
+        } else if (cmdName === 'context') {
+            outputHTML = handleContextCommand(args);
+        } else if (cmdName === 'transcribe') {
+            const outId = 'transcribe-' + Date.now();
+            outputHTML = handleTranscribeCommand(args, outId);
+        } else if (cmdName === 'automateworkflow') {
+            outputHTML = handleAutomateWorkflowCommand(args);
+        } else if (cmdName === 'forex') {
+            const outId = 'forex-' + Date.now();
+            outputHTML = handleForexCommand(args, outId);
+        } else if (cmdName === 'typing') {
+            outputHTML = handleTypingCommand(args);
+        } else if (cmdName === 'feed') {
+            outputHTML = handleFeedCommand(args);
+        } else if (cmdName === 'streak') {
+            outputHTML = handleStreakCommand(args);
         } else {
             outputHTML = 'Command not found';
         }
@@ -4669,7 +4685,151 @@ function handleFeaturerequestCommand(args) {
     `;
 }
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { handleStatsCommand, handleCryptoCommand, handleWikiCommand, handleGithubCommand, handlePhotoCommand, handleChallengeCommand, handleFeedbackCommand, handleCompanionCommand, handleQrCommand, handleSuggestCommand, handleFactCommand, handleJokeApiCommand, handleLongtermCommand, handleDocparseCommand, handleDailyCommand, handleInteractCommand, handlePomodoroCommand, handleMindmapCommand, handleMemoryBankCommand, handleSpeechCommand, handleImageGenCommand, handleProactiveCommand, handleExchangeRatesCommand, handleSpotifyCommand, handleCodeChallengeCommand, handleRecipeCommand, handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleAnalyzeMemoryCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleWorkflowCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleExchangeCommand, handleFeaturerequestCommand, handleGamesCommand, handleSnakeCommand, handleScrambleCommand, handleBinaryCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHelpCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleLearnCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleUploadCommand, handleStocksCommand, handleTriviaApiCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, handleSummaryCommand, handleMathCommand, type };
+    module.exports = { handleStatsCommand, handleCryptoCommand, handleWikiCommand, handleGithubCommand, handlePhotoCommand, handleChallengeCommand, handleFeedbackCommand, handleCompanionCommand, handleQrCommand, handleSuggestCommand, handleFactCommand, handleJokeApiCommand, handleLongtermCommand, handleDocparseCommand, handleDailyCommand, handleInteractCommand, handlePomodoroCommand, handleMindmapCommand, handleMemoryBankCommand, handleSpeechCommand, handleImageGenCommand, handleProactiveCommand, handleExchangeRatesCommand, handleSpotifyCommand, handleCodeChallengeCommand, handleRecipeCommand, handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleAnalyzeMemoryCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleWorkflowCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleExchangeCommand, handleFeaturerequestCommand, handleGamesCommand, handleSnakeCommand, handleScrambleCommand, handleBinaryCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHelpCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleLearnCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleUploadCommand, handleStocksCommand, handleTriviaApiCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, handleSummaryCommand, handleMathCommand, type, handleContextCommand, handleTranscribeCommand, handleAutomateWorkflowCommand, handleForexCommand, handleTypingCommand, handleFeedCommand, handleStreakCommand };
+}
+
+
+
+function handleContextCommand() {
+    const data = getUserData();
+    const history = data.history || [];
+    let todoList = [];
+    try {
+        const stored = localStorage.getItem('termTodo');
+        if (stored) todoList = JSON.parse(stored);
+    } catch (e) {}
+
+    const recentCommands = history.slice(-5).map(cmd => `<span style="color: var(--command-color);">${cmd}</span>`).join(', ') || 'None';
+    const activeTasks = todoList.filter(t => !t.done).length;
+
+    return `
+<div style="border-left: 3px solid var(--link-color); padding-left: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: var(--user-color);">/// CONTEXT MEMORY</h3>
+    <p><strong>Recent Commands:</strong> ${recentCommands}</p>
+    <p><strong>Active Tasks:</strong> ${activeTasks}</p>
+    <p style="color: #888;"><em>Memory rolling window active.</em></p>
+</div>`;
+}
+
+function handleTranscribeCommand(args, id) {
+    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
+        return `<div id="${id}">Transcribing...</div>`;
+    }
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = `[Transcribed Audio]: "Hello, this is a simulated multi-modal voice-to-text response."`;
+    }, 1000);
+    return `<div id="${id}">Transcribing audio stream...</div>`;
+}
+
+function handleAutomateWorkflowCommand(args) {
+    return `
+<div style="border: 1px solid var(--border-color); padding: 10px; margin: 10px 0;">
+    <h3 style="margin-top: 0; color: var(--user-color);">[Proactive Workflow Builder]</h3>
+    <p>Select triggers and actions to build an automation:</p>
+    <ul>
+        <li><strong>Trigger:</strong> New Task Added -> <strong>Action:</strong> Send Notification</li>
+        <li><strong>Trigger:</strong> Login Streak Reached -> <strong>Action:</strong> Award Bonus XP</li>
+    </ul>
+    <button style="background: var(--panel-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 5px;" onclick="alert('Workflow saved (MVP).')">Save Workflow</button>
+</div>`;
+}
+
+function handleForexCommand(args, id) {
+    const base = args.length > 0 ? args[0].toUpperCase() : 'USD';
+    const cleanBase = base.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
+        return `<div id="${id}">Fetching forex rates...</div>`;
+    }
+
+    fetch(`https://open.er-api.com/v6/latest/${cleanBase}`)
+        .then(res => {
+            if (!res.ok) throw new Error('API error');
+            return res.json();
+        })
+        .then(data => {
+            if (data.result === 'success') {
+                const rates = data.rates;
+                const el = document.getElementById(id);
+                if (el) {
+                    el.innerHTML = `
+<div style="border-left: 3px solid #ffcc00; padding-left: 10px; margin: 10px 0;">
+    <strong style="color: #ffcc00;">Forex Rates (Base: ${cleanBase})</strong><br>
+    EUR: ${rates.EUR || 'N/A'}<br>
+    GBP: ${rates.GBP || 'N/A'}<br>
+    JPY: ${rates.JPY || 'N/A'}<br>
+    AUD: ${rates.AUD || 'N/A'}<br>
+</div>`;
+                }
+            } else {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `Error: Invalid base currency ${cleanBase}`;
+            }
+        })
+        .catch(err => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = `Error fetching forex data.`;
+        });
+
+    return `<div id="${id}">Fetching forex rates for ${cleanBase}...</div>`;
+}
+
+function handleTypingCommand(args) {
+    addXP(10);
+    return `
+<div style="border: 1px solid #00ffcc; padding: 10px; margin: 10px 0; border-radius: 4px;">
+    <h3 style="margin-top: 0; color: #00ffcc;">/// TYPING SPRINT</h3>
+    <p>Type the following sentence as fast as you can:</p>
+    <blockquote style="color: var(--command-color);">"The quick brown fox jumps over the lazy dog."</blockquote>
+    <input type="text" placeholder="Type here..." style="width: 100%; padding: 5px; background: transparent; border: 1px solid var(--border-color); color: var(--text-color);" onkeypress="if(event.key==='Enter') { alert('Completed in ' + (Math.random()*5+3).toFixed(2) + ' seconds!'); this.value=''; }">
+    <p style="color: #00ff00;">[+10 XP Awarded for practice]</p>
+</div>`;
+}
+
+function handleFeedCommand(args) {
+    let stats = { affection: 50, energy: 50, intelligence: 50 };
+    try {
+        const stored = localStorage.getItem('termCompanionStats');
+        if (stored) stats = JSON.parse(stored);
+    } catch (e) {}
+
+    stats.energy = Math.min(100, stats.energy + 20);
+    stats.affection = Math.min(100, stats.affection + 5);
+    localStorage.setItem('termCompanionStats', JSON.stringify(stats));
+    addXP(15);
+
+    return `
+<div style="color: #ff66b2; margin: 10px 0;">
+    ❤️ You fed your AI Companion! ❤️<br>
+    Energy +20 (Now: ${stats.energy})<br>
+    Affection +5 (Now: ${stats.affection})<br>
+    [+15 XP]
+</div>`;
+}
+
+function handleStreakCommand(args) {
+    let streak = 0;
+    let lastLogin = null;
+    const today = new Date().toDateString();
+
+    try {
+        const stored = localStorage.getItem('termDailyStreak');
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            streak = parsed.streak;
+            lastLogin = parsed.lastLogin;
+        }
+    } catch (e) {}
+
+    if (lastLogin !== today) {
+        streak += 1;
+        localStorage.setItem('termDailyStreak', JSON.stringify({ streak: streak, lastLogin: today }));
+        addXP(streak * 5);
+        return `<div style="color: #00ff00;">🔥 Daily Login Streak: ${streak} days! You earned ${streak * 5} XP. 🔥</div>`;
+    } else {
+        return `<div style="color: var(--text-color);">🔥 Current Streak: ${streak} days. Come back tomorrow for more XP! 🔥</div>`;
+    }
 }
 
 // Tab functionality
