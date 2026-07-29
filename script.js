@@ -67,7 +67,7 @@ function handleMemoryBankCommand(args) {
 
     if (action === 'store') {
         if (!data) return "Please provide data to store.";
-        memoryBank.push({ data, timestamp: new Date().toISOString(), recencyScore: Date.now(), tfidfScore: getRandom() });
+        memoryBank.push({ data, timestamp: new Date().toISOString(), recencyScore: Date.now(), tfidfScore: Math.random() });
         if (memoryBank.length > 500) memoryBank.shift();
         try {
             localStorage.setItem('termMemoryBank', JSON.stringify(memoryBank));
@@ -320,8 +320,28 @@ function updateUIProfile() {
         lvlEl.textContent = data.level;
         xpEl.textContent = `${data.xp} / ${data.level * 100}`;
     }
-}
 
+    // Inject Evolving Avatar based on Level
+    const profileDiv = document.getElementById('agent-profile');
+    if (profileDiv) {
+        let existingAvatar = document.getElementById('sidebar-avatar');
+        if (!existingAvatar) {
+            existingAvatar = document.createElement('pre');
+            existingAvatar.id = 'sidebar-avatar';
+            existingAvatar.style.cssText = 'color: #00ffcc; font-weight: bold; font-size: 10px; margin-top: 10px; text-align: center;';
+            profileDiv.appendChild(existingAvatar);
+        }
+        let ascii = "";
+        if (data.level < 2) {
+            ascii = "  \\__/\n  (oo)\n //||\\\\";
+        } else if (data.level < 5) {
+            ascii = "  [0_0]\n  /| |\\\n  _|_|_";
+        } else {
+            ascii = "  /====\\\n | •  • |\n |  __  |\n  \\____/\n  /|  |\\\n /_|__|_\\";
+        }
+        existingAvatar.textContent = ascii;
+    }
+}
 function saveUserData(data) {
     try {
         localStorage.setItem('termUserData', JSON.stringify(data));
@@ -2122,6 +2142,22 @@ function handleCompanionCommand() {
         "Remember, use 'help' if you forget what you can do."
     ];
 
+    // Read and update stats
+    let companionStats = { affection: 0, intelligence: 0, energy: 100, name: "Companion AI" };
+    try {
+        const stored = localStorage.getItem('termCompanionStats');
+        if (stored) {
+            companionStats = { ...companionStats, ...JSON.parse(stored) };
+        }
+
+        // Track task completion if available in history
+        const historyCount = data.history ? data.history.length : 0;
+        companionStats.intelligence = historyCount;
+        companionStats.affection = Math.min(100, companionStats.affection + 1);
+
+        localStorage.setItem('termCompanionStats', JSON.stringify(companionStats));
+    } catch (e) {}
+
     // Choose a suggestion based on level, pseudo-randomly
     const suggestion = suggestions[(data.level + (data.history ? data.history.length : 0)) % suggestions.length];
 
@@ -2130,7 +2166,7 @@ function handleCompanionCommand() {
         ascii = `
     \\__/
     (oo)
-   //||\\\\
+   //||\\
 `;
     } else if (data.level < 5) {
         ascii = `
@@ -2141,21 +2177,20 @@ function handleCompanionCommand() {
     } else {
         ascii = `
    /====\\
-  | \u2022  \u2022 |
+  | •  • |
   |  __  |
    \\____/
    /|  |\\
   /_|__|_\\
 `;
     }
-
     return `
 <pre style="color: #00ffcc; font-weight: bold;">${ascii}</pre>
-<div style="color: var(--user-color); font-weight: bold; margin-bottom: 5px;">Companion AI (Level ${data.level} Assistant)</div>
+<div style="color: var(--user-color); font-weight: bold; margin-bottom: 5px;">${companionStats.name} (Level ${data.level} Assistant)</div>
+<div style="font-size: 0.9em; color: #888; margin-bottom: 5px;">[ Affection: ${companionStats.affection} | Intelligence: ${companionStats.intelligence} | Energy: ${companionStats.energy}% ]</div>
 <div style="font-style: italic;">"Hello! I see you have executed ${data.history ? data.history.length : 0} commands so far. Here is a tip: ${suggestion}"</div>
     `;
 }
-
 function handleSysinfoCommand() {
     return `
 <div style="border: 1px solid var(--command-color); padding: 10px; margin: 10px 0;">
@@ -4092,6 +4127,16 @@ function handleEnter(e) {
 
     if (command !== '') {
         commandHistory.push(rawCommand);
+        // Auto-push to memory bank
+        try {
+            let memoryBank = [];
+            const stored = localStorage.getItem('termMemoryBank');
+            if (stored) memoryBank = JSON.parse(stored);
+            memoryBank.push({ data: rawCommand, timestamp: new Date().toISOString(), recencyScore: Date.now(), tfidfScore: Math.random() });
+            if (memoryBank.length > 500) memoryBank.shift();
+            localStorage.setItem('termMemoryBank', JSON.stringify(memoryBank));
+        } catch (e) {}
+
     }
     historyIndex = -1;
 
@@ -4922,7 +4967,7 @@ function resetIdleTimer() {
             if (resultsDiv) {
                 const suggestionDiv = document.createElement('div');
                 suggestionDiv.className = 'output';
-                suggestionDiv.innerHTML = handleSuggestCommand();
+                suggestionDiv.innerHTML = handleProactiveCommand();
                 resultsDiv.appendChild(suggestionDiv);
 
                 const termDiv = document.getElementById('terminal');
