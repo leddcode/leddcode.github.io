@@ -608,7 +608,7 @@ const commandRegistry = {
   'pwd': () => `/home/leddcode`,
   'date': () => new Date().toString(),
   'sudo': () => `Permission denied`,
-  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, todo, cowsay, base64, roll, joke, coin, password, ping, matrix, neofetch, echo, calc, bttf, timetravel, flux, sysinfo, weather, guess, stats, companion, crypto, wiki, github, gitlab, wikidata, pexels, workspace, photo, challenge, feedback, remember, recall, assist, voice, image, quests, avatar, geo, leaderboard, alias, parse, remind, news, convert, translate, analyze, issues, music`,
+  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, todo, cowsay, base64, roll, joke, coin, password, ping, matrix, neofetch, echo, calc, bttf, timetravel, flux, sysinfo, weather, guess, stats, companion, crypto, wiki, github, gitlab, wikidata, pexels, workspace, photo, challenge, feedback, remember, recall, assist, voice, image, quests, avatar, geo, leaderboard, alias, parse, remind, news, convert, translate, analyze, issues, music, memorybank, longterm, docparse, runflow, codechallenge, spotify, podcast, proactive, exchangerates, recipe, suggest, brainstorm, fact, speech, imagegen`,
 };
 
 // Generate cmdList dynamically
