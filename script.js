@@ -34,6 +34,21 @@ function getRandom() {
     return Math.random();
 }
 
+function getStringHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+    }
+    return Math.abs(hash);
+}
+
+function deterministicRandom(seed) {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+}
+
+
 let historyIndex = -1;
 
 const fileList = ['about.sh', 'aranea.py', 'band.py', 'commands.txt', 'diablob.py', 'everything.txt', 'glazgo.exe', 'oculus.py', 'taxi.py', 'trophy.html', 'unalista.py', 'xsstrike.py'];
@@ -3174,7 +3189,8 @@ function handleLongtermCommand(args) {
     } catch (e) {}
 
     if (action === 'store') {
-        const embedding = Array.from({length: 3}, () => (getRandom() * 2 - 1).toFixed(2));
+        const seed = getStringHash(data);
+        const embedding = Array.from({length: 3}, (_, i) => (deterministicRandom(seed + i) * 2 - 1).toFixed(2));
         vectorDb.push({ data, embedding: embedding, time: new Date().toISOString() });
         try {
             localStorage.setItem('termVectorDb', JSON.stringify(vectorDb));
@@ -3479,8 +3495,9 @@ function handleStockCommand(args, id) {
     setTimeout(() => {
         const el = document.getElementById(id);
         if (el) {
-            const simulatedPrice = (getRandom() * 500 + 50).toFixed(2);
-            const simulatedChange = (getRandom() * 10 - 5).toFixed(2);
+            const seed = getStringHash(symbol);
+            const simulatedPrice = (deterministicRandom(seed) * 500 + 50).toFixed(2);
+            const simulatedChange = (deterministicRandom(seed + 1) * 10 - 5).toFixed(2);
             const changeColor = simulatedChange >= 0 ? '#00ff00' : '#ff3333';
             const changeSign = simulatedChange >= 0 ? '+' : '';
 
@@ -3566,8 +3583,9 @@ function handleStocksCommand(args, id) {
         const el = document.getElementById(id);
         if (el) {
             // Mocked MVP since real-time stock APIs require keys
-            const basePrice = Math.random() * 500 + 50;
-            const change = (Math.random() * 10 - 5).toFixed(2);
+            const seed = getStringHash(symbol);
+            const basePrice = deterministicRandom(seed) * 500 + 50;
+            const change = (deterministicRandom(seed + 1) * 10 - 5).toFixed(2);
             const color = change >= 0 ? 'var(--success-color)' : 'var(--error-color)';
 
             el.innerHTML = `
