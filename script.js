@@ -82,7 +82,7 @@ function handleMemoryBankCommand(args) {
 
     if (action === 'store') {
         if (!data) return "Please provide data to store.";
-        memoryBank.push({ data, timestamp: new Date().toISOString(), recencyScore: Date.now(), tfidfScore: Math.random() });
+        memoryBank.push({ data, timestamp: new Date().toISOString(), recencyScore: Date.now(), tfidfScore: deterministicRandom(getStringHash(typeof data !== 'undefined' ? data : rawCommand)) });
         if (memoryBank.length > 500) memoryBank.shift();
         try {
             localStorage.setItem('termMemoryBank', JSON.stringify(memoryBank));
@@ -623,7 +623,7 @@ const commandRegistry = {
   'pwd': () => `/home/leddcode`,
   'date': () => new Date().toString(),
   'sudo': () => `Permission denied`,
-  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, todo, cowsay, base64, roll, joke, coin, password, ping, matrix, neofetch, echo, calc, bttf, timetravel, flux, sysinfo, weather, guess, stats, companion, crypto, wiki, github, gitlab, wikidata, pexels, workspace, photo, challenge, feedback, remember, recall, assist, voice, image, quests, avatar, geo, leaderboard, alias, parse, remind, news, convert, translate, analyze, issues, music, memorybank, longterm, docparse, runflow, codechallenge, spotify, podcast, proactive, exchangerates, recipe, suggest, brainstorm, fact, speech, imagegen`,
+  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, todo, cowsay, base64, roll, joke, coin, password, ping, matrix, neofetch, echo, calc, bttf, timetravel, flux, sysinfo, weather, guess, stats, companion, crypto, wiki, github, gitlab, wikidata, pexels, workspace, photo, challenge, feedback, remember, recall, assist, voice, image, quests, avatar, geo, leaderboard, alias, parse, remind, news, convert, translate, analyze, issues, music, memorybank, longterm, docparse, runflow, codechallenge, spotify, podcast, proactive, exchangerates, recipe, suggest, brainstorm, fact, speech, imagegen, stocks, triviaapi, achievements, upload, learn, games, snake, scramble, binary, hangman, movies, advice, ajoke, analyzememory, automate, workflow, books, buy, cocktail, country, daily, dictionary, exchange, featurerequest, focus, habit, hack, interact, inventory, npm, pomodoro, mindmap, qr, review, riddle, rps, sentiment, shop, slots, space, stock, trivia, tv, vision, summary, math, context, transcribe, automateworkflow, forex, typing, feed, streak`,
 };
 
 // Generate cmdList dynamically
@@ -4018,7 +4018,7 @@ function handleEnter(e) {
             let memoryBank = [];
             const stored = localStorage.getItem('termMemoryBank');
             if (stored) memoryBank = JSON.parse(stored);
-            memoryBank.push({ data: rawCommand, timestamp: new Date().toISOString(), recencyScore: Date.now(), tfidfScore: Math.random() });
+            memoryBank.push({ data: rawCommand, timestamp: new Date().toISOString(), recencyScore: Date.now(), tfidfScore: deterministicRandom(getStringHash(typeof data !== 'undefined' ? data : rawCommand)) });
             if (memoryBank.length > 500) memoryBank.shift();
             localStorage.setItem('termMemoryBank', JSON.stringify(memoryBank));
         } catch (e) {}
@@ -4112,6 +4112,240 @@ function handleEnter(e) {
 
         if (cmdName === 'help') {
             outputHTML = handleHelpCommand(args);
+                } else if (cmdName === 'stocks') {
+            outputHTML = `<div id="${outId}">${handleStocksCommand(args, outId)}</div>`;
+        } else if (cmdName === 'triviaapi') {
+            outputHTML = `<div id="${outId}">${handleTriviaApiCommand(args, outId)}</div>`;
+        } else if (cmdName === 'achievements') {
+            outputHTML = handleAchievementsCommand();
+        } else if (cmdName === 'upload') {
+            outputHTML = `<div id="${outId}">${handleUploadCommand(args, outId)}</div>`;
+        } else if (cmdName === 'learn') {
+            outputHTML = handleLearnCommand(args);
+        } else if (cmdName === 'games') {
+            outputHTML = handleGamesCommand(args);
+        } else if (cmdName === 'snake') {
+            outputHTML = handleSnakeCommand(args);
+        } else if (cmdName === 'scramble') {
+            outputHTML = handleScrambleCommand(args);
+        } else if (cmdName === 'binary') {
+            outputHTML = handleBinaryCommand(args);
+        } else if (cmdName === 'hangman') {
+            outputHTML = handleHangmanCommand(args);
+        } else if (cmdName === 'movies') {
+            outputHTML = `<div id="${outId}">${handleMoviesCommand(args, outId)}</div>`;
+        } else if (cmdName === 'brainstorm') {
+            outputHTML = `<div id="${outId}">${handleBrainstormCommand(args, outId)}</div>`;
+        } else if (cmdName === 'advice') {
+            outputHTML = `<div id="${outId}">${handleAdviceCommand(outId)}</div>`;
+        } else if (cmdName === 'ajoke') {
+            outputHTML = `<div id="${outId}">${handleJokeApiCommand(outId)}</div>`;
+        } else if (cmdName === 'alias') {
+            outputHTML = handleAliasCommand(args);
+        } else if (cmdName === 'analyze') {
+            outputHTML = `<div id="${outId}">${handleAnalyzeCommand(args, outId)}</div>`;
+        } else if (cmdName === 'analyzememory') {
+            outputHTML = `<div id="${outId}">${handleAnalyzeMemoryCommand(args, outId)}</div>`;
+        } else if (cmdName === 'assist') {
+            outputHTML = handleAssistCommand();
+        } else if (cmdName === 'automate') {
+            outputHTML = handleAutomateCommand(args);
+        } else if (cmdName === 'workflow') {
+            outputHTML = handleWorkflowCommand(args);
+        } else if (cmdName === 'avatar') {
+            outputHTML = handleAvatarCommand();
+        } else if (cmdName === 'base64') {
+            outputHTML = handleBase64Command(args);
+        } else if (cmdName === 'books') {
+            outputHTML = handleBooksCommand(args);
+        } else if (cmdName === 'bttf') {
+            outputHTML = handleBttfCommand();
+        } else if (cmdName === 'buy') {
+            outputHTML = handleBuyCommand(args);
+        } else if (cmdName === 'calc') {
+            outputHTML = handleCalcCommand(args);
+        } else if (cmdName === 'challenge') {
+            outputHTML = handleChallengeCommand();
+        } else if (cmdName === 'cocktail') {
+            outputHTML = `<div id="${outId}">${handleCocktailCommand(args, outId)}</div>`;
+        } else if (cmdName === 'coin') {
+            outputHTML = handleCoinCommand();
+        } else if (cmdName === 'companion') {
+            outputHTML = handleCompanionCommand();
+        } else if (cmdName === 'convert') {
+            outputHTML = `<div id="${outId}">${handleConvertCommand(args, outId)}</div>`;
+        } else if (cmdName === 'country') {
+            outputHTML = `<div id="${outId}">${handleCountryCommand(args, outId)}</div>`;
+        } else if (cmdName === 'cowsay') {
+            outputHTML = handleCowsayCommand(args);
+        } else if (cmdName === 'crypto') {
+            outputHTML = `<div id="${outId}">${handleCryptoCommand(args, outId)}</div>`;
+        } else if (cmdName === 'daily') {
+            outputHTML = handleDailyCommand();
+        } else if (cmdName === 'dictionary') {
+            outputHTML = `<div id="${outId}">${handleDictionaryCommand(args, outId)}</div>`;
+        } else if (cmdName === 'docparse') {
+            outputHTML = handleDocparseCommand(args);
+        } else if (cmdName === 'echo') {
+            outputHTML = handleEchoCommand(args);
+        } else if (cmdName === 'exchange') {
+            outputHTML = `<div id="${outId}">${handleExchangeCommand(args, outId)}</div>`;
+        } else if (cmdName === 'fact') {
+            outputHTML = `<div id="${outId}">${handleFactCommand(outId)}</div>`;
+        } else if (cmdName === 'featurerequest') {
+            outputHTML = handleFeaturerequestCommand(args);
+        } else if (cmdName === 'feedback') {
+            outputHTML = handleFeedbackCommand(args);
+        } else if (cmdName === 'flux') {
+            outputHTML = handleFluxCommand();
+        } else if (cmdName === 'focus') {
+            outputHTML = handleFocusCommand(args);
+        } else if (cmdName === 'geo') {
+            outputHTML = `<div id="${outId}">${handleGeoCommand(args, outId)}</div>`;
+        } else if (cmdName === 'github') {
+            outputHTML = `<div id="${outId}">${handleGithubCommand(args, outId)}</div>`;
+        } else if (cmdName === 'gitlab') {
+            outputHTML = `<div id="${outId}">${handleGitlabCommand(args, outId)}</div>`;
+        } else if (cmdName === 'guess') {
+            outputHTML = handleGuessCommand(args);
+        } else if (cmdName === 'habit') {
+            outputHTML = handleHabitCommand(args);
+        } else if (cmdName === 'hack') {
+            outputHTML = `<div id="${outId}">${handleHackCommand(args, outId)}</div>`;
+        } else if (cmdName === 'image') {
+            outputHTML = `<div id="${outId}">${handleImageCommand(args, outId)}</div>`;
+        } else if (cmdName === 'interact') {
+            outputHTML = handleInteractCommand(args);
+        } else if (cmdName === 'inventory') {
+            outputHTML = handleInventoryCommand();
+        } else if (cmdName === 'issues') {
+            outputHTML = `<div id="${outId}">${handleIssuesCommand(args, outId)}</div>`;
+        } else if (cmdName === 'joke') {
+            outputHTML = handleJokeCommand();
+        } else if (cmdName === 'leaderboard') {
+            outputHTML = handleLeaderboardCommand();
+        } else if (cmdName === 'longterm') {
+            outputHTML = handleLongtermCommand(args);
+        } else if (cmdName === 'matrix') {
+            outputHTML = handleMatrixCommand();
+        } else if (cmdName === 'music') {
+            outputHTML = handleMusicCommand(args, false);
+        } else if (cmdName === 'neofetch') {
+            outputHTML = handleNeofetchCommand();
+        } else if (cmdName === 'news') {
+            outputHTML = `<div id="${outId}">${handleNewsCommand(args, outId)}</div>`;
+        } else if (cmdName === 'npm') {
+            outputHTML = `<div id="${outId}">${handleNpmCommand(args, outId)}</div>`;
+        } else if (cmdName === 'parse') {
+            outputHTML = handleParseCommand(args);
+        } else if (cmdName === 'password') {
+            outputHTML = handlePasswordCommand(args);
+        } else if (cmdName === 'pexels') {
+            outputHTML = `<div id="${outId}">${handlePexelsCommand(args, outId)}</div>`;
+        } else if (cmdName === 'photo') {
+            outputHTML = handlePhotoCommand();
+        } else if (cmdName === 'ping') {
+            outputHTML = `<div id="${outId}">${handlePingCommand(args, outId)}</div>`;
+        } else if (cmdName === 'podcast') {
+            outputHTML = `<div id="${outId}">${handlePodcastCommand(args, outId)}</div>`;
+        } else if (cmdName === 'pomodoro') {
+            outputHTML = `<div id="${outId}">${handlePomodoroCommand(args, outId)}</div>`;
+        } else if (cmdName === 'mindmap') {
+            outputHTML = handleMindmapCommand(args);
+        } else if (cmdName === 'qr') {
+            outputHTML = handleQrCommand(args);
+        } else if (cmdName === 'quests') {
+            outputHTML = handleQuestsCommand();
+        } else if (cmdName === 'recall') {
+            outputHTML = handleRecallCommand(args);
+        } else if (cmdName === 'remember') {
+            outputHTML = handleRememberCommand(args);
+        } else if (cmdName === 'remind') {
+            outputHTML = `<div id="${outId}">${handleRemindCommand(args, outId)}</div>`;
+        } else if (cmdName === 'review') {
+            outputHTML = `<div id="${outId}">${handleReviewCommand(args, outId)}</div>`;
+        } else if (cmdName === 'riddle') {
+            outputHTML = handleRiddleCommand(args);
+        } else if (cmdName === 'roll') {
+            outputHTML = handleRollCommand(args);
+        } else if (cmdName === 'rps') {
+            outputHTML = handleRpsCommand(args);
+        } else if (cmdName === 'runflow') {
+            outputHTML = `<div id="${outId}">${handleRunflowCommand(args, outId)}</div>`;
+        } else if (cmdName === 'sentiment') {
+            outputHTML = `<div id="${outId}">${handleSentimentCommand(args, outId)}</div>`;
+        } else if (cmdName === 'shop') {
+            outputHTML = handleShopCommand();
+        } else if (cmdName === 'slots') {
+            outputHTML = handleSlotsCommand();
+        } else if (cmdName === 'space') {
+            outputHTML = `<div id="${outId}">${handleSpaceCommand(outId)}</div>`;
+        } else if (cmdName === 'stats') {
+            outputHTML = handleStatsCommand();
+        } else if (cmdName === 'stock') {
+            outputHTML = `<div id="${outId}">${handleStockCommand(args, outId)}</div>`;
+        } else if (cmdName === 'suggest') {
+            outputHTML = handleSuggestCommand();
+        } else if (cmdName === 'sysinfo') {
+            outputHTML = handleSysinfoCommand();
+        } else if (cmdName === 'theme') {
+            outputHTML = handleThemeCommand(args);
+        } else if (cmdName === 'timetravel') {
+            outputHTML = handleTimetravelCommand(args);
+        } else if (cmdName === 'todo') {
+            outputHTML = handleTodoCommand(args);
+        } else if (cmdName === 'translate') {
+            outputHTML = `<div id="${outId}">${handleTranslateCommand(args, outId)}</div>`;
+        } else if (cmdName === 'trivia') {
+            outputHTML = `<div id="${outId}">${handleTriviaCommand(outId)}</div>`;
+        } else if (cmdName === 'tv') {
+            outputHTML = `<div id="${outId}">${handleTvCommand(args, outId)}</div>`;
+        } else if (cmdName === 'vision') {
+            outputHTML = `<div id="${outId}">${handleVisionCommand(args, outId)}</div>`;
+        } else if (cmdName === 'voice') {
+            outputHTML = handleVoiceCommand();
+        } else if (cmdName === 'weather') {
+            outputHTML = `<div id="${outId}">${handleWeatherCommand(args, outId)}</div>`;
+        } else if (cmdName === 'wiki') {
+            outputHTML = `<div id="${outId}">${handleWikiCommand(args, outId)}</div>`;
+        } else if (cmdName === 'wikidata') {
+            outputHTML = `<div id="${outId}">${handleWikidataCommand(args, outId)}</div>`;
+        } else if (cmdName === 'workspace') {
+            outputHTML = handleWorkspaceCommand();
+        } else if (cmdName === 'summary') {
+            outputHTML = `<div id="${outId}">${handleSummaryCommand(args, outId)}</div>`;
+        } else if (cmdName === 'math') {
+            outputHTML = handleMathCommand(args);
+        } else if (cmdName === 'memorybank') {
+            outputHTML = handleMemoryBankCommand(args);
+        } else if (cmdName === 'speech') {
+            outputHTML = `<div id="${outId}">${handleSpeechCommand(args, outId)}</div>`;
+        } else if (cmdName === 'imagegen') {
+            outputHTML = `<div id="${outId}">${handleImageGenCommand(args, outId)}</div>`;
+        } else if (cmdName === 'proactive') {
+            outputHTML = handleProactiveCommand();
+        } else if (cmdName === 'exchangerates') {
+            outputHTML = `<div id="${outId}">${handleExchangeRatesCommand(args, outId)}</div>`;
+        } else if (cmdName === 'spotify') {
+            outputHTML = handleSpotifyCommand(args);
+        } else if (cmdName === 'codechallenge') {
+            outputHTML = handleCodeChallengeCommand();
+        } else if (cmdName === 'recipe') {
+            outputHTML = `<div id="${outId}">${handleRecipeCommand(outId)}</div>`;
+        } else if (cmdName === 'context') {
+            outputHTML = handleContextCommand();
+        } else if (cmdName === 'transcribe') {
+            outputHTML = `<div id="${outId}">${handleTranscribeCommand(args, outId)}</div>`;
+        } else if (cmdName === 'automateworkflow') {
+            outputHTML = handleAutomateWorkflowCommand(args);
+        } else if (cmdName === 'forex') {
+            outputHTML = `<div id="${outId}">${handleForexCommand(args, outId)}</div>`;
+        } else if (cmdName === 'typing') {
+            outputHTML = handleTypingCommand(args);
+        } else if (cmdName === 'feed') {
+            outputHTML = handleFeedCommand(args);
+        } else if (cmdName === 'streak') {
+            outputHTML = handleStreakCommand(args);
         } else if (commandRegistry[command]) {
             outputHTML = commandRegistry[command]();
         } else if (cmdName === 'matrix') {
@@ -4616,7 +4850,7 @@ function handleFeaturerequestCommand(args) {
     `;
 }
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { handleStatsCommand, handleCryptoCommand, handleWikiCommand, handleGithubCommand, handlePhotoCommand, handleChallengeCommand, handleFeedbackCommand, handleCompanionCommand, handleQrCommand, handleSuggestCommand, handleFactCommand, handleJokeApiCommand, handleLongtermCommand, handleDocparseCommand, handleDailyCommand, handleInteractCommand, handlePomodoroCommand, handleMindmapCommand, handleMemoryBankCommand, handleSpeechCommand, handleImageGenCommand, handleProactiveCommand, handleExchangeRatesCommand, handleSpotifyCommand, handleCodeChallengeCommand, handleRecipeCommand, handleAchievementsCommand, handleAdviceCommand, handleAliasCommand, handleAnalyzeCommand, handleAnalyzeMemoryCommand, handleArrowDown, handleArrowUp, handleAssistCommand, handleAutomateCommand, handleWorkflowCommand, handleAvatarCommand, handleBase64Command, handleBooksCommand, handleBttfCommand, handleBrainstormCommand, handleBuyCommand, handleCalcCommand, handleCocktailCommand, handleCoinCommand, handleConvertCommand, handleCountryCommand, handleCowsayCommand, handleDictionaryCommand, handleEchoCommand, handleEnter, handleExchangeCommand, handleFeaturerequestCommand, handleGamesCommand, handleSnakeCommand, handleScrambleCommand, handleBinaryCommand, handleFluxCommand, handleFocusCommand, handleGeoCommand, handleGitlabCommand, handleGuessCommand, handleHelpCommand, handleHabitCommand, handleHackCommand, handleHangmanCommand, handleImageCommand, handleInventoryCommand, handleIssuesCommand, handleJokeCommand, handleLeaderboardCommand, handleLearnCommand, handleMatrixCommand, handleMoviesCommand, handleMusicCommand, handleNeofetchCommand, handleNewsCommand, handleNpmCommand, handleParseCommand, handlePasswordCommand, handlePexelsCommand, handlePingCommand, handlePodcastCommand, handleQuestsCommand, handleRecallCommand, handleRememberCommand, handleRemindCommand, handleReviewCommand, handleRiddleCommand, handleRollCommand, handleRpsCommand, handleRunflowCommand, handleSentimentCommand, handleShopCommand, handleSlotsCommand, handleSpaceCommand, handleStarfieldCommand, handleStockCommand, handleSysinfoCommand, handleTab, handleThemeCommand, handleTimetravelCommand, handleTodoCommand, handleTranslateCommand, handleUploadCommand, handleStocksCommand, handleTriviaApiCommand, handleTriviaCommand, handleTvCommand, handleVisionCommand, handleVoiceCommand, handleWeatherCommand, handleWikidataCommand, handleWorkspaceCommand, handleSummaryCommand, handleMathCommand, type, handleContextCommand, handleTranscribeCommand, handleAutomateWorkflowCommand, handleForexCommand, handleTypingCommand, handleFeedCommand, handleStreakCommand };
+    module.exports = { handleGithubCommand, handleCryptoCommand, handleMemoryBankCommand, handleNewsCommand, handleTranscribeCommand, handleAnalyzeCommand, handlePasswordCommand, handleCocktailCommand, handleBooksCommand, handleSlotsCommand, handleStarfieldCommand, handleAutomateWorkflowCommand, handleStreakCommand, handleFeedCommand, handleImageGenCommand, handleImageCommand, handleCowsayCommand, handleAutomateCommand, handleInventoryCommand, handleStocksCommand, handleSysinfoCommand, handleNpmCommand, handleCalcCommand, handleGamesCommand, handleTvCommand, handleInteractCommand, handleMoviesCommand, handleForexCommand, handleTodoCommand, handleMatrixCommand, handleShopCommand, handleAssistCommand, handleMindmapCommand, handleMusicCommand, handleScrambleCommand, handleTranslateCommand, handleGuessCommand, handleNeofetchCommand, handleRollCommand, handleDailyCommand, handleCodeChallengeCommand, handleHabitCommand, handleTimetravelCommand, handleStatsCommand, handleBuyCommand, handleBrainstormCommand, handleJokeApiCommand, handleCoinCommand, handleWikiCommand, handleTriviaCommand, handleJokeCommand, handleSentimentCommand, handleVisionCommand, handleFeaturerequestCommand, handleThemeCommand, handlePhotoCommand, handleAnalyzeMemoryCommand, handleTab, handleAdviceCommand, handleLeaderboardCommand, handleWikidataCommand, type, handleRememberCommand, handleProactiveCommand, handleChallengeCommand, handleWeatherCommand, handleRemindCommand, handlePingCommand, handleVoiceCommand, handleEchoCommand, handleConvertCommand, handleRpsCommand, handleBase64Command, handleBttfCommand, handleReviewCommand, handleRecallCommand, handleWorkspaceCommand, handleAvatarCommand, handleCompanionCommand, handleDocparseCommand, handleFactCommand, handleSnakeCommand, handleBinaryCommand, handleEnter, handleWorkflowCommand, handleTriviaApiCommand, handleSpotifyCommand, handleSpaceCommand, handleHelpCommand, handleAliasCommand, handleQrCommand, handleQuestsCommand, handleLearnCommand, handleHackCommand, handleGeoCommand, handleIssuesCommand, handlePodcastCommand, handleArrowUp, handleHangmanCommand, handleSuggestCommand, handleContextCommand, handleFocusCommand, handleParseCommand, handleSummaryCommand, handleRecipeCommand, handleExchangeCommand, handleFluxCommand, handleStockCommand, handleTypingCommand, handlePomodoroCommand, handleCountryCommand, handlePexelsCommand, handleRiddleCommand, handleSpeechCommand, handleGitlabCommand, handleFeedbackCommand, handleAchievementsCommand, handleExchangeRatesCommand, handleMathCommand, handleArrowDown, handleUploadCommand, handleLongtermCommand, handleDictionaryCommand, handleRunflowCommand };
 }
 
 
