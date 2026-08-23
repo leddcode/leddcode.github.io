@@ -233,12 +233,21 @@ function handleProactiveCommand() {
     const historyCount = data.history ? data.history.length : 0;
 
     let suggestion = "";
+    // Get command history keys
+    const cmdHistory = data.history ? data.history.map(h => h.split(' ')[0]) : [];
+
     if (historyCount < 5) {
         suggestion = "Welcome to the system. You should try typing 'help' to see what's possible, or 'stats' to check your progress.";
-    } else if (lvl < 3) {
-        suggestion = "You are gaining experience! Try playing games like 'hangman' or 'guess' to level up faster.";
-    } else {
+    } else if (cmdHistory.includes('crypto') && !cmdHistory.includes('stock')) {
+        suggestion = "Since you track crypto, you might also like tracking stocks! Try the 'stock AAPL' or 'stocks' command.";
+    } else if (!cmdHistory.includes('github') && lvl >= 2) {
+        suggestion = "Did you know you can check github profiles directly? Try 'github <username>'.";
+    } else if (lvl < 4) {
+        suggestion = "You are gaining experience! Try completing 'quests' or playing 'hangman' to level up faster.";
+    } else if (!cmdHistory.includes('workflow') && lvl >= 4) {
         suggestion = "Your usage suggests you might benefit from automation. Have you explored the 'runflow' command or 'workflow' yet?";
+    } else {
+        suggestion = "You are a power user! Check the 'ecosystem' tab to see what else you can do.";
     }
 
     return `
@@ -2072,6 +2081,7 @@ function handleCompanionCommand() {
 <div style="color: var(--user-color); font-weight: bold; margin-bottom: 5px;">${companionStats.name} (Level ${data.level} Assistant)</div>
 <div style="font-size: 0.9em; color: #888; margin-bottom: 5px;">[ Affection: ${companionStats.affection} | Intelligence: ${companionStats.intelligence} | Energy: ${companionStats.energy}% ]</div>
 <div style="font-style: italic;">"Hello! I see you have executed ${data.history ? data.history.length : 0} commands so far. Here is a tip: ${suggestion}"</div>
+<div style="margin-top: 5px; font-size: 0.85em; color: #555;">(Use 'interact' to feed, play, or train your companion!)</div>
     `;
 }
 function handleSysinfoCommand() {
@@ -2568,12 +2578,37 @@ function handleQuestsCommand() {
         <ul style="list-style-type: none; padding: 0;">`;
 
     let completed = 0;
+    let newlyCompleted = 0;
+
+    // Load previously completed quests
+    let storedQuests = [];
+    try {
+        const stored = localStorage.getItem('termCompletedQuests');
+        if (stored) storedQuests = JSON.parse(stored);
+    } catch(e) {}
+
     quests.forEach(q => {
         if (q.done) completed++;
+
+        // Check if newly completed
+        if (q.done && !storedQuests.includes(q.desc)) {
+            newlyCompleted++;
+            storedQuests.push(q.desc);
+        }
+
         const checkbox = q.done ? `<span style="color: #00ff00;">[x]</span>` : `<span style="color: #888;">[ ]</span>`;
         const textStyle = q.done ? `color: #888; text-decoration: line-through;` : `color: var(--command-color);`;
         html += `<li>${checkbox} <span style="${textStyle}">${q.desc}</span></li>`;
     });
+
+    try {
+        localStorage.setItem('termCompletedQuests', JSON.stringify(storedQuests));
+    } catch(e) {}
+
+    if (newlyCompleted > 0 && typeof addXP === 'function') {
+        addXP(20 * newlyCompleted);
+        html += `<div style="margin-top: 10px; color: #00ff00;">[LEVEL UP] You earned ${20 * newlyCompleted} XP for completing quests!</div>`;
+    }
 
     html += `</ul><div style="margin-top: 10px; color: var(--link-color);">Progress: ${completed}/${quests.length}</div></div>`;
     return html;
@@ -3270,14 +3305,21 @@ function handleDocparseCommand(args) {
 
         const topics = ["Security", "APIs", "AI infrastructure", "Growth metrics", "System logs"];
         const foundTopics = [topics[Math.floor(getRandom() * topics.length)], topics[Math.floor(getRandom() * topics.length)]];
+        const extractedSummary = `This document contains ${Math.floor(getRandom() * 100) + 10} pages. Key topics identified: ${foundTopics.join(", ")}.`;
+
+        // Auto-store in Longterm Vector DB
+        if (typeof handleLongtermCommand === 'function') {
+            handleLongtermCommand(['store', `Doc parsed from ${url}: ${extractedSummary}`]);
+        }
 
         el.innerHTML = `<div style="display: flex; gap: 10px; align-items: flex-start;">
             <img src="https://loremflickr.com/320/240" alt="Parsed Visuals" style="width: 150px; height: auto; border: 1px solid var(--border-color);">
             <div>
                 <span style="color: var(--link-color);">Extracted Text Summary:</span><br>
-                This document contains ${Math.floor(getRandom() * 100) + 10} pages. Key topics identified: ${foundTopics.join(", ")}.<br>
+                ${extractedSummary}<br>
                 <span style="color: #888;">Visual contents detected. Simulated OCR active.</span><br>
-                Confidence score: ${(getRandom() * 20 + 80).toFixed(1)}%
+                Confidence score: ${(getRandom() * 20 + 80).toFixed(1)}%<br>
+                <span style="color: #00ffcc; font-size: 0.8em;">[System] Context saved to long-term memory.</span>
             </div>
         </div>`;
     }, 1500);
