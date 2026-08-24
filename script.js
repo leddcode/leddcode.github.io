@@ -2559,6 +2559,14 @@ function handleQuestsCommand() {
         if (lastDaily === new Date().toDateString()) dailyUsed = true;
     } catch(e) {}
 
+    let companionStats = { affection: 0, intelligence: 0, energy: 100, name: "Companion AI" };
+    try {
+        const stored = localStorage.getItem('termCompanionStats');
+        if (stored) {
+            companionStats = { ...companionStats, ...JSON.parse(stored) };
+        }
+    } catch (e) {}
+
     // Simulate checking if AI hub was clicked by user data flags if desired, or just approximate.
     // For MVP, we can assume level >= 3 means they explored.
     const hubExplored = level >= 3 || historyCount >= 5;
@@ -2571,6 +2579,8 @@ function handleQuestsCommand() {
         { desc: "Reach Level 5", done: level >= 5 },
         { desc: "Use the daily command", done: dailyUsed },
         { desc: "Explore the AI Hub", done: hubExplored },
+        { desc: "Play with your companion (affection > 10)", done: companionStats.affection > 10 },
+        { desc: "Train your companion (intelligence > 10)", done: companionStats.intelligence > 10 },
     ];
 
     let html = `<div style="border: 1px dashed var(--user-color); padding: 10px; margin: 10px 0;">
@@ -2683,24 +2693,35 @@ function handleAvatarCommand() {
     const data = getUserData();
     const lvl = data.level;
 
+    let companionStats = { affection: 0, intelligence: 0, energy: 100, name: "Companion AI" };
+    try {
+        const stored = localStorage.getItem('termCompanionStats');
+        if (stored) {
+            companionStats = { ...companionStats, ...JSON.parse(stored) };
+        }
+    } catch (e) {}
+
     let ascii = "";
     let status = "";
 
-    if (lvl < 2) {
+    // Use a combination of user level and companion intelligence for the stage
+    let effectiveLvl = lvl + Math.floor(companionStats.intelligence / 5);
+
+    if (effectiveLvl < 2) {
         ascii = `
   \(^o^)/
    (   )
     m m
 `;
         status = "Egg Stage";
-    } else if (lvl < 5) {
+    } else if (effectiveLvl < 5) {
         ascii = `
    /\_/\
   ( o.o )
    > ^ <
 `;
         status = "Kitten Stage";
-    } else if (lvl < 10) {
+    } else if (effectiveLvl < 10) {
         ascii = `
   /\___/\
  (  o o  )
