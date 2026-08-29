@@ -632,11 +632,11 @@ const commandRegistry = {
   'pwd': () => `/home/leddcode`,
   'date': () => new Date().toString(),
   'sudo': () => `Permission denied`,
-  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, todo, cowsay, base64, roll, joke, coin, password, ping, matrix, neofetch, echo, calc, bttf, timetravel, flux, sysinfo, weather, guess, stats, companion, crypto, wiki, github, gitlab, wikidata, pexels, workspace, photo, challenge, feedback, remember, recall, assist, voice, image, quests, avatar, geo, leaderboard, alias, parse, remind, news, convert, translate, analyze, issues, music, memorybank, longterm, docparse, runflow, codechallenge, spotify, podcast, proactive, exchangerates, recipe, suggest, brainstorm, fact, speech, imagegen, stocks, triviaapi, achievements, upload, learn, games, snake, scramble, binary, hangman, movies, advice, ajoke, analyzememory, automate, workflow, books, buy, cocktail, country, daily, dictionary, exchange, featurerequest, focus, habit, hack, interact, inventory, npm, pomodoro, mindmap, qr, review, riddle, rps, sentiment, shop, slots, space, stock, trivia, tv, vision, summary, math, context, transcribe, automateworkflow, forex, typing, feed, streak`,
+  'help': () => `ls, pwd, whoami, clear, date, sudo, theme, todo, cowsay, base64, roll, joke, coin, password, ping, matrix, neofetch, echo, calc, bttf, timetravel, flux, sysinfo, weather, guess, stats, companion, crypto, wiki, github, gitlab, wikidata, pexels, workspace, photo, challenge, feedback, remember, recall, assist, voice, image, quests, avatar, geo, leaderboard, alias, parse, remind, news, convert, translate, analyze, issues, music, memorybank, longterm, docparse, runflow, codechallenge, spotify, podcast, proactive, exchangerates, recipe, suggest, brainstorm, fact, speech, imagegen, stocks, triviaapi, achievements, upload, learn, games, snake, scramble, binary, hangman, movies, advice, analyzememory, automate, workflow, books, buy, cocktail, country, daily, dictionary, exchange, featurerequest, focus, habit, hack, interact, inventory, npm, pomodoro, mindmap, qr, review, riddle, rps, sentiment, shop, slots, space, stock, trivia, tv, vision, summary, math, context, transcribe, automateworkflow, forex, typing, feed, streak, starfield, jokeapi`,
 };
 
 // Generate cmdList dynamically
-const customCommands = ['stocks', 'triviaapi', 'achievements', 'upload', 'learn', 'games', 'snake', 'scramble', 'binary', 'hangman', 'movies', 'brainstorm', 'advice', 'ajoke', 'alias', 'analyze', 'analyzememory', 'assist', 'automate', 'workflow', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'exchange', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'pomodoro', 'mindmap', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace', 'summary', 'math', 'memorybank', 'speech', 'imagegen', 'proactive', 'exchangerates', 'spotify', 'codechallenge', 'recipe', 'context', 'transcribe', 'automateworkflow', 'forex', 'typing', 'feed', 'streak'];
+const customCommands = ['stocks', 'triviaapi', 'achievements', 'upload', 'learn', 'games', 'snake', 'scramble', 'binary', 'hangman', 'movies', 'brainstorm', 'advice', 'alias', 'analyze', 'analyzememory', 'assist', 'automate', 'workflow', 'avatar', 'base64', 'books', 'bttf', 'buy', 'calc', 'challenge', 'cocktail', 'coin', 'companion', 'convert', 'country', 'cowsay', 'crypto', 'daily', 'dictionary', 'docparse', 'echo', 'exchange', 'fact', 'featurerequest', 'feedback', 'flux', 'focus', 'geo', 'github', 'gitlab', 'guess', 'habit', 'hack', 'image', 'interact', 'inventory', 'issues', 'joke', 'leaderboard', 'longterm', 'matrix', 'music', 'neofetch', 'news', 'npm', 'parse', 'password', 'pexels', 'photo', 'ping', 'podcast', 'pomodoro', 'mindmap', 'qr', 'quests', 'recall', 'remember', 'remind', 'review', 'riddle', 'roll', 'rps', 'runflow', 'sentiment', 'shop', 'slots', 'space', 'stats', 'stock', 'suggest', 'sysinfo', 'theme', 'timetravel', 'todo', 'translate', 'trivia', 'tv', 'vision', 'voice', 'weather', 'wiki', 'wikidata', 'workspace', 'summary', 'math', 'memorybank', 'speech', 'imagegen', 'proactive', 'exchangerates', 'spotify', 'codechallenge', 'recipe', 'context', 'transcribe', 'automateworkflow', 'forex', 'typing', 'feed', 'streak', 'starfield', 'jokeapi'];
 const cmdList = [...new Set([...Object.keys(commandRegistry).map(cmd => cmd.split(' ')[0]), ...customCommands])];
 
 
@@ -874,9 +874,6 @@ function handleGamesCommand(args) {
             case 'slots': return handleSlotsCommand();
             case 'rps': return handleRpsCommand([]);
             case 'hack': return handleHackCommand(['127.0.0.1'], 'hack-' + Date.now());
-            case 'snake': return handleSnakeCommand([]);
-            case 'scramble': return handleScrambleCommand([]);
-            case 'binary': return handleBinaryCommand([]);
             default: return "Game not implemented yet.";
         }
 
@@ -4201,7 +4198,7 @@ function handleEnter(e) {
             outputHTML = `<div id="${outId}">${handleBrainstormCommand(args, outId)}</div>`;
         } else if (cmdName === 'advice') {
             outputHTML = `<div id="${outId}">${handleAdviceCommand(outId)}</div>`;
-        } else if (cmdName === 'ajoke') {
+        } else if (cmdName === 'jokeapi') {
             outputHTML = `<div id="${outId}">${handleJokeApiCommand(outId)}</div>`;
         } else if (cmdName === 'alias') {
             outputHTML = handleAliasCommand(args);
@@ -4421,6 +4418,8 @@ function handleEnter(e) {
             outputHTML = handleNeofetchCommand();
         } else if (cmdName === 'theme') {
             outputHTML = handleThemeCommand(args);
+        } else if (cmdName === 'starfield') {
+            outputHTML = handleStarfieldCommand();
         } else if (cmdName === 'bttf') {
             outputHTML = handleBttfCommand();
         } else if (cmdName === 'timetravel') {
@@ -4548,7 +4547,7 @@ function handleEnter(e) {
             outputHTML = handleInteractCommand(args);
         } else if (cmdName === 'suggest') {
             outputHTML = handleSuggestCommand();
-        } else if (cmdName === 'ajoke') {
+        } else if (cmdName === 'jokeapi') {
             outputHTML = `<div id="${outId}">${handleJokeApiCommand(outId)}</div>`;
         } else if (cmdName === 'remind') {
             outputHTML = handleRemindCommand(args, outId);
